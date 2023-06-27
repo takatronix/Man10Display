@@ -1,0 +1,28 @@
+serverName: 'xlab'
+broadcast: false
+
+
+# Set your OBS output resolution according to this option below.
+# 1 = 256x128 = 2 maps
+# 2 = 512x256 = 8 maps
+# 3 = 1024x512 = 32 maps
+# 4 = 2048x1024 = 128 maps
+# 5 = 4096x2048 = 512 maps
+size: 5
+stream_port: 1337
+
+switchTime: 60
+servers:
+  - man10
+  - shigen
+  - casino
+  - login
+  - market
+mc1:
+  camera: camera1
+mc2:
+  camera: camera2
+mc3:
+  camera: camera3
+mc4:
+  camera: camera4

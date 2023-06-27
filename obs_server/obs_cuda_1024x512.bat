@@ -1,0 +1,1 @@
+ffmpeg -y -f dshow -thread_queue_size 4096 -hwaccel cuda -hwaccel_output_format cuda -i video="OBS Virtual Camera" -f rawvideo -c:v mjpeg -qscale:v 16 -r 20 udp://127.0.0.1:1337

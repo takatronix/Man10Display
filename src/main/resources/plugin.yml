@@ -1,0 +1,13 @@
+name: Man10Display
+version: '1.0'
+main: red.man10.display.Main
+api-version: 1.19
+prefix: MDS
+authors: [takatronix]
+description: Minecraft Display System
+website: https://man10.red
+commands:
+  mdisplay:
+    default: op
+  mds:
+    default: op
