@@ -10,8 +10,11 @@ class CreateStreamCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
 
 
+        var name = args[1]
+        var width = args[2].toInt()
+        var height = args[3].toInt()
+        var port = args[4].toInt()
 
-        sender.sendMessage(Main.prefix + "§a§l create stream")
         return true
     }
 }

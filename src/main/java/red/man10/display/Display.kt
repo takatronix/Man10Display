@@ -23,6 +23,7 @@ open class Display : Savable {
         get() = width * height
 
     override fun save(config: YamlConfiguration, path: String) {
+        config.set("$path.class", javaClass.name)
         config.set("$path.name", name)
         config.set("$path.mapIdList", mapIdList)
         config.set("$path.width", width)

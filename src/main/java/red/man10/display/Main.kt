@@ -7,21 +7,25 @@ import red.man10.display.commands.Man10DisplayCommand
 
 class Main : JavaPlugin() ,Listener {
 
+
     companion object {
         val version = "2023/4/10"
         var commandSender: CommandSender? = null
         val prefix = "§e[Man10Display]"
 
         lateinit var plugin: JavaPlugin
+        lateinit var displayManager:DisplayManager
 
     }
 
     override fun onEnable() {
         plugin = this
+
         val commandRouter = Man10DisplayCommand()
         getCommand("mdisplay")!!.setExecutor(commandRouter)
         getCommand("mdisplay")!!.tabCompleter = commandRouter
 
+        displayManager = DisplayManager(this)
 
 
         info("Man10 Display Plugin Enabled")
