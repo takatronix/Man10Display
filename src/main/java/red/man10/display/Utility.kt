@@ -26,7 +26,6 @@ fun error(message:String,sender:CommandSender? = null) {
     sender?.sendMessage(message)
 }
 
-
 fun showModeTitle(player:Player, title:String, subtitle:String="", fadeIn:Int = 10, stay:Int=100, fadeOut:Int = 10){
     player.sendTitle(title,subtitle,fadeIn,stay,fadeOut)
 }

@@ -1,25 +1,39 @@
 package red.man10.display
 
+import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.*
+import java.awt.image.BufferedImage
+import java.util.function.Consumer
 
 interface Savable {
     fun save(config: YamlConfiguration, path: String)
     fun load(config: YamlConfiguration, path: String)
 }
 
-open class Display : Savable {
+open class Display(name: String, width: Int, height: Int) : Savable {
     var name:String = ""
-    var mapIdList = mutableListOf<Int>()
+    open var mapIdList = mutableListOf<Int>()
     var width: Int = 1
     var height: Int = 1
-    var location:Location? = null
+    var bufferedImage: BufferedImage? = null
 
+    var location:Location? = null
+    init {
+        this.name = name
+        this.width = width
+        this.height = height
+        this.bufferedImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+    }
+
+
+    open fun deinit(){}
+    open var modified = false
     val imageWidth: Int
         get() = width * 128
     val imageHeight: Int
         get() = height * 128
-    val mapCount:Int
+    open val mapCount:Int
         get() = width * height
 
     override fun save(config: YamlConfiguration, path: String) {
@@ -40,7 +54,7 @@ open class Display : Savable {
     }
 
     override fun load(config: YamlConfiguration, path: String) {
-        mapIdList = (config.getIntegerList("$path.mapIdList") ?: mutableListOf()).toMutableList()
+        mapIdList = (config.getIntegerList("$path.mapIdList")  ?: mutableListOf()).toMutableList()
         name = config.getString("$path.name") ?: ""
         width = config.getInt("$path.width")
         height = config.getInt("$path.height")
@@ -59,7 +73,7 @@ open class Display : Savable {
     }
 }
 
-class ImageDisplay : Display() {
+class ImageDisplay(name: String, width: Int, height: Int) : Display(name,width,height) {
     var imageUrl = ""
 
     override fun save(config: YamlConfiguration, path: String) {
@@ -73,17 +87,29 @@ class ImageDisplay : Display() {
     }
 }
 
-class StreamDisplay : Display() {
-    var streamUrl: String = ""
-    var udpPort: Int = 0
+class StreamDisplay(name: String, width: Int, height: Int, port: Int) : Display(name,width,height){
+    private var port: Int = 0
+    private var videoCaptureServer = VideoCaptureServer(port)
+
+    init {
+        this.port = port
+        videoCaptureServer.onFrame(Consumer { bufferedImage ->
+            this.bufferedImage = bufferedImage
+            modified = true
+        })
+        videoCaptureServer.start()
+    }
+    override fun deinit() {
+        videoCaptureServer.deinit()
+    }
 
     override fun save(config: YamlConfiguration, path: String) {
         super.save(config, path)
-        config.set("$path.udpPort", udpPort)
+        config.set("$path.port", port)
     }
 
     override fun load(config: YamlConfiguration, path: String) {
         super.load(config, path)
-        udpPort = config.getInt("$path.udpPort")
+        port = config.getInt("$path.port")
     }
 }

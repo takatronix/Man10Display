@@ -48,32 +48,6 @@ object Command : CommandExecutor, TabCompleter {
     private fun test(label:String, sender: CommandSender, args: Array<out String>){
     }
 
-    private fun config(label:String,sender: CommandSender,args: Array<out String>){
-
-        if(args.size != 3){
-            showHelp(label,sender)
-            return
-        }
-
-        val cmd = args[1]
-        val name = args[2]
-        when(cmd){
-            "create_stream" -> {
-                val width = args[3].toInt()
-                val height = args[4].toInt()
-                val port = args[5].toInt()
-                val display = StreamDisplay()
-                display.name = name
-                display.width = width
-                display.height = height
-                display.udpPort = port
-
-//                DisplayManager.addDisplay(display)
-                sender.sendMessage("created")
-            }
-        }
-    }
-
     // タブ補完
     override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<out String>?): List<String>? {
 

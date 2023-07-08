@@ -9,5 +9,3 @@ website: https://man10.red
 commands:
   mdisplay:
     default: op
-  mds:
-    default: op

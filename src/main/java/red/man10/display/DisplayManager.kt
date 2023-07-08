@@ -1,17 +1,74 @@
 package red.man10.display
 
-import org.bukkit.Location
+import com.comphenix.protocol.PacketType
+import com.comphenix.protocol.ProtocolLibrary
+import com.comphenix.protocol.ProtocolManager
+import com.comphenix.protocol.events.PacketContainer
+import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
+import org.bukkit.Material
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
+import org.bukkit.event.server.MapInitializeEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.MapMeta
+import org.bukkit.map.MapCanvas
+import org.bukkit.map.MapRenderer
+import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 
-class DisplayManager(main: JavaPlugin) {
-    val displayFolder = "displays"
+
+class DisplayManager(main: JavaPlugin)   : Listener {
+ //   lateinit var plugin: JavaPlugin
+    private val displayFolder = "displays"
     private val displays = mutableListOf<Display>()
+
+    init {
+        Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Main.plugin, Runnable {
+            sendMapPacketsTask()
+        }, 0, 1)
+    }
+
+    public fun deinit(){
+        for (display in displays) {
+            display.deinit()
+        }
+        displays.clear()
+    }
+
+
+    private fun sendMapPacketsTask(){
+        for (display in displays) {
+            for (mapId in display.mapIdList) {
+                //val mapView = Bukkit.getMap(mapId) ?: continue
+                for (player in Bukkit.getOnlinePlayers()) {
+                  //  player.sendMap(mapView)
+
+                }
+            }
+        }
+    }
+
+    fun sendMapData(player: Player?, mapId: Int, data: ByteArray?) {
+        val protocolManager: ProtocolManager = ProtocolLibrary.getProtocolManager()
+        val mapPacket: PacketContainer = protocolManager.createPacket(PacketType.Play.Server.MAP)
+        mapPacket.getIntegers().write(0, mapId)
+        mapPacket.getByteArrays().write(0, data)
+        try {
+            protocolManager.sendServerPacket(player, mapPacket)
+        } catch (e: InvocationTargetException) {
+            throw RuntimeException("Failed to send packet", e)
+        }
+    }
+
+
 
     val names:ArrayList<String>
         get() {
@@ -21,11 +78,17 @@ class DisplayManager(main: JavaPlugin) {
             }
             return nameList
         }
+    fun findDisplay(mapId: Int): Display? {
+        for (display in displays) {
+            if(display.mapIdList.contains(mapId)){
+                return display
+            }
+        }
+        return null
+    }
 
+    private fun getDisplay(name: String): Display? {
 
-    lateinit var plugin: JavaPlugin
-
-    fun getDisplay(name: String): Display? {
         for (display in displays) {
             if (display.name == name) {
                 return display
@@ -33,48 +96,91 @@ class DisplayManager(main: JavaPlugin) {
         }
         return null
     }
-    fun getNameList(): List<String> {
-        val nameList = mutableListOf<String>()
-        for (display in displays) {
-            nameList.add(display.name)
-        }
-        return nameList
-    }
 
-    fun addDisplay(display: Display) {
-        displays.add(display)
-    }
+    fun create(player: Player,display: Display) : Boolean{
 
-    fun printDisplays() {
-        for (display in displays) {
-            when (display) {
-                is ImageDisplay -> {
-                  //  println("red.man10.display.ImageDisplay with width ${display.width}, height ${display.height}, format ${display.imageFormat}")
-                }
-                is StreamDisplay -> {
-                    println("red.man10.display.StreamDisplay with stream URL ${display.streamUrl}")
-                }
-                else -> {
-                    println("Unknown display type")
-                }
-            }
-        }
-    }
-    init{
-        plugin = main
-
-    }
-
-    fun delete(p: CommandSender, kitName: String): Boolean {val userdata = File(Main.plugin!!.dataFolder, File.separator + displayFolder)
-        val f = File(userdata, File.separator + kitName + ".yml")
-        if (!f.exists()) {
-            p.sendMessage("キットは存在しない:$kitName")
+        if(getDisplay(display.name) != null){
+            player.sendMessage(Main.prefix + "§a§l ${display.name} already exists")
             return false
         }
-        f.delete()
-        info( "${kitName}キットを削除しました",p)
+        if(!createMaps(display,player,display.width,display.height)){
+            return false
+        }
+        displays.add(display)
         return true
     }
+    fun delete(p: CommandSender, name: String): Boolean {
+        val display = getDisplay(name) ?: return false
+        displays.remove(display)
+        return true
+    }
+    fun map(p: CommandSender, name: String): Boolean {
+        val display = getDisplay(name) ?: return false
+        return true
+    }
+
+    private fun createMaps(display:Display, player: Player, xSize:Int, ySize:Int): Boolean {
+        for(y in 0 until ySize){
+            for(x in 0 until xSize){
+                val mapView = Bukkit.getServer().createMap(player.world)
+                mapView.scale = MapView.Scale.CLOSEST
+                mapView.isUnlimitedTracking = true
+
+                //for (renderer in mapView.renderers) {
+                //    mapView.removeRenderer(renderer)
+                // }
+
+                val itemStack = ItemStack(Material.FILLED_MAP)
+                val mapMeta = itemStack.itemMeta as MapMeta
+                mapMeta.mapView = mapView
+
+                val name = "${display.name}_${x}_${y}_${mapView.id}"
+                mapMeta.displayName(Component.text(name))
+                itemStack.itemMeta = mapMeta
+
+                player.world.dropItem(player.location,itemStack)
+                display.mapIdList.add(mapView.id)
+                player.sendMessage("$name created")
+            }
+        }
+        return true
+    }
+
+    fun hasImage(mapId: Int): Boolean {
+        for (display in displays) {
+            if(display.mapIdList.contains(mapId)){
+                return true
+            }
+        }
+        return false
+    }
+
+
+    @EventHandler
+    fun onMapInitEvent(event: MapInitializeEvent) {
+        Bukkit.getLogger().info("MapInitializeEvent:" + event.map.id)
+        if (hasImage(event.map.id)) {
+            val view = event.map
+            for (renderer in view.renderers)
+                view.removeRenderer(renderer)
+            view.scale = MapView.Scale.CLOSEST
+            view.isTrackingPosition = false
+            view.isUnlimitedTracking = false
+
+            Bukkit.getLogger().info("レンダリング登録:" + event.map.id)
+
+            view.addRenderer(object : MapRenderer(true) {
+                override fun render(mapView: MapView, mapCanvas: MapCanvas, player: Player) {
+         //           val scr = ScreenPart(view.id,getImage(view.id)!!)
+          //          Main.videoCapture?.renderCanvas(scr, mapCanvas)
+                }
+            })
+
+        }
+    }
+
+
+
 
     fun save(p: CommandSender): Boolean {
         val file = File(Main.plugin.dataFolder, File.separator + "displays.yml")

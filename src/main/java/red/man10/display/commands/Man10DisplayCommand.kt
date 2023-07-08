@@ -2,7 +2,6 @@ package red.man10.display.commands
 
 import red.man10.commandrouter.*
 import red.man10.display.Main
-import red.man10.display.Main.Companion.plugin
 
 class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
 {
@@ -11,11 +10,11 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         registerEvents()
         pluginPrefix = Main.prefix
     }
-    fun registerEvents() {
+    private fun registerEvents() {
         setNoPermissionEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lYou don't have permission") }
         setNoCommandFoundEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lThat command does not exist.") }
     }
-    fun registerCommands() {
+    private fun registerCommands() {
 
         // reload command
         addCommand(
@@ -45,8 +44,6 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Delete display with specified id")
                 .executor(DeleteCommand(Main.plugin))
         )
-
-
 
     }
 }
