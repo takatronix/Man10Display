@@ -1,10 +1,20 @@
 package red.man10.display
 
+import com.comphenix.protocol.PacketType
+import com.comphenix.protocol.ProtocolLibrary
+import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.entity.Player
+import org.bukkit.map.MapPalette
 import java.awt.image.BufferedImage
+import java.lang.reflect.InvocationTargetException
 import java.util.function.Consumer
+
+
+private const val mapWidth = 128
+private const val mapHeight = 128
 
 interface Savable {
     fun save(config: YamlConfiguration, path: String)
@@ -13,10 +23,12 @@ interface Savable {
 
 open class Display(name: String, width: Int, height: Int) : Savable {
     var name:String = ""
-    open var mapIdList = mutableListOf<Int>()
+    var mapIds = mutableListOf<Int>()
     var width: Int = 1
     var height: Int = 1
     var bufferedImage: BufferedImage? = null
+    private var mapCache = mutableListOf<ByteArray?>()
+    private var sentMapCount: Long = 0
 
     var location:Location? = null
     init {
@@ -24,22 +36,132 @@ open class Display(name: String, width: Int, height: Int) : Savable {
         this.width = width
         this.height = height
         this.bufferedImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+        for (i in 0 until this.mapCount) {
+            mapCache.add(null)
+        }
+    }
+
+    open fun deinit(){
+        bufferedImage?.flush()
+        mapCache.clear()
+    }
+    open val imageWidth: Int
+        get() = width * mapWidth
+    open val imageHeight: Int
+        get() = height * mapHeight
+    private val mapCount:Int
+        get() = width * height
+
+    fun updateMapCache() {
+        bufferedImage?.let { image ->
+            var index = 0
+            for (y in 0 until image.height step mapHeight) {
+                for (x in 0 until image.width step mapWidth) {
+                    val tileImage = image.getSubimage(x, y, mapWidth, mapHeight)
+                    val tileBytes = MapPalette.imageToBytes(tileImage)
+                    mapCache[index] = tileBytes
+                    index++
+                }
+            }
+        }
+    }
+
+    fun createMapPacket(mapId: Int, data: ByteArray?): PacketContainer {
+        if (data == null) {
+            throw NullPointerException("data is null")
+        }
+        val packet = PacketContainer(PacketType.Play.Server.MAP)
+        val packetModifier = packet.modifier
+        packetModifier.writeDefaults()
+        val packetIntegers = packet.integers
+        if (packetModifier.size() > 5) {
+            packetIntegers.write(1, 0).write(2, 0).write(3, 128).write(4, 128)
+            packet.byteArrays.write(0, data)
+        } else {
+            try {
+                val lastArg = packetModifier.size() - 1
+                packetModifier.write(
+                    lastArg, packetModifier.getField(lastArg).type.getConstructor(
+                        Int::class.javaPrimitiveType,
+                        Int::class.javaPrimitiveType,
+                        Int::class.javaPrimitiveType,
+                        Int::class.javaPrimitiveType,
+                        ByteArray::class.java
+                    ).newInstance(0, 0, 128, 128, data)
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        packetIntegers.write(0, mapId)
+        packet.bytes.write(0, 0.toByte())
+        val packetBooleans = packet.booleans
+        if (packetBooleans.size() > 0) {
+            packetBooleans.write(0, false)
+        }
+        return packet
+    }
+
+    fun sendMapData(player: Player, mapId: Int, mapData: ByteArray) {
+
+        val packet = createMapPacket(mapId,mapData)
+        // Send the packet to the player
+        try {
+            Main.protocolManager.sendServerPacket(player, packet)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 
-    open fun deinit(){}
-    open var modified = false
-    val imageWidth: Int
-        get() = width * 128
-    val imageHeight: Int
-        get() = height * 128
-    open val mapCount:Int
-        get() = width * height
+    fun sendMapPacketsToPlayers() {
 
-    override fun save(config: YamlConfiguration, path: String) {
+        for (player in Bukkit.getOnlinePlayers()) {
+            for (i in 0 until mapCount) {
+                val mapData = mapCache.getOrNull(i) ?: continue
+                sendMapData(player, mapIds[i], mapData)
+                sentMapCount++
+            }
+        }
+
+        /*
+        val protocolManager = ProtocolLibrary.getProtocolManager()
+
+        try{
+            val packets = mapIds.mapIndexedNotNull { index, mapId ->
+                val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
+                val mapPacket = protocolManager.createPacket(PacketType.Play.Server.MAP)
+                mapPacket.integers.write(0, mapId)
+                mapPacket.byteArrays.write(0, mapData)
+                mapPacket
+            }
+
+
+            for (player in Bukkit.getOnlinePlayers()) {
+                for (packet in packets) {
+                    try {
+                        protocolManager.sendServerPacket(player, packet)
+                        sentMapCount++
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+
+
+        }catch (E:Exception){
+            E.printStackTrace()
+        }
+*/
+    }
+
+
+
+            override fun save(config: YamlConfiguration, path: String) {
         config.set("$path.class", javaClass.name)
         config.set("$path.name", name)
-        config.set("$path.mapIdList", mapIdList)
+        config.set("$path.mapIdList", mapIds)
         config.set("$path.width", width)
         config.set("$path.height", height)
         // Location情報を保存
@@ -54,7 +176,7 @@ open class Display(name: String, width: Int, height: Int) : Savable {
     }
 
     override fun load(config: YamlConfiguration, path: String) {
-        mapIdList = (config.getIntegerList("$path.mapIdList")  ?: mutableListOf()).toMutableList()
+        mapIds = (config.getIntegerList("$path.mapIds")  ?: mutableListOf()).toMutableList()
         name = config.getString("$path.name") ?: ""
         width = config.getInt("$path.width")
         height = config.getInt("$path.height")
@@ -93,12 +215,15 @@ class StreamDisplay(name: String, width: Int, height: Int, port: Int) : Display(
 
     init {
         this.port = port
-        videoCaptureServer.onFrame(Consumer { bufferedImage ->
-            this.bufferedImage = bufferedImage
-            modified = true
+        videoCaptureServer.onFrame(Consumer { image ->
+            this.bufferedImage = image
+            updateMapCache()
+            sendMapPacketsToPlayers()
         })
         videoCaptureServer.start()
+        Bukkit.getLogger().info("§a§l[Man10Display] server opened port: $port")
     }
+
     override fun deinit() {
         videoCaptureServer.deinit()
     }

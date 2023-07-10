@@ -1,4 +1,5 @@
 package red.man10.display
+import org.bukkit.Bukkit
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -94,6 +95,7 @@ open class VideoCaptureServer(udpPort:Int) : Thread() , AutoCloseable {
         if (socket != null){
             socket!!.disconnect()
             socket!!.close()
+            Bukkit.getLogger().info("§a§l[Man10Display] socket closed ${socket?.port}")
         }
     }
 }

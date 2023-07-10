@@ -1,9 +1,5 @@
 package red.man10.display
 
-import com.comphenix.protocol.PacketType
-import com.comphenix.protocol.ProtocolLibrary
-import com.comphenix.protocol.ProtocolManager
-import com.comphenix.protocol.events.PacketContainer
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -11,24 +7,17 @@ import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
-import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.server.MapInitializeEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
-import org.bukkit.map.MapCanvas
-import org.bukkit.map.MapRenderer
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
-import java.lang.reflect.InvocationTargetException
 
 
 class DisplayManager(main: JavaPlugin)   : Listener {
- //   lateinit var plugin: JavaPlugin
     private val displayFolder = "displays"
     private val displays = mutableListOf<Display>()
-
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
         Bukkit.getScheduler().runTaskTimerAsynchronously(Main.plugin, Runnable {
@@ -46,28 +35,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     private fun sendMapPacketsTask(){
         for (display in displays) {
-            for (mapId in display.mapIdList) {
-                //val mapView = Bukkit.getMap(mapId) ?: continue
-                for (player in Bukkit.getOnlinePlayers()) {
-                  //  player.sendMap(mapView)
 
-                }
-            }
+
         }
     }
-
-    fun sendMapData(player: Player?, mapId: Int, data: ByteArray?) {
-        val protocolManager: ProtocolManager = ProtocolLibrary.getProtocolManager()
-        val mapPacket: PacketContainer = protocolManager.createPacket(PacketType.Play.Server.MAP)
-        mapPacket.getIntegers().write(0, mapId)
-        mapPacket.getByteArrays().write(0, data)
-        try {
-            protocolManager.sendServerPacket(player, mapPacket)
-        } catch (e: InvocationTargetException) {
-            throw RuntimeException("Failed to send packet", e)
-        }
-    }
-
 
 
     val names:ArrayList<String>
@@ -80,7 +51,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     fun findDisplay(mapId: Int): Display? {
         for (display in displays) {
-            if(display.mapIdList.contains(mapId)){
+            if(display.mapIds.contains(mapId)){
                 return display
             }
         }
@@ -139,47 +110,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 itemStack.itemMeta = mapMeta
 
                 player.world.dropItem(player.location,itemStack)
-                display.mapIdList.add(mapView.id)
+                display.mapIds.add(mapView.id)
                 player.sendMessage("$name created")
             }
         }
         return true
     }
-
-    fun hasImage(mapId: Int): Boolean {
-        for (display in displays) {
-            if(display.mapIdList.contains(mapId)){
-                return true
-            }
-        }
-        return false
-    }
-
-
-    @EventHandler
-    fun onMapInitEvent(event: MapInitializeEvent) {
-        Bukkit.getLogger().info("MapInitializeEvent:" + event.map.id)
-        if (hasImage(event.map.id)) {
-            val view = event.map
-            for (renderer in view.renderers)
-                view.removeRenderer(renderer)
-            view.scale = MapView.Scale.CLOSEST
-            view.isTrackingPosition = false
-            view.isUnlimitedTracking = false
-
-            Bukkit.getLogger().info("レンダリング登録:" + event.map.id)
-
-            view.addRenderer(object : MapRenderer(true) {
-                override fun render(mapView: MapView, mapCanvas: MapCanvas, player: Player) {
-         //           val scr = ScreenPart(view.id,getImage(view.id)!!)
-          //          Main.videoCapture?.renderCanvas(scr, mapCanvas)
-                }
-            })
-
-        }
-    }
-
-
 
 
     fun save(p: CommandSender): Boolean {
@@ -187,8 +123,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val config = YamlConfiguration.loadConfiguration(file)
 
         try{
-
-
             for(display in displays){
                 display.save(config,display.name)
             }

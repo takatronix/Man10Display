@@ -85,7 +85,7 @@ object Command : CommandExecutor, TabCompleter {
                 // 名称に　display.name + x + yを入れる
 
                 // mapidをdisplayに保存
-                display.mapIdList.add(mapView.id)
+                display.mapIds.add(mapView.id)
             }
         }
 
