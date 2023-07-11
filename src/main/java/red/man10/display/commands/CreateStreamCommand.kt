@@ -15,10 +15,11 @@ class CreateStreamCommand(private var plugin: JavaPlugin) : CommandExecutor {
             val width = args[2].toInt()
             val height = args[3].toInt()
             val port = args[4].toInt()
-            if(!Main.displayManager.create(sender as Player,StreamDisplay(name, width, height, port))){
+            if(!Main.displayManager.create(sender as Player, StreamDisplay(name, width, height, port))){
                 sender.sendMessage(Main.prefix + "§a§l $name already exists")
                 return false
             }
+            Main.displayManager.save(sender)
             sender.sendMessage(Main.prefix + "§a§l $name created")
         }catch (e:Exception){
             sender.sendMessage(Main.prefix + "§c§l{e.message}")

@@ -45,6 +45,7 @@ fun sendActionText(player:Player?,message:String?){
     val component = TextComponent.fromLegacyText(message)
     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component[0])
 }
+
 // オフラインのプレイヤーを返す
 fun getOfflinePlayer(sender: CommandSender, name:String?): Player?{
     if(name == null){
@@ -94,34 +95,6 @@ class Utility {
         return radian * 180 / Math.PI
     }
 
-
-    /*
-    private fun getAngle(player: Player): Double {
-        var rotation = ((player.location.yaw - 90) % 360).toDouble()
-        if (rotation < 0) {
-            rotation += 360.0
-        }
-        return rotation
-    }
-*/
-    /*
-    fun sendTitle(player: Player, text: String, fadeInTime: Int, showTime: Int, fadeOutTime: Int, color: net.md_5.bungee.api.ChatColor) {
-        val chatTitle: IChatBaseComponent =
-            ChatSerializer.a("{\"text\": \"" + text + "\",color:" + color.name().toLowerCase() + "}")
-        val title = PacketPlayOutTitle(EnumTitleAction.TITLE, chatTitle)
-        val length = PacketPlayOutTitle(fadeInTime, showTime, fadeOutTime)
-        (player as CraftPlayer).getHandle().playerConnection.sendPacket(title)
-        (player as CraftPlayer).getHandle().playerConnection.sendPacket(length)
-    }
-    fun sAB(player: Player, message: String) {
-        val p: CraftPlayer = player as CraftPlayer
-        val b: ChatMessageType = net.minecraft.server.v1_14_R1.ChatMessageType.GAME_INFO
-        val cbc: IChatBaseComponent = ChatSerializer.a("{\"text\": \"$message\"}")
-        val ppoc = PacketPlayOutChat(cbc, b)
-        (p as CraftPlayer).getHandle().playerConnection.sendPacket(ppoc)
-    }
-
-*/
     @Throws(IllegalStateException::class)
     fun toBase64(inventory: Inventory): String? {
         return try {
