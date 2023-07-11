@@ -18,18 +18,18 @@ class Main : JavaPlugin() ,Listener {
         lateinit var plugin: JavaPlugin
         lateinit var displayManager: DisplayManager
         lateinit var protocolManager: ProtocolManager
+        lateinit var commandRouter:Man10DisplayCommand
     }
 
     override fun onEnable() {
         plugin = this
-
         protocolManager = ProtocolLibrary.getProtocolManager()
-        val commandRouter = Man10DisplayCommand()
-        getCommand("mdisplay")!!.setExecutor(commandRouter)
-        getCommand("mdisplay")!!.tabCompleter = commandRouter
-
         displayManager = DisplayManager(this)
 
+        commandRouter = Man10DisplayCommand()
+        getCommand("mdisplay")!!.setExecutor(commandRouter)
+        getCommand("mdisplay")!!.tabCompleter = commandRouter
+        saveDefaultConfig()
 
         info("Man10 Display Plugin Enabled")
     }

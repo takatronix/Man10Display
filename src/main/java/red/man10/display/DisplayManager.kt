@@ -77,6 +77,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         if(!createMaps(display,player,display.width,display.height)){
             return false
         }
+        display.location = player.location
         displays.add(display)
         return true
     }
@@ -126,6 +127,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
             for(display in displays){
                 display.save(config,display.name)
             }
+            config.save(file)
         }catch (e:Exception){
             error(e.message!!,p)
             return false

@@ -8,6 +8,7 @@ import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
+import red.man10.display.dither.DitherLookupUtil
 import java.awt.image.BufferedImage
 import java.lang.reflect.InvocationTargetException
 import java.util.function.Consumer
@@ -158,7 +159,7 @@ open class Display(name: String, width: Int, height: Int) : Savable {
 
 
 
-            override fun save(config: YamlConfiguration, path: String) {
+    override fun save(config: YamlConfiguration, path: String) {
         config.set("$path.class", javaClass.name)
         config.set("$path.name", name)
         config.set("$path.mapIdList", mapIds)
@@ -217,6 +218,8 @@ class StreamDisplay(name: String, width: Int, height: Int, port: Int) : Display(
         this.port = port
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
+
+
             updateMapCache()
             sendMapPacketsToPlayers()
         })

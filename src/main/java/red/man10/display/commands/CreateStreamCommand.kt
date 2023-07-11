@@ -19,6 +19,9 @@ class CreateStreamCommand(private var plugin: JavaPlugin) : CommandExecutor {
                 sender.sendMessage(Main.prefix + "§a§l $name already exists")
                 return false
             }
+
+            Main.displayManager.save(sender)
+
             sender.sendMessage(Main.prefix + "§a§l $name created")
         }catch (e:Exception){
             sender.sendMessage(Main.prefix + "§c§l{e.message}")
