@@ -15,7 +15,7 @@ import java.io.File
 
 
 class DisplayManager(main: JavaPlugin)   : Listener {
-    private val displays = mutableListOf<Display>()
+    val displays = mutableListOf<Display>()
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
         Bukkit.getScheduler().runTaskTimerAsynchronously(Main.plugin, Runnable {

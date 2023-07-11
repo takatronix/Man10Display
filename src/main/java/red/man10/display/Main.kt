@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.commands.Man10DisplayCommand
+import red.man10.display.itemframe.ItemFrameListener
 
 
 class Main : JavaPlugin() ,Listener {
@@ -29,6 +30,9 @@ class Main : JavaPlugin() ,Listener {
         getCommand("mdisplay")!!.tabCompleter = commandRouter
         saveDefaultConfig()
         displayManager.load()
+        //額縁保護用のイベント
+        server.pluginManager.registerEvents(ItemFrameListener(),this)
+
         info("Man10 Display Plugin Enabled")
     }
 

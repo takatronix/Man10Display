@@ -60,6 +60,14 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Show display list")
                 .executor(ListCommand(Main.plugin))
         )
+        // itemframe staff command
+        addCommand(
+            CommandObject()
+                .argument(CommandArgument().allowedString("staff"))
+                .permission("red.man10.display.op")
+                .explanation("Give staff for break item frame")
+                .executor(ItemFrameRemoveStaffCommand(Main.plugin))
+        )
 
     }
 }
