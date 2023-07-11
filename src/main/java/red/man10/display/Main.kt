@@ -37,7 +37,6 @@ class Main : JavaPlugin() ,Listener {
         displayManager.deinit()
     }
 
-
     fun saveConfigData(configData: ConfigData) {
 //        plugin.config.set("broadcast", configData.broadcast)
  //       plugin.config.set("switchTime", configData.switchTime)

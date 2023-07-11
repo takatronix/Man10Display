@@ -101,7 +101,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 val mapMeta = itemStack.itemMeta as MapMeta
                 mapMeta.mapView = mapView
 
-                val name = "${display.name}_${x}_${y}_${mapView.id}"
+                val name = "${x+1}-${y+1}"
                 mapMeta.displayName(Component.text(name))
                 itemStack.itemMeta = mapMeta
 
@@ -112,9 +112,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
         return true
     }
-
-
-
 
     fun save(p: CommandSender): Boolean {
         val file = File(Main.plugin.dataFolder, File.separator + "displays.yml")
@@ -144,7 +141,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 error("class not found: $className",p)
                 continue
             }
-            if(className == StreamDisplay::class.java.simpleName){
+            if(className == StreamDisplay::class.simpleName){
                 val display = StreamDisplay(config,key)
                 displays.add(display)
                 continue

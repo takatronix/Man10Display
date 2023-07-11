@@ -15,7 +15,7 @@ private const val mapWidth = 128
 private const val mapHeight = 128
 
 open class Display {
-    var name: String = ""
+    var name:String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
     var height: Int = 1
@@ -48,8 +48,7 @@ open class Display {
             mapCache.add(null)
         }
     }
-
-    open fun deinit() {
+    open fun deinit(){
         bufferedImage?.flush()
         mapCache.clear()
     }
@@ -115,7 +114,6 @@ open class Display {
         }
     }
 
-
     fun sendMapPacketsToPlayers() {
 
         for (player in Bukkit.getOnlinePlayers()) {
@@ -159,8 +157,40 @@ open class Display {
     }
 
 
+        /*
+        val protocolManager = ProtocolLibrary.getProtocolManager()
+
+        try{
+            val packets = mapIds.mapIndexedNotNull { index, mapId ->
+                val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
+                val mapPacket = protocolManager.createPacket(PacketType.Play.Server.MAP)
+                mapPacket.integers.write(0, mapId)
+                mapPacket.byteArrays.write(0, mapData)
+                mapPacket
+            }
+
+
+            for (player in Bukkit.getOnlinePlayers()) {
+                for (packet in packets) {
+                    try {
+                        protocolManager.sendServerPacket(player, packet)
+                        sentMapCount++
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+
+
+        }catch (E:Exception){
+            E.printStackTrace()
+        }
+*/
+
+
     open fun save(config: YamlConfiguration, path: String) {
-        config.set("$path.class", javaClass.name)
+        config.set("$path.class", javaClass.simpleName)
         config.set("$path.name", name)
         config.set("$path.mapIdList", mapIds)
         config.set("$path.width", width)
@@ -227,11 +257,10 @@ class StreamDisplay: Display{
     private fun startServer(){
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
-            updateMapCache()
-            sendMapPacketsToPlayers()
+            this.updateMapCache()
+            this.sendMapPacketsToPlayers()
         })
-        videoCaptureServer.start()
-        info("§a§l[Man10Display] server opened port: $port")
+        info("§e§l [Man10Display] server started on port $port")
     }
 
     override fun deinit() {

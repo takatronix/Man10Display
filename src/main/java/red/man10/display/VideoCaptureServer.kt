@@ -9,11 +9,11 @@ import java.net.DatagramSocket
 import java.util.function.Consumer
 import javax.imageio.ImageIO
 
-open class VideoCaptureServer(udpPort:Int) : Thread() , AutoCloseable {
+open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     private var running = true
     private var socket: DatagramSocket? = null
     private var frameConsumer: Consumer<BufferedImage>? = null
-
+    private var portNo = port
     override fun close() {
         running = false
         socket?.let {
@@ -29,7 +29,7 @@ open class VideoCaptureServer(udpPort:Int) : Thread() , AutoCloseable {
         try {
             val buffer = ByteArray(1024 * 1024) // 1 mb
 
-            socket = DatagramSocket(1234)
+            socket = DatagramSocket(portNo)
             val packet = DatagramPacket(buffer, buffer.size)
             val output = ByteArrayOutputStream()
             var soi = 0 // start of image / SOI
@@ -95,7 +95,7 @@ open class VideoCaptureServer(udpPort:Int) : Thread() , AutoCloseable {
         if (socket != null){
             socket!!.disconnect()
             socket!!.close()
-            info("§a§l[Man10Display] socket closed ${socket?.port}")
+            info("socket closed ${socket?.port}")
         }
     }
 }
