@@ -8,6 +8,7 @@ class CommandArgument {
     var alias: String? = null
     private val allowedStrings = ArrayList<String?>()
     private var allowedStringsFunction: Function<CommandSender, ArrayList<String>>? = null
+    private var aliasStringsFunction: Function<CommandSender, java.util.ArrayList<String>>? = null
     private var argumentParser: Function<String, Boolean>? = null
     var rootCommandObject: CommandObject? = null
 
@@ -36,12 +37,30 @@ class CommandArgument {
         return this
     }
 
-    fun getAllowedStrings(sender: CommandSender?): List<String?> {
+    fun aliasStringsFunction(function: Function<CommandSender, ArrayList<String>>): CommandArgument {
+        aliasStringsFunction = function
+        return this
+    }
+
+    fun getAllowedStrings(sender: CommandSender?): ArrayList<String?> {
         val results = ArrayList(allowedStrings)
         if (allowedStringsFunction != null) {
             try {
                 results.addAll(allowedStringsFunction!!.apply(sender!!))
             } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+        return results
+    }
+
+    fun getAliasStrings(sender: CommandSender?): ArrayList<String> {
+        val results = ArrayList<String>()
+        if (alias != null) results.add(alias!!)
+        if (aliasStringsFunction != null) {
+            try {
+                results.addAll(aliasStringsFunction!!.apply(sender!!))
+            } catch (e: java.lang.Exception) {
                 e.printStackTrace()
             }
         }

@@ -60,12 +60,21 @@ class CommandObject {
         return this
     }
 
+    fun argument(alias: String?, function: Function<CommandSender, ArrayList<String>>, strict: Boolean): CommandObject {
+        if (strict) {
+            arguments.add(CommandArgument()
+                    .alias(alias)
+                    .allowedStringsFunction(function))
+        } else {
+            arguments.add(CommandArgument()
+                    .alias(alias)
+                    .aliasStringsFunction(function))
+        }
+        return this
+    }
+
     fun argument(alias: String?, function: Function<CommandSender, ArrayList<String>>): CommandObject {
-        arguments.add(
-            CommandArgument()
-                .alias(alias)
-                .allowedStringsFunction(function)
-        )
+        this.argument(alias, function, true)
         return this
     }
 

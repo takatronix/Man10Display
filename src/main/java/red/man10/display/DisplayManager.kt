@@ -47,7 +47,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
             }
             return nameList
         }
-    private fun getDisplay(name: String): Display? {
+    fun getDisplay(name: String): Display? {
         displays.find { it.name == name }?.let {
             return it
         }
@@ -83,6 +83,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
         return true
     }
+
     private fun createMaps(display:Display, player: Player, xSize:Int, ySize:Int): Boolean {
         for(y in 0 until ySize){
             for(x in 0 until xSize){
@@ -107,6 +108,15 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     }
 
     private fun getMaps(display:Display, player: Player): Boolean {
+        val items = getMaps(display)
+        for(item in items){
+            player.world.dropItem(player.location,item)
+        }
+        return true
+    }
+
+    fun getMaps(display: Display): ArrayList<ItemStack> {
+        val items = arrayListOf<ItemStack>()
         for(y in 0 until display.height){
             for(x in 0 until display.width){
                 val itemStack = ItemStack(Material.FILLED_MAP)
@@ -116,10 +126,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 val name = "${x+1}-${y+1}"
                 mapMeta.displayName(Component.text(name))
                 itemStack.itemMeta = mapMeta
-                player.world.dropItem(player.location,itemStack)
+                items.add(itemStack)
             }
         }
-        return true
+        return items
     }
 
     fun save(p: CommandSender): Boolean {

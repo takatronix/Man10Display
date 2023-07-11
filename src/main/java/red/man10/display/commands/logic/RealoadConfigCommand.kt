@@ -1,4 +1,4 @@
-package red.man10.display.commands
+package red.man10.display.commands.logic
 
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor

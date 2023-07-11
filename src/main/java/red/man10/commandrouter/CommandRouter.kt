@@ -6,7 +6,6 @@ import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.TabCompleter
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
@@ -68,10 +67,8 @@ abstract class CommandRouter(plugin: JavaPlugin, private val commandName: String
                     continue
             }
             if (commandObject.validOption(args, sender)) {
-                val argument = commandObject.arguments[args.size - 1]
-                if (argument!!.alias != null)
-                    result.add(argument.alias!!)
-
+                val argument = commandObject.arguments[args.size - 1] ?: continue
+                result.addAll(argument.getAliasStrings(sender))
                 result.addAll(argument.getAllowedStrings(sender).filterNotNull())
             }
         }

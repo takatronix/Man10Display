@@ -1,4 +1,4 @@
-package red.man10.display.commands
+package red.man10.display.commands.logic
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Material

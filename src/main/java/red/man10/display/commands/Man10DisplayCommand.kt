@@ -1,7 +1,10 @@
 package red.man10.display.commands
 
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 import red.man10.commandrouter.*
 import red.man10.display.Main
+import red.man10.display.commands.logic.*
 
 class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
 {
@@ -10,6 +13,23 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         registerEvents()
         pluginPrefix = Main.prefix
     }
+
+    private fun getTargetBlockCoordinatesArgument(commandSender: CommandSender, range: Int): ArrayList<String>{
+        val player = commandSender as Player
+        val block = player.getTargetBlock(range) ?: return arrayListOf("None", "None", "None")
+        var x = block.location.blockX
+        var y = block.location.blockY
+        var z = block.location.blockZ
+        val orientation = player.getTargetBlockFace(range) ?: return arrayListOf("None", "None", "None")
+        val modX = orientation.modX
+        val modY = orientation.modY
+        val modZ = orientation.modZ
+        x += modX
+        y += modY
+        z += modZ
+        return arrayListOf(x.toString(), y.toString(), z.toString())
+    }
+
     private fun registerEvents() {
         setNoPermissionEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lYou don't have permission") }
         setNoCommandFoundEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lThat command does not exist") }
@@ -19,7 +39,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // reload command
         addCommand(
             CommandObject()
-                .argument(CommandArgument().allowedString("reload"))
+                .prefix("reload")
                 .permission("red.man10.display.op")
                 .explanation("Reload the config file")
                 .executor(ReloadConfigCommand(Main.plugin))
@@ -28,7 +48,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // create stream command
         addCommand(
             CommandObject()
-                .argument(CommandArgument().allowedString("create_stream"))
+                .prefix("create_stream")
                 .argument("name").argument("x_size(1-24)").argument("y_size(1-24)").argument("port(1-65535)")
                 .permission("red.man10.display.op")
                 .explanation("Create a display for streaming")
@@ -37,7 +57,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // delete command
         addCommand(
             CommandObject()
-                .argument(CommandArgument().allowedString("delete"))
+                .prefix("delete")
                 .argument("display_name") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Delete display with specified id")
@@ -46,7 +66,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // map command
         addCommand(
             CommandObject()
-                .argument(CommandArgument().allowedString("map"))
+                .prefix("map")
                 .argument("display_name") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Get maps with specified id")
@@ -55,7 +75,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // list command
         addCommand(
             CommandObject()
-                .argument(CommandArgument().allowedString("list"))
+                .prefix("list")
                 .permission("red.man10.display.op")
                 .explanation("Show display list")
                 .executor(ListCommand(Main.plugin))
@@ -63,11 +83,29 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // itemframe staff command
         addCommand(
             CommandObject()
-                .argument(CommandArgument().allowedString("staff"))
+                .prefix("staff")
                 .permission("red.man10.display.op")
                 .explanation("Give staff for break item frame")
                 .executor(ItemFrameRemoveStaffCommand(Main.plugin))
         )
 
+        // place item frames command
+        addCommand(
+            CommandObject()
+                    .prefix("place")
+                    .argument("display_name") { _ -> Main.displayManager.names }
+                    .argument("x1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0])}, false)
+                    .argument("y1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1])}, false)
+                    .argument("z1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2])}, false)
+                    .argument("x2", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0])}, false)
+                    .argument("y2", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1])}, false)
+                    .argument("z2", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2])}, false)
+                    .argument("direction", "positive", "negative")
+                    .permission("red.man10.display.op")
+                    .explanation("Place item frames")
+                    .executor(PlaceCommand(Main.plugin))
+        )
+
     }
+
 }
