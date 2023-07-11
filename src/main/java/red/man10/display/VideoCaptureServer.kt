@@ -1,5 +1,4 @@
 package red.man10.display
-import org.bukkit.Bukkit
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -24,10 +23,38 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     fun onFrame(consumer: Consumer<BufferedImage>) {
         frameConsumer = consumer
     }
-
-    override fun run() {
+     fun run2() {
         try {
-            val buffer = ByteArray(1024 * 1024) // 1 mb
+            val buffer = ByteArray(2024 * 1024) // 1 mb
+            socket = DatagramSocket(portNo)
+            val packet = DatagramPacket(buffer, buffer.size)
+            val output = ByteArrayOutputStream()
+            while (running) {
+                socket!!.receive(packet)
+                val data = packet.data
+                if (data[0].toInt() == -1 && data[1].toInt() == -40) { // FF D8 (start of file)
+                    if (output.size() > 0) {
+                        try {
+                            val stream = ByteArrayInputStream(output.toByteArray())
+                            val bufferedImage = ImageIO.read(stream)
+                            bufferedImage?.let {
+                                frameConsumer?.accept(it)
+                            }
+                        } catch (e: IOException) {
+                        }
+                        output.reset()
+                    }
+                }
+                output.write(data, 0, packet.length)
+                //System.out.println(String.format("%02X", data[0])+" "+String.format("%02X", data[1]));
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+     override fun run() {
+        try {
+            val buffer = ByteArray(3024 * 2024)
 
             socket = DatagramSocket(portNo)
             val packet = DatagramPacket(buffer, buffer.size)

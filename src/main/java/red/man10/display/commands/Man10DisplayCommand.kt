@@ -34,7 +34,6 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Create a display for streaming")
                 .executor(CreateStreamCommand(Main.plugin))
         )
-
         // delete command
         addCommand(
             CommandObject()
@@ -43,6 +42,23 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .permission("red.man10.display.op")
                 .explanation("Delete display with specified id")
                 .executor(DeleteCommand(Main.plugin))
+        )
+        // map command
+        addCommand(
+            CommandObject()
+                .argument(CommandArgument().allowedString("map"))
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("Get maps with specified id")
+                .executor(MapCommand(Main.plugin))
+        )
+        // list command
+        addCommand(
+            CommandObject()
+                .argument(CommandArgument().allowedString("list"))
+                .permission("red.man10.display.op")
+                .explanation("Show display list")
+                .executor(ListCommand(Main.plugin))
         )
 
     }

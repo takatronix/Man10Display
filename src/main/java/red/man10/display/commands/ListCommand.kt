@@ -3,16 +3,13 @@ package red.man10.display.commands
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.Main
 
-class MapCommand(private var plugin: JavaPlugin) : CommandExecutor {
+class ListCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         try{
-            val name = args[1]
-            if(!Main.displayManager.getMaps(sender as Player,name)){
-                sender.sendMessage(Main.prefix + "§a§l $name does not exist")
+            if(!Main.displayManager.showList(sender)){
                 return false
             }
         }catch (e:Exception){

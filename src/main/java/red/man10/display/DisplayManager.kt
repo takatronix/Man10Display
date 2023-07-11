@@ -15,7 +15,6 @@ import java.io.File
 
 
 class DisplayManager(main: JavaPlugin)   : Listener {
-    private val displayFolder = "displays"
     private val displays = mutableListOf<Display>()
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
@@ -33,8 +32,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     private fun sendMapPacketsTask(){
         for (display in displays) {
-
-
+            if(display.modified){
+                display.modified = false
+                display.sendMapPacketsToPlayers()
+            }
         }
     }
 
@@ -67,14 +68,21 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     }
     fun delete(p: CommandSender, name: String): Boolean {
         val display = getDisplay(name) ?: return false
+        display.deinit()
         displays.remove(display)
         return true
     }
-    fun map(p: CommandSender, name: String): Boolean {
+    fun getMaps(player: Player, name: String): Boolean {
         val display = getDisplay(name) ?: return false
+        return getMaps(display,player)
+    }
+    fun showList(p: CommandSender): Boolean {
+        p.sendMessage(Main.prefix + "§a§l Display List")
+        for (display in displays) {
+            p.sendMessage("§a§l ${display.name}")
+        }
         return true
     }
-
     private fun createMaps(display:Display, player: Player, xSize:Int, ySize:Int): Boolean {
         for(y in 0 until ySize){
             for(x in 0 until xSize){
@@ -93,6 +101,22 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 player.world.dropItem(player.location,itemStack)
                 display.mapIds.add(mapView.id)
                 player.sendMessage("$name created")
+            }
+        }
+        return true
+    }
+
+    private fun getMaps(display:Display, player: Player): Boolean {
+        for(y in 0 until display.height){
+            for(x in 0 until display.width){
+                val itemStack = ItemStack(Material.FILLED_MAP)
+                val mapMeta = itemStack.itemMeta as MapMeta
+                mapMeta.mapView = Bukkit.getMap(display.mapIds[y * display.width + x])
+
+                val name = "${x+1}-${y+1}"
+                mapMeta.displayName(Component.text(name))
+                itemStack.itemMeta = mapMeta
+                player.world.dropItem(player.location,itemStack)
             }
         }
         return true

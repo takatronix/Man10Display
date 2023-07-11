@@ -21,6 +21,7 @@ open class Display {
     var height: Int = 1
     var location: Location? = null
     var bufferedImage: BufferedImage? = null
+    var modified = false
     private var mapCache = mutableListOf<ByteArray?>()
     private var sentMapCount: Long = 0
     open val imageWidth: Int
@@ -103,7 +104,7 @@ open class Display {
         return packet
     }
 
-    fun sendMapData(player: Player, mapId: Int, mapData: ByteArray) {
+    private fun sendMapData(player: Player, mapId: Int, mapData: ByteArray) {
 
         val packet = createMapPacket(mapId, mapData)
         // Send the packet to the player
@@ -206,10 +207,10 @@ open class Display {
     }
 
     open fun load(config: YamlConfiguration, key: String) {
+        name = key
         mapIds = (config.getIntegerList("$key.mapIds") ?: mutableListOf()).toMutableList()
         width = config.getInt("$key.width")
         height = config.getInt("$key.height")
-
         // load location data
         val worldName = config.getString("$key.location.world")
         val x = config.getDouble("$key.location.x")
@@ -256,7 +257,7 @@ class StreamDisplay: Display{
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
             this.updateMapCache()
-            this.sendMapPacketsToPlayers()
+            this.modified = true
         })
         videoCaptureServer.start()
         info("Server started on port $port")
@@ -271,8 +272,8 @@ class StreamDisplay: Display{
         config.set("$path.port", port)
     }
 
-    override fun load(config: YamlConfiguration, path: String) {
-        super.load(config, path)
-        port = config.getInt("$path.port")
+    override fun load(config: YamlConfiguration, name: String) {
+        super.load(config, name)
+        port = config.getInt("$name.port")
     }
 }
