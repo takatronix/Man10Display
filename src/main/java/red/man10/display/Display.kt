@@ -191,8 +191,7 @@ open class Display {
 
     open fun save(config: YamlConfiguration, path: String) {
         config.set("$path.class", javaClass.simpleName)
-        config.set("$path.name", name)
-        config.set("$path.mapIdList", mapIds)
+        config.set("$path.mapIds", mapIds)
         config.set("$path.width", width)
         config.set("$path.height", height)
         // Location情報を保存
@@ -208,7 +207,6 @@ open class Display {
 
     open fun load(config: YamlConfiguration, key: String) {
         mapIds = (config.getIntegerList("$key.mapIds") ?: mutableListOf()).toMutableList()
-        name = config.getString("$key.name") ?: ""
         width = config.getInt("$key.width")
         height = config.getInt("$key.height")
 
@@ -260,7 +258,8 @@ class StreamDisplay: Display{
             this.updateMapCache()
             this.sendMapPacketsToPlayers()
         })
-        info("§e§l [Man10Display] server started on port $port")
+        videoCaptureServer.start()
+        info("Server started on port $port")
     }
 
     override fun deinit() {

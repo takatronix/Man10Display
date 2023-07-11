@@ -12,7 +12,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
     }
     private fun registerEvents() {
         setNoPermissionEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lYou don't have permission") }
-        setNoCommandFoundEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lThat command does not exist.") }
+        setNoCommandFoundEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lThat command does not exist") }
     }
     private fun registerCommands() {
 

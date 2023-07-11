@@ -91,12 +91,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     }
 
     fun deinit() {
-        running = false
-        if (socket != null){
-            socket!!.disconnect()
-            socket!!.close()
-            info("socket closed ${socket?.port}")
-        }
+        close()
     }
 }
 

@@ -12,7 +12,7 @@ class Main : JavaPlugin() ,Listener {
     companion object {
         val version = "2023/4/10"
         var commandSender: CommandSender? = null
-        val prefix = "§e[Man10Display]"
+        val prefix = "[Man10Display]"
         lateinit var plugin: JavaPlugin
         lateinit var displayManager: DisplayManager
         lateinit var protocolManager: ProtocolManager

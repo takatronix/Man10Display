@@ -31,14 +31,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         displays.clear()
     }
 
-
     private fun sendMapPacketsTask(){
         for (display in displays) {
 
 
         }
     }
-
 
     val names:ArrayList<String>
         get() {
@@ -48,15 +46,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
             }
             return nameList
         }
-    fun findDisplay(mapId: Int): Display? {
-        for (display in displays) {
-            if(display.mapIds.contains(mapId)){
-                return display
-            }
-        }
-        return null
-    }
-
     private fun getDisplay(name: String): Display? {
         displays.find { it.name == name }?.let {
             return it
@@ -93,10 +82,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 mapView.scale = MapView.Scale.CLOSEST
                 mapView.isUnlimitedTracking = true
 
-                //for (renderer in mapView.renderers) {
-                //    mapView.removeRenderer(renderer)
-                // }
-
                 val itemStack = ItemStack(Material.FILLED_MAP)
                 val mapMeta = itemStack.itemMeta as MapMeta
                 mapMeta.mapView = mapView
@@ -131,50 +116,14 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     fun load(p: CommandSender? = null ): Boolean {
         val file = File(Main.plugin.dataFolder, File.separator + "displays.yml")
         val config = YamlConfiguration.loadConfiguration(file)
-
         deinit()
-
-        // configから読み込み
         for (key in config.getKeys(false)) {
-            var className = config.getString("$key.class")
-            if(className == null){
-                error("class not found: $className",p)
-                continue
-            }
+            val className = config.getString("$key.class")
             if(className == StreamDisplay::class.simpleName){
                 val display = StreamDisplay(config,key)
                 displays.add(display)
                 continue
             }
-        }
-        return true
-    }
-
-    fun getList(): List<String> {
-        val folder = File(Main.plugin!!.dataFolder, File.separator + displayFolder)
-        val files = folder.listFiles()
-        val list = mutableListOf<String>()
-        for (f in files) {
-            if (f.isFile) {
-                var filename = f.name
-                //      隠しファイルは無視
-                if (filename.substring(0, 1).equals(".", ignoreCase = true)) {
-                    continue
-                }
-                val point = filename.lastIndexOf(".")
-                if (point != -1) {
-                    filename = filename.substring(0, point)
-                }
-                list.add(filename)
-            }
-        }
-        return list
-    }
-
-    fun showList(p: CommandSender): Boolean {
-        p.sendMessage("§e§l========== 登録済みのキット =========")
-        getList().forEachIndexed { index, s ->
-            p.sendMessage("§e§l${index+1}: §f§l$s")
         }
         return true
     }
