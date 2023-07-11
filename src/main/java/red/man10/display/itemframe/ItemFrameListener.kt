@@ -74,7 +74,7 @@ class ItemFrameListener: Listener {
 
     @EventHandler
     fun entityDamageEvent(e: EntityDamageEvent){
-        if (e.isCancelled)return
+        if (e.isCancelled || e is EntityDamageByEntityEvent)return
         getEntityAsMap(e.entity)?:return
         e.isCancelled = true
     }
