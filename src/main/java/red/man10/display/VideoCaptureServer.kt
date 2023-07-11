@@ -13,6 +13,9 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     private var socket: DatagramSocket? = null
     private var frameConsumer: Consumer<BufferedImage>? = null
     private var portNo = port
+    public var frameReceivedCount: Long = 0
+    public var frameReceivedTime: Long = 0
+    public var frameErrorCount: Long = 0
     override fun close() {
         running = false
         socket?.let {
@@ -23,39 +26,10 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     fun onFrame(consumer: Consumer<BufferedImage>) {
         frameConsumer = consumer
     }
-     fun run2() {
-        try {
-            val buffer = ByteArray(2024 * 1024) // 1 mb
-            socket = DatagramSocket(portNo)
-            val packet = DatagramPacket(buffer, buffer.size)
-            val output = ByteArrayOutputStream()
-            while (running) {
-                socket!!.receive(packet)
-                val data = packet.data
-                if (data[0].toInt() == -1 && data[1].toInt() == -40) { // FF D8 (start of file)
-                    if (output.size() > 0) {
-                        try {
-                            val stream = ByteArrayInputStream(output.toByteArray())
-                            val bufferedImage = ImageIO.read(stream)
-                            bufferedImage?.let {
-                                frameConsumer?.accept(it)
-                            }
-                        } catch (e: IOException) {
-                        }
-                        output.reset()
-                    }
-                }
-                output.write(data, 0, packet.length)
-                //System.out.println(String.format("%02X", data[0])+" "+String.format("%02X", data[1]));
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
+
      override fun run() {
         try {
-            val buffer = ByteArray(3024 * 2024)
-
+            val buffer = ByteArray(1000 * 1000)
             socket = DatagramSocket(portNo)
             val packet = DatagramPacket(buffer, buffer.size)
             val output = ByteArrayOutputStream()
@@ -101,8 +75,10 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
                             bufferedImage?.let {
                                 frameConsumer?.accept(it)
                             }
+                            frameReceivedCount++
                         } catch (e: IOException) {
                             e.printStackTrace()
+                            frameErrorCount++
                         }
 
                         // reset

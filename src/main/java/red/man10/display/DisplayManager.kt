@@ -34,7 +34,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         for (display in displays) {
             if(display.modified){
                 display.modified = false
-                display.sendMapPacketsToPlayers()
+                display.sendMapPacketsToPlayers2()
             }
         }
     }

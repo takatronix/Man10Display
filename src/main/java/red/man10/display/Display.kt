@@ -2,6 +2,7 @@ package red.man10.display
 
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
+import net.kyori.adventure.bossbar.BossBar
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
@@ -9,6 +10,8 @@ import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
 import java.awt.image.BufferedImage
 import java.util.function.Consumer
+import kotlin.system.measureNanoTime
+import kotlin.system.measureTimeMillis
 
 // minecraft map size
 private const val mapWidth = 128
@@ -23,7 +26,23 @@ open class Display {
     var bufferedImage: BufferedImage? = null
     var modified = false
     private var mapCache = mutableListOf<ByteArray?>()
-    private var sentMapCount: Long = 0
+    // statistics
+    var sentMapCount: Long = 0
+    var sentBytes: Long = 0
+    var lastCacheTime: Long = 0
+    var frameReceivedCount: Long = 0
+    var frameReceivedTime: Long = 0
+    var startTime :Long =0
+
+    fun resetStats(){
+        sentMapCount = 0
+        sentBytes = 0
+        lastCacheTime = 0
+        frameReceivedCount = 0
+        frameReceivedTime = 0
+        startTime = System.currentTimeMillis()
+    }
+
     open val imageWidth: Int
         get() = width * mapWidth
     open val imageHeight: Int
@@ -56,13 +75,15 @@ open class Display {
 
     fun updateMapCache() {
         bufferedImage?.let { image ->
-            var index = 0
-            for (y in 0 until image.height step mapHeight) {
-                for (x in 0 until image.width step mapWidth) {
-                    val tileImage = image.getSubimage(x, y, mapWidth, mapHeight)
-                    val tileBytes = MapPalette.imageToBytes(tileImage)
-                    mapCache[index] = tileBytes
-                    index++
+            lastCacheTime = measureTimeMillis {
+                var index = 0
+                for (y in 0 until image.height step mapHeight) {
+                    for (x in 0 until image.width step mapWidth) {
+                        val tileImage = image.getSubimage(x, y, mapWidth, mapHeight)
+                        val tileBytes = MapPalette.imageToBytes(tileImage)
+                        mapCache[index] = tileBytes
+                        index++
+                    }
                 }
             }
         }
@@ -77,7 +98,7 @@ open class Display {
         packetModifier.writeDefaults()
         val packetIntegers = packet.integers
         if (packetModifier.size() > 5) {
-            packetIntegers.write(1, 0).write(2, 0).write(3, 128).write(4, 128)
+            packetIntegers.write(1, 0).write(2, 0).write(3, mapWidth).write(4, mapHeight)
             packet.byteArrays.write(0, data)
         } else {
             try {
@@ -116,7 +137,6 @@ open class Display {
     }
 
     fun sendMapPacketsToPlayers() {
-
         for (player in Bukkit.getOnlinePlayers()) {
             for (i in 0 until mapCount) {
                 val mapData = mapCache.getOrNull(i) ?: continue
@@ -124,78 +144,45 @@ open class Display {
                 sentMapCount++
             }
         }
-
-        /*
-        val protocolManager = ProtocolLibrary.getProtocolManager()
-
-        try{
-            val packets = mapIds.mapIndexedNotNull { index, mapId ->
-                val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
-                val mapPacket = protocolManager.createPacket(PacketType.Play.Server.MAP)
-                mapPacket.integers.write(0, mapId)
-                mapPacket.byteArrays.write(0, mapData)
-                mapPacket
-            }
-
-
-            for (player in Bukkit.getOnlinePlayers()) {
-                for (packet in packets) {
-                    try {
-                        protocolManager.sendServerPacket(player, packet)
-                        sentMapCount++
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-
-
-
-        }catch (E:Exception){
-            E.printStackTrace()
-        }
-*/
     }
 
+    // パケットをまとめて送る
+    fun sendMapPacketsToPlayers2() {
+        // Convert cache of display to packet list
+        val packets = mapIds.mapIndexedNotNull { index, mapId ->
+            val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
+            val mapPacket = createMapPacket(mapId, mapData)
+            mapPacket
+        }
 
-        /*
-        val protocolManager = ProtocolLibrary.getProtocolManager()
-
-        try{
-            val packets = mapIds.mapIndexedNotNull { index, mapId ->
-                val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
-                val mapPacket = protocolManager.createPacket(PacketType.Play.Server.MAP)
-                mapPacket.integers.write(0, mapId)
-                mapPacket.byteArrays.write(0, mapData)
-                mapPacket
-            }
-
-
-            for (player in Bukkit.getOnlinePlayers()) {
-                for (packet in packets) {
-                    try {
-                        protocolManager.sendServerPacket(player, packet)
-                        sentMapCount++
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+        for (player in Bukkit.getOnlinePlayers()) {
+            for (packet in packets) {
+                try {
+                    Main.protocolManager.sendServerPacket(player, packet)
+                    sentMapCount++
+                    sentBytes += packet.byteArrays.size()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
-
-
-
-        }catch (E:Exception){
-            E.printStackTrace()
         }
-*/
+    }
 
+    fun drawText(text: String, x: Int, y: Int, color: Int) {
+        bufferedImage?.let { image ->
+            val graphics = image.graphics
+            graphics.color = java.awt.Color(color)
+            graphics.drawString(text, x, y)
+            modified = true
+        }
+    }
 
     open fun save(config: YamlConfiguration, path: String) {
         config.set("$path.class", javaClass.simpleName)
         config.set("$path.mapIds", mapIds)
         config.set("$path.width", width)
         config.set("$path.height", height)
-        // Location情報を保存
+        // save locaiton data
         location?.let { loc ->
             config.set("$path.location.world", loc.world?.name)
             config.set("$path.location.x", loc.x)
@@ -256,6 +243,7 @@ class StreamDisplay: Display{
     private fun startServer(){
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
+            this.drawInformation()
             this.updateMapCache()
             this.modified = true
         })
@@ -275,5 +263,20 @@ class StreamDisplay: Display{
     override fun load(config: YamlConfiguration, name: String) {
         super.load(config, name)
         port = config.getInt("$name.port")
+    }
+
+    fun drawInformation(){
+        var y = 20
+        val step = 20
+        drawText("SentMapCount:$sentMapCount",0,y, color = 0x00ff00)
+        y += step
+        drawText("lastCacheTime:$lastCacheTime(ms)",0,y, color = 0x00ff00)
+
+        y += step
+        drawText("frameReceivedCount:${videoCaptureServer.frameReceivedCount}",0,y, color = 0x00ff00)
+        y += step
+        drawText("frameErrorCount:${videoCaptureServer.frameErrorCount}",0,y, color = 0x00ff00)
+
+
     }
 }
