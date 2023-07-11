@@ -20,7 +20,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
         Bukkit.getScheduler().runTaskTimerAsynchronously(Main.plugin, Runnable {
             sendMapPacketsTask()
-        }, 0, 1)
+        }, 0, 2)
     }
 
     public fun deinit(){
