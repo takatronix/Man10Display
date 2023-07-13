@@ -37,8 +37,8 @@ class Main : JavaPlugin() ,Listener {
     }
 
     override fun onDisable() {
-        info("Disabling Man10 Display Plugin")
         displayManager.deinit()
+        info("Disabled Man10 Display Plugin")
     }
 
     fun saveConfigData(configData: ConfigData) {

@@ -40,8 +40,6 @@ class ItemFrameListener: Listener {
             return
         }
 
-
-
         if (remover is Player){
             val hand = remover.inventory.itemInMainHand
             if (isStaff(hand)){

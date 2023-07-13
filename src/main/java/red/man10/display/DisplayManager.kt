@@ -18,9 +18,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
+        /*
         Bukkit.getScheduler().runTaskTimerAsynchronously(Main.plugin, Runnable {
             sendMapPacketsTask()
         }, 0, 1)
+        */
+
     }
 
     public fun deinit(){
@@ -30,15 +33,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         displays.clear()
     }
 
-    private fun sendMapPacketsTask(){
-        for (display in displays) {
-            if(display.modified){
-                display.modified = false
-                display.sendMapPacketsToPlayers2()
-            }
-        }
-    }
-
     val names:ArrayList<String>
         get() {
             val nameList = arrayListOf<String>()
@@ -46,6 +40,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 nameList.add(display.name)
             }
             return nameList
+        }
+    val parameterKeys:ArrayList<String>
+        get() {
+            return arrayListOf("fps","interval","refresh")
         }
     fun getDisplay(name: String): Display? {
         displays.find { it.name == name }?.let {
@@ -160,5 +158,13 @@ class DisplayManager(main: JavaPlugin)   : Listener {
             }
         }
         return true
+    }
+
+    fun set(sender: CommandSender, displayName: String, key: String, value: String): Boolean {
+        val display = getDisplay(displayName) ?: return false
+        val ret = display.set(sender,key,value)
+        if(ret)
+            save(sender)
+        return ret
     }
 }

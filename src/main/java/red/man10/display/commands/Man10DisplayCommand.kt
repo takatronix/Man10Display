@@ -88,7 +88,17 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Give staff for break item frame")
                 .executor(ItemFrameRemoveStaffCommand(Main.plugin))
         )
-
+        // set command
+        addCommand(
+            CommandObject()
+                .prefix("set")
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("key") { _ -> Main.displayManager.parameterKeys }
+                .argument("value")
+                .permission("red.man10.display.op")
+                .explanation("Set parameter")
+                .executor(SetCommand(Main.plugin))
+        )
         // place item frames command
         addCommand(
             CommandObject()

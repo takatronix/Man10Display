@@ -22,6 +22,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
             it.disconnect()
             it.close()
         }
+        frameConsumer = null
     }
     fun onFrame(consumer: Consumer<BufferedImage>) {
         frameConsumer = consumer
@@ -93,8 +94,5 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
         }
     }
 
-    fun deinit() {
-        close()
-    }
 }
 

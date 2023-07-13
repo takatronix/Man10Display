@@ -5,19 +5,26 @@ import com.comphenix.protocol.events.PacketContainer
 import net.kyori.adventure.bossbar.BossBar
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
 import java.awt.image.BufferedImage
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledFuture
+import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
+import kotlin.time.times
 
 // minecraft map size
 private const val mapWidth = 128
 private const val mapHeight = 128
 
-open class Display {
+abstract class Display {
+
     var name:String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
@@ -26,15 +33,19 @@ open class Display {
     var bufferedImage: BufferedImage? = null
     var modified = false
     private var mapCache = mutableListOf<ByteArray?>()
+    private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
+
     // statistics
     var sentMapCount: Long = 0
+    var refreshCount: Long = 0
     var sentBytes: Long = 0
     var lastCacheTime: Long = 0
     var frameReceivedCount: Long = 0
     var frameReceivedTime: Long = 0
-    var startTime :Long =0
+    var startTime :Long = System.currentTimeMillis()
 
     fun resetStats(){
+        refreshCount = 0
         sentMapCount = 0
         sentBytes = 0
         lastCacheTime = 0
@@ -49,6 +60,14 @@ open class Display {
         get() = height * mapHeight
     private val mapCount: Int
         get() = width * height
+    private val currentFPS: Double
+        get() = refreshCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
+    private val fps:Double
+        get() = 1000 / refreshPeriod.toDouble()
+    private val mps:Double
+        get() = sentMapCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
+    private val bps:Int
+        get() = (sentBytes.toDouble() / (System.currentTimeMillis() - startTime) * 1000).toInt() * 8
 
     constructor(name: String, width: Int, height: Int) {
         this.name = name
@@ -67,10 +86,12 @@ open class Display {
         for (i in 0 until this.mapCount) {
             mapCache.add(null)
         }
+        startSendingPacketsTask()
     }
     open fun deinit(){
         bufferedImage?.flush()
         mapCache.clear()
+        stopSendingPacketsTask()
     }
 
     fun updateMapCache() {
@@ -87,6 +108,148 @@ open class Display {
                 }
             }
         }
+    }
+
+    // region draw functions
+    fun drawText(text: String, x: Int, y: Int, color: Int) {
+        bufferedImage?.let { image ->
+            val graphics = image.graphics
+            graphics.color = java.awt.Color(color)
+            graphics.drawString(text, x, y)
+            modified = true
+        }
+    }
+    // endregion
+
+    // region config
+    open fun save(config: YamlConfiguration, key: String) {
+        config.set("$key.class", javaClass.simpleName)
+        config.set("$key.mapIds", mapIds)
+        config.set("$key.width", width)
+        config.set("$key.height", height)
+        config.set("$key.refreshPeriod", refreshPeriod)
+
+        // save locaiton data
+        location?.let { loc ->
+            config.set("$key.location.world", loc.world?.name)
+            config.set("$key.location.x", loc.x)
+            config.set("$key.location.y", loc.y)
+            config.set("$key.location.z", loc.z)
+            config.set("$key.location.yaw", loc.yaw)
+            config.set("$key.location.pitch", loc.pitch)
+        }
+    }
+
+    open fun load(config: YamlConfiguration, key: String) {
+        name = key
+        mapIds = (config.getIntegerList("$key.mapIds") ?: mutableListOf()).toMutableList()
+        width = config.getInt("$key.width")
+        height = config.getInt("$key.height")
+        refreshPeriod = config.getLong("$key.refreshPeriod")
+        if(refreshPeriod == 0L){
+            refreshPeriod = (1000 / 20)
+        }
+        // load location data
+        val worldName = config.getString("$key.location.world")
+        val x = config.getDouble("$key.location.x")
+        val y = config.getDouble("$key.location.y")
+        val z = config.getDouble("$key.location.z")
+        val yaw = config.getDouble("$key.location.yaw").toFloat()
+        val pitch = config.getDouble("$key.location.pitch").toFloat()
+
+        if (worldName != null) {
+            val world = Bukkit.getWorld(worldName)
+            location = Location(world, x, y, z, yaw, pitch)
+        }
+    }
+
+    private fun setInterval(sender:CommandSender, intervalSeconds: Double) {
+        resetStats()
+        refreshPeriod = (intervalSeconds * 1000).toLong()
+        sender.sendMessage("intervalSeconds: $intervalSeconds")
+        sender.sendMessage("refreshPeriod(ms): $refreshPeriod")
+        if (future != null) {
+            stopSendingPacketsTask()
+            startSendingPacketsTask()
+        }
+    }
+
+    private fun setFps(sender:CommandSender, fps: Int) {
+        val intervalSeconds = 1.0 / fps
+        setInterval(sender,intervalSeconds)
+    }
+    fun set(sender: CommandSender, key: String, value: String): Boolean {
+        when (key) {
+            "interval" -> {
+                val intervalSeconds = value.toDoubleOrNull()
+                if (intervalSeconds == null) {
+                    sender.sendMessage("§cInvalid value: $value")
+                    return false
+                }
+                setInterval(sender,intervalSeconds)
+                sender.sendMessage("§aSet interval to $intervalSeconds seconds")
+            }
+            "fps" -> {
+                val fps = value.toIntOrNull()
+                if (fps == null) {
+                    sender.sendMessage("§cInvalid value: $value")
+                    return false
+                }
+                setFps(sender,fps)
+                sender.sendMessage("§aSet fps to $fps")
+            }
+            "refresh" -> {
+                resetStats()
+                modified = true
+                sender.sendMessage("§aReset refresh count")
+            }
+            else -> {
+                sender.sendMessage("§cInvalid key: $key")
+                return false
+            }
+        }
+
+        return true
+    }
+    // endregion
+
+    // region: MapPacketSender
+    private val executor = Executors.newSingleThreadScheduledExecutor()
+    private var future: ScheduledFuture<*>? = null
+
+    private fun startSendingPacketsTask() {
+        stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
+        info("startSendingPacketsTask $refreshPeriod ms")
+        future = executor.scheduleAtFixedRate(
+            {
+                if(!this.modified)
+                    return@scheduleAtFixedRate
+                this.modified = false
+
+                var info = getInfo()
+                info(info[0] + " " + info[1] + " " + info[2] + " " + info[3] + " " + info[4])
+
+                sendMapPacketsToPlayers()
+
+
+                refreshCount ++
+            }, 0, refreshPeriod, TimeUnit.MILLISECONDS)
+    }
+    private fun stopSendingPacketsTask() {
+        future?.cancel(false)
+        future = null
+        info("$name stopSendingPacketsTask")
+    }
+    fun getInfo(): Array<String>{
+        val curFps = String.format("%.1f", currentFPS).toDouble()
+        val fps = String.format("%.1f", this.fps).toDouble()
+        return arrayOf(
+            "$name($width,$height)",
+            "fps:$curFps/$fps",
+            "mps:$mps total:$sentMapCount",
+            "bps:$bps total:${sentBytes / 1024}MB",
+            "lastCacheTime: $lastCacheTime"
+        )
     }
 
     private fun createMapPacket(mapId: Int, data: ByteArray?): PacketContainer {
@@ -136,7 +299,7 @@ open class Display {
         }
     }
 
-    fun sendMapPacketsToPlayers() {
+    fun sendMapPacketsToPlayers_x() {
         for (player in Bukkit.getOnlinePlayers()) {
             for (i in 0 until mapCount) {
                 val mapData = mapCache.getOrNull(i) ?: continue
@@ -146,8 +309,7 @@ open class Display {
         }
     }
 
-    // パケットをまとめて送る
-    fun sendMapPacketsToPlayers2() {
+    private fun sendMapPacketsToPlayers() {
         // Convert cache of display to packet list
         val packets = mapIds.mapIndexedNotNull { index, mapId ->
             val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
@@ -167,116 +329,9 @@ open class Display {
             }
         }
     }
+    // endregion
 
-    fun drawText(text: String, x: Int, y: Int, color: Int) {
-        bufferedImage?.let { image ->
-            val graphics = image.graphics
-            graphics.color = java.awt.Color(color)
-            graphics.drawString(text, x, y)
-            modified = true
-        }
-    }
 
-    open fun save(config: YamlConfiguration, path: String) {
-        config.set("$path.class", javaClass.simpleName)
-        config.set("$path.mapIds", mapIds)
-        config.set("$path.width", width)
-        config.set("$path.height", height)
-        // save locaiton data
-        location?.let { loc ->
-            config.set("$path.location.world", loc.world?.name)
-            config.set("$path.location.x", loc.x)
-            config.set("$path.location.y", loc.y)
-            config.set("$path.location.z", loc.z)
-            config.set("$path.location.yaw", loc.yaw)
-            config.set("$path.location.pitch", loc.pitch)
-        }
-    }
 
-    open fun load(config: YamlConfiguration, key: String) {
-        name = key
-        mapIds = (config.getIntegerList("$key.mapIds") ?: mutableListOf()).toMutableList()
-        width = config.getInt("$key.width")
-        height = config.getInt("$key.height")
-        // load location data
-        val worldName = config.getString("$key.location.world")
-        val x = config.getDouble("$key.location.x")
-        val y = config.getDouble("$key.location.y")
-        val z = config.getDouble("$key.location.z")
-        val yaw = config.getDouble("$key.location.yaw").toFloat()
-        val pitch = config.getDouble("$key.location.pitch").toFloat()
-
-        if (worldName != null) {
-            val world = Bukkit.getWorld(worldName)
-            location = Location(world, x, y, z, yaw, pitch)
-        }
-    }
 }
 
-class ImageDisplay(name: String, width: Int, height: Int) : Display(name,width,height) {
-    var imageUrl = ""
-
-    override fun save(config: YamlConfiguration, path: String) {
-        super.save(config, path)
-        config.set("$path.imageUrl", imageUrl)
-    }
-
-    override fun load(config: YamlConfiguration, path: String) {
-        super.load(config, path)
-        imageUrl = config.getString("$path.imageUrl") ?: ""
-    }
-}
-
-class StreamDisplay: Display{
-    private var port: Int = 0
-    private var videoCaptureServer = VideoCaptureServer(port)
-
-    constructor(name: String, width: Int, height: Int, port: Int) : super(name, width, height){
-        this.port = port
-        startServer()
-    }
-    constructor(config: YamlConfiguration,name:String) : super(config,name){
-        this.load(config,name)
-        startServer()
-    }
-
-    private fun startServer(){
-        videoCaptureServer.onFrame(Consumer { image ->
-            this.bufferedImage = image
-            this.drawInformation()
-            this.updateMapCache()
-            this.modified = true
-        })
-        videoCaptureServer.start()
-        info("Server started on port $port")
-    }
-
-    override fun deinit() {
-        videoCaptureServer.deinit()
-    }
-
-    override fun save(config: YamlConfiguration, path: String) {
-        super.save(config, path)
-        config.set("$path.port", port)
-    }
-
-    override fun load(config: YamlConfiguration, name: String) {
-        super.load(config, name)
-        port = config.getInt("$name.port")
-    }
-
-    fun drawInformation(){
-        var y = 20
-        val step = 20
-        drawText("SentMapCount:$sentMapCount",0,y, color = 0x00ff00)
-        y += step
-        drawText("lastCacheTime:$lastCacheTime(ms)",0,y, color = 0x00ff00)
-
-        y += step
-        drawText("frameReceivedCount:${videoCaptureServer.frameReceivedCount}",0,y, color = 0x00ff00)
-        y += step
-        drawText("frameErrorCount:${videoCaptureServer.frameErrorCount}",0,y, color = 0x00ff00)
-
-
-    }
-}
