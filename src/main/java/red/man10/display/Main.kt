@@ -9,7 +9,7 @@ import red.man10.display.commands.Man10DisplayCommand
 import red.man10.display.itemframe.ItemFrameListener
 
 
-class Main : JavaPlugin() ,Listener {
+class Main : JavaPlugin(), Listener {
     companion object {
         val version = "2023/4/10"
         var commandSender: CommandSender? = null
@@ -17,7 +17,7 @@ class Main : JavaPlugin() ,Listener {
         lateinit var plugin: JavaPlugin
         lateinit var displayManager: DisplayManager
         lateinit var protocolManager: ProtocolManager
-        lateinit var commandRouter:Man10DisplayCommand
+        lateinit var commandRouter: Man10DisplayCommand
     }
 
     override fun onEnable() {
@@ -31,7 +31,7 @@ class Main : JavaPlugin() ,Listener {
         saveDefaultConfig()
         displayManager.load()
         //額縁保護用のイベント
-        server.pluginManager.registerEvents(ItemFrameListener(),this)
+        server.pluginManager.registerEvents(ItemFrameListener(), this)
 
         info("Man10 Display Plugin Enabled")
     }
@@ -42,14 +42,12 @@ class Main : JavaPlugin() ,Listener {
     }
 
     fun saveConfigData(configData: ConfigData) {
-//        plugin.config.set("broadcast", configData.broadcast)
- //       plugin.config.set("switchTime", configData.switchTime)
         plugin.saveConfig()
         showConfigData()
     }
 
     fun showConfigData(sender: CommandSender? = null) {
-   //     info("broadcast:${Main.configData.broadcast}")
-    //    info("switchTime:${Main.configData.switchTime}")
+        //     info("broadcast:${Main.configData.broadcast}")
+        //    info("switchTime:${Main.configData.switchTime}")
     }
 }

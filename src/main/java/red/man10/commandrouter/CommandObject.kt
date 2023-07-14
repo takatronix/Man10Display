@@ -156,7 +156,7 @@ class CommandObject {
         builder.append("$prefix/$baseCommand ")
         for (arg in arguments) {
             val allowedStrings = arg!!.getAllowedStrings(sender)
-            if (allowedStrings!!.size == 1) {
+            if (allowedStrings.size == 1) {
                 builder.append(prefix + allowedStrings[0])
             } else {
                 if (arg.alias != null) builder.append(prefix + "<" + arg.alias + ">")

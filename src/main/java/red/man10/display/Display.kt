@@ -2,7 +2,6 @@ package red.man10.display
 
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
-import net.kyori.adventure.bossbar.BossBar
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.command.CommandSender
@@ -10,28 +9,30 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
 import java.awt.image.BufferedImage
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
-import java.util.function.Consumer
-import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
-import kotlin.time.times
 
 // minecraft map size
 private const val mapWidth = 128
 private const val mapHeight = 128
 
-abstract class Display {
+abstract class Display<DitheringProcessor> {
 
-    var name:String = ""
+    var name: String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
     var height: Int = 1
     var location: Location? = null
     var bufferedImage: BufferedImage? = null
+    var ditherdImage: BufferedImage? = null
     var modified = false
+
+    var dithering = false
+    var showStatus = false
+
+
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
@@ -42,9 +43,9 @@ abstract class Display {
     var lastCacheTime: Long = 0
     var frameReceivedCount: Long = 0
     var frameReceivedTime: Long = 0
-    var startTime :Long = System.currentTimeMillis()
+    var startTime: Long = System.currentTimeMillis()
 
-    fun resetStats(){
+    fun resetStats() {
         refreshCount = 0
         sentMapCount = 0
         sentBytes = 0
@@ -62,11 +63,11 @@ abstract class Display {
         get() = width * height
     private val currentFPS: Double
         get() = refreshCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
-    private val fps:Double
+    private val fps: Double
         get() = 1000 / refreshPeriod.toDouble()
-    private val mps:Double
+    private val mps: Double
         get() = sentMapCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
-    private val bps:Int
+    private val bps: Int
         get() = (sentBytes.toDouble() / (System.currentTimeMillis() - startTime) * 1000).toInt() * 8
 
     constructor(name: String, width: Int, height: Int) {
@@ -88,7 +89,8 @@ abstract class Display {
         }
         startSendingPacketsTask()
     }
-    open fun deinit(){
+
+    open fun deinit() {
         bufferedImage?.flush()
         mapCache.clear()
         stopSendingPacketsTask()
@@ -106,6 +108,7 @@ abstract class Display {
                         index++
                     }
                 }
+
             }
         }
     }
@@ -128,6 +131,8 @@ abstract class Display {
         config.set("$key.width", width)
         config.set("$key.height", height)
         config.set("$key.refreshPeriod", refreshPeriod)
+        config.set("$key.dithering", dithering)
+        config.set("$key.showStatus", showStatus)
 
         // save locaiton data
         location?.let { loc ->
@@ -142,13 +147,16 @@ abstract class Display {
 
     open fun load(config: YamlConfiguration, key: String) {
         name = key
-        mapIds = (config.getIntegerList("$key.mapIds") ?: mutableListOf()).toMutableList()
+        mapIds = config.getIntegerList("$key.mapIds").toMutableList()
         width = config.getInt("$key.width")
         height = config.getInt("$key.height")
         refreshPeriod = config.getLong("$key.refreshPeriod")
-        if(refreshPeriod == 0L){
+        if (refreshPeriod == 0L) {
             refreshPeriod = (1000 / 20)
         }
+        dithering = config.getBoolean("$key.dithering", false)
+        showStatus = config.getBoolean("$key.showStatus", false)
+
         // load location data
         val worldName = config.getString("$key.location.world")
         val x = config.getDouble("$key.location.x")
@@ -163,7 +171,7 @@ abstract class Display {
         }
     }
 
-    private fun setInterval(sender:CommandSender, intervalSeconds: Double) {
+    private fun setInterval(sender: CommandSender, intervalSeconds: Double) {
         resetStats()
         refreshPeriod = (intervalSeconds * 1000).toLong()
         sender.sendMessage("intervalSeconds: $intervalSeconds")
@@ -174,10 +182,11 @@ abstract class Display {
         }
     }
 
-    private fun setFps(sender:CommandSender, fps: Int) {
+    private fun setFps(sender: CommandSender, fps: Double) {
         val intervalSeconds = 1.0 / fps
-        setInterval(sender,intervalSeconds)
+        setInterval(sender, intervalSeconds)
     }
+
     fun set(sender: CommandSender, key: String, value: String): Boolean {
         when (key) {
             "interval" -> {
@@ -186,23 +195,34 @@ abstract class Display {
                     sender.sendMessage("§cInvalid value: $value")
                     return false
                 }
-                setInterval(sender,intervalSeconds)
+                setInterval(sender, intervalSeconds)
                 sender.sendMessage("§aSet interval to $intervalSeconds seconds")
             }
+
             "fps" -> {
-                val fps = value.toIntOrNull()
+                val fps = value.toDoubleOrNull()
                 if (fps == null) {
                     sender.sendMessage("§cInvalid value: $value")
                     return false
                 }
-                setFps(sender,fps)
+                setFps(sender, fps)
                 sender.sendMessage("§aSet fps to $fps")
             }
+
             "refresh" -> {
                 resetStats()
                 modified = true
                 sender.sendMessage("§aReset refresh count")
             }
+
+            "dithering" -> {
+                this.dithering = value.toBoolean()
+            }
+
+            "show_status" -> {
+                this.showStatus = value.toBoolean()
+            }
+
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
                 return false
@@ -222,25 +242,22 @@ abstract class Display {
         info("startSendingPacketsTask $refreshPeriod ms")
         future = executor.scheduleAtFixedRate(
             {
-                if(!this.modified)
+                if (!this.modified)
                     return@scheduleAtFixedRate
                 this.modified = false
-
-                var info = getInfo()
-                info(info[0] + " " + info[1] + " " + info[2] + " " + info[3] + " " + info[4])
-
                 sendMapPacketsToPlayers()
-
-
-                refreshCount ++
-            }, 0, refreshPeriod, TimeUnit.MILLISECONDS)
+                refreshCount++
+            }, 0, refreshPeriod, TimeUnit.MILLISECONDS
+        )
     }
+
     private fun stopSendingPacketsTask() {
         future?.cancel(false)
         future = null
         info("$name stopSendingPacketsTask")
     }
-    fun getInfo(): Array<String>{
+
+    fun getInfo(): Array<String> {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
         return arrayOf(
@@ -329,9 +346,8 @@ abstract class Display {
             }
         }
     }
+
+
     // endregion
 
-
-
 }
-

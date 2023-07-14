@@ -1,7 +1,7 @@
 import org.bukkit.configuration.file.YamlConfiguration
 import red.man10.display.Display
 
-class ImageDisplay(name: String, width: Int, height: Int) : Display(name,width,height) {
+class ImageDisplay(name: String, width: Int, height: Int) : Display<Any?>(name,width,height) {
     var imageUrl = ""
 
     override fun save(config: YamlConfiguration, path: String) {

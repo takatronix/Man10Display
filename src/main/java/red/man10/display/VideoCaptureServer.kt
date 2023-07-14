@@ -13,9 +13,9 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     private var socket: DatagramSocket? = null
     private var frameConsumer: Consumer<BufferedImage>? = null
     private var portNo = port
-    public var frameReceivedCount: Long = 0
-    public var frameReceivedTime: Long = 0
-    public var frameErrorCount: Long = 0
+    var frameReceivedCount: Long = 0
+    var frameReceivedTime: Long = 0
+    var frameErrorCount: Long = 0
     override fun close() {
         running = false
         socket?.let {
@@ -78,7 +78,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
                             }
                             frameReceivedCount++
                         } catch (e: IOException) {
-                            e.printStackTrace()
+                          //  e.printStackTrace()
                             frameErrorCount++
                         }
 

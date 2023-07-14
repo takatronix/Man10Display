@@ -1,8 +1,6 @@
 package red.man10.display.commands.logic
 
-import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
@@ -15,11 +13,11 @@ import red.man10.display.Main
 
 class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        try{
+        try {
             val player = sender as Player
             val name = args[1]
             val display = Main.displayManager.getDisplay(name)
-            if(display == null){
+            if (display == null) {
                 sender.sendMessage(Main.prefix + "§c§l $name does not exist")
                 return false
             }
@@ -31,16 +29,16 @@ class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
             val z2 = args[7].toInt()
             val direction = args[8]
 
-            if(x1 == x2 && y1 == y2 && z1 == z2){
+            if (x1 == x2 && y1 == y2 && z1 == z2) {
                 sender.sendMessage(Main.prefix + "§c§lPlease select a different location for the 2 points")
                 return false
             }
-            if(!(x1 == x2 || z1 == z2)){
+            if (!(x1 == x2 || z1 == z2)) {
                 sender.sendMessage(Main.prefix + "§c§lThe selected area must be a plane")
                 return false
             }
 
-            val directionOfPlane = if(x1 == x2) "x" else "z"
+            val directionOfPlane = if (x1 == x2) "x" else "z"
 
             val xMax = x1.coerceAtLeast(x2)
             val xMin = x1.coerceAtMost(x2)
@@ -53,14 +51,14 @@ class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
             // start from y then depending on the direction of the plane, loop through x or z
             // if the direction is x, loop through x first then z
             val itemFrameCoordinates = mutableListOf<Location>()
-            for(y in yMax downTo yMin) {
+            for (y in yMax downTo yMin) {
                 val isPosDirection = direction == "positive"
                 val range = if (directionOfPlane == "x") {
-                    if(isPosDirection) zMin..zMax else zMax downTo zMin
+                    if (isPosDirection) zMin..zMax else zMax downTo zMin
                 } else {
-                    if(isPosDirection) xMax downTo xMin else xMin..xMax
+                    if (isPosDirection) xMax downTo xMin else xMin..xMax
                 }
-                for(index in range) {
+                for (index in range) {
                     val coordinate = if (directionOfPlane == "x") {
                         Location(player.world, xMin.toDouble(), y.toDouble(), index.toDouble())
                     } else {
@@ -72,20 +70,21 @@ class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
 
 
             val maps: ArrayList<ItemStack> = Main.displayManager.getMaps(display)
-            if(maps.size != itemFrameCoordinates.size){
+            if (maps.size != itemFrameCoordinates.size) {
                 sender.sendMessage(Main.prefix + "§c§The size of the area does not match the number of maps")
                 return false
             }
             // loop through the item frame coordinates and
             // if there is not item frame in the coordinates skip
             // if there is an empty item frame in the coordinates, place the map in the item frame
-            for(i in 0 until itemFrameCoordinates.size){
+            for (i in 0 until itemFrameCoordinates.size) {
                 // if orientation is x, check nearby entities with x = 1
                 // if orientation is z, check nearby entities with z = 1
-                val x = if(directionOfPlane == "x") 1.0 else 0.0
-                val z = if(directionOfPlane == "x") 0.0 else 1.0
-                for(entity in itemFrameCoordinates[i].add((1-x)/2, 0.5, (1-z)/2).getNearbyEntities(x, 0.2, z)){
-                    if(entity.type == EntityType.ITEM_FRAME || entity.type == EntityType.GLOW_ITEM_FRAME){
+                val x = if (directionOfPlane == "x") 1.0 else 0.0
+                val z = if (directionOfPlane == "x") 0.0 else 1.0
+                for (entity in itemFrameCoordinates[i].add((1 - x) / 2, 0.5, (1 - z) / 2)
+                    .getNearbyEntities(x, 0.2, z)) {
+                    if (entity.type == EntityType.ITEM_FRAME || entity.type == EntityType.GLOW_ITEM_FRAME) {
                         entity as ItemFrame
                         entity.setItem(maps[i])
                         break
@@ -95,7 +94,7 @@ class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
             sender.sendMessage(Main.prefix + "§a§l $name placed")
 
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l{e.message}")
             return true
         }

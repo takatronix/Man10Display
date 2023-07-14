@@ -1,35 +1,32 @@
 package red.man10.display
 
-import com.comphenix.protocol.PacketType
-import com.comphenix.protocol.events.PacketContainer
-import net.kyori.adventure.bossbar.BossBar
-import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.entity.Player
-import org.bukkit.map.MapPalette
-import java.awt.image.BufferedImage
+import red.man10.display.imageprocessor.DitheringProcessor
+import red.man10.display.imageprocessor.ImageProcessor
 import java.util.function.Consumer
-import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
 
 
-class StreamDisplay: Display {
+class StreamDisplay : Display<Any?> {
     private var port: Int = 0
     private var videoCaptureServer = VideoCaptureServer(port)
 
-    constructor(name: String, width: Int, height: Int, port: Int) : super(name, width, height){
+    constructor(name: String, width: Int, height: Int, port: Int) : super(name, width, height) {
         this.port = port
         startServer()
     }
-    constructor(config: YamlConfiguration, name:String) : super(config,name){
-        this.load(config,name)
+
+    constructor(config: YamlConfiguration, name: String) : super(config, name) {
+        this.load(config, name)
         startServer()
     }
 
-    private fun startServer(){
+    private fun startServer() {
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
+            if (this.dithering){
+                this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
+            }
+
             this.drawInformation()
             this.updateMapCache()
             this.modified = true
@@ -53,23 +50,12 @@ class StreamDisplay: Display {
         port = config.getInt("$name.port")
     }
 
-    fun drawInformation(){
+    fun drawInformation() {
         var info = getInfo()
         // infoを出力
-        for text in info
-
-
-
-        var y = 20
-        val step = 20
-        drawText("SentMapCount:$sentMapCount",0,y, color = 0x00ff00)
-        y += step
-        drawText("lastCacheTime:$lastCacheTime(ms)",0,y, color = 0x00ff00)
-
-        y += step
-        drawText("frameReceivedCount:${videoCaptureServer.frameReceivedCount}",0,y, color = 0x00ff00)
-        y += step
-        drawText("frameErrorCount:${videoCaptureServer.frameErrorCount}",0,y, color = 0x00ff00)
+        for (i in info.indices) {
+            drawText(info[i], 0, 20 + i * 20, color = 0x00ff00)
+        }
 
 
     }
