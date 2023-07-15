@@ -31,7 +31,8 @@ abstract class Display<DitheringProcessor> {
 
     var dithering = false
     var showStatus = false
-
+    var monochrome = false
+    var flip = false
 
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -44,6 +45,8 @@ abstract class Display<DitheringProcessor> {
     var frameReceivedCount: Long = 0
     var frameReceivedTime: Long = 0
     var startTime: Long = System.currentTimeMillis()
+    var lastPacketSentTime: Long = System.currentTimeMillis()
+    var lastEffectTime: Long = System.currentTimeMillis()
 
     fun resetStats() {
         refreshCount = 0
@@ -133,6 +136,8 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.refreshPeriod", refreshPeriod)
         config.set("$key.dithering", dithering)
         config.set("$key.showStatus", showStatus)
+        config.set("$key.monochrome", monochrome)
+        config.set("$key.flip", flip)
 
         // save locaiton data
         location?.let { loc ->
@@ -156,7 +161,9 @@ abstract class Display<DitheringProcessor> {
         }
         dithering = config.getBoolean("$key.dithering", false)
         showStatus = config.getBoolean("$key.showStatus", false)
-
+        monochrome = config.getBoolean("$key.monochrome", false)
+        flip = config.getBoolean("$key.flip", false)
+        
         // load location data
         val worldName = config.getString("$key.location.world")
         val x = config.getDouble("$key.location.x")
@@ -198,7 +205,6 @@ abstract class Display<DitheringProcessor> {
                 setInterval(sender, intervalSeconds)
                 sender.sendMessage("§aSet interval to $intervalSeconds seconds")
             }
-
             "fps" -> {
                 val fps = value.toDoubleOrNull()
                 if (fps == null) {
@@ -208,21 +214,23 @@ abstract class Display<DitheringProcessor> {
                 setFps(sender, fps)
                 sender.sendMessage("§aSet fps to $fps")
             }
-
             "refresh" -> {
                 resetStats()
                 modified = true
                 sender.sendMessage("§aReset refresh count")
             }
-
             "dithering" -> {
                 this.dithering = value.toBoolean()
             }
-
             "show_status" -> {
                 this.showStatus = value.toBoolean()
             }
-
+            "monochrome" -> {
+                this.monochrome = value.toBoolean()
+            }
+            "flip" -> {
+                this.flip = value.toBoolean()
+            }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
                 return false
@@ -260,12 +268,14 @@ abstract class Display<DitheringProcessor> {
     fun getInfo(): Array<String> {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
+        val mps = String.format("%.1f", this.mps).toDouble()
         return arrayOf(
             "$name($width,$height)",
             "fps:$curFps/$fps",
             "mps:$mps total:$sentMapCount",
             "bps:$bps total:${sentBytes / 1024}MB",
-            "lastCacheTime: $lastCacheTime"
+            "lastCacheTime: $lastCacheTime",
+            "lastEffectTime: $lastEffectTime",
         )
     }
 
@@ -334,14 +344,16 @@ abstract class Display<DitheringProcessor> {
             mapPacket
         }
 
-        for (player in Bukkit.getOnlinePlayers()) {
-            for (packet in packets) {
-                try {
-                    Main.protocolManager.sendServerPacket(player, packet)
-                    sentMapCount++
-                    sentBytes += packet.byteArrays.size()
-                } catch (e: Exception) {
-                    e.printStackTrace()
+        lastPacketSentTime = measureTimeMillis {
+            for (player in Bukkit.getOnlinePlayers()) {
+                for (packet in packets) {
+                    try {
+                        Main.protocolManager.sendServerPacket(player, packet)
+                        sentMapCount++
+                        sentBytes += mapWidth * mapHeight * 4
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
         }

@@ -1,9 +1,10 @@
 package red.man10.display
 
-import org.bukkit.configuration.file.YamlConfiguration
 import red.man10.display.imageprocessor.DitheringProcessor
-import red.man10.display.imageprocessor.ImageProcessor
+import red.man10.display.imageprocessor.*
+import org.bukkit.configuration.file.YamlConfiguration
 import java.util.function.Consumer
+import kotlin.system.measureTimeMillis
 
 
 class StreamDisplay : Display<Any?> {
@@ -23,21 +24,26 @@ class StreamDisplay : Display<Any?> {
     private fun startServer() {
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
-            if (this.dithering){
-                this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
+            this.lastEffectTime = measureTimeMillis {
+                if(this.flip) {
+                    this.bufferedImage = FlipProcessor().apply(this.bufferedImage!!)
+                }
+                if (this.dithering) {
+                    this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
+                }
+                if (this.monochrome) {
+                    this.bufferedImage = GrayscaleProcessor().apply(this.bufferedImage!!)
+                }
+                if (this.showStatus) {
+                    this.drawInformation()
+                }
             }
 
-            this.drawInformation()
             this.updateMapCache()
             this.modified = true
         })
         videoCaptureServer.start()
         info("Server started on port $port")
-    }
-
-    override fun deinit() {
-        videoCaptureServer.stop()
-        super.deinit()
     }
 
     override fun save(config: YamlConfiguration, path: String) {
@@ -51,7 +57,7 @@ class StreamDisplay : Display<Any?> {
     }
 
     fun drawInformation() {
-        var info = getInfo()
+        val info = getInfo()
         // infoを出力
         for (i in info.indices) {
             drawText(info[i], 0, 20 + i * 20, color = 0x00ff00)

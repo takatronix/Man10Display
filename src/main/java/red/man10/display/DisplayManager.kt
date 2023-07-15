@@ -1,5 +1,6 @@
 package red.man10.display
 
+import ImageDisplay
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -22,7 +23,9 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     fun deinit(){
         for (display in displays) {
-            display.deinit()
+            if(display is StreamDisplay){
+                display.deinit()
+            }
         }
         displays.clear()
     }
@@ -37,7 +40,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     val parameterKeys:ArrayList<String>
         get() {
-            return arrayListOf("fps","interval","refresh","dithering","info")
+            return arrayListOf("fps","interval","refresh","dithering","show_status","monochrome","flip")
         }
     fun getDisplay(name: String): Display<Any?>? {
         displays.find { it.name == name }?.let {

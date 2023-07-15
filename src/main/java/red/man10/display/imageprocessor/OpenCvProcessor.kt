@@ -1,12 +1,15 @@
 package red.man10.display.imageprocessor
 
+import org.bytedeco.javacpp.Loader
 import org.bytedeco.javacv.Java2DFrameUtils
+import org.bytedeco.opencv.global.opencv_core
+import org.bytedeco.opencv.global.opencv_imgcodecs
 import org.bytedeco.opencv.global.opencv_imgproc
 import org.bytedeco.opencv.opencv_core.Mat
 import java.awt.image.BufferedImage
 
 
-abstract class OpenCvProcessor : ImageProcessor() {
+open class OpenCvProcessor : ImageProcessor() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height
@@ -24,4 +27,5 @@ abstract class OpenCvProcessor : ImageProcessor() {
         opencv_imgproc.cvtColor(bufferedImageToMat(image), result, opencv_imgproc.COLOR_BGR2GRAY)
         return matToBufferedImage(result)
     }
+
 }

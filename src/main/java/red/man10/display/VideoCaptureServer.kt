@@ -27,7 +27,9 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     fun onFrame(consumer: Consumer<BufferedImage>) {
         frameConsumer = consumer
     }
-
+    fun deinit() {
+        close()
+    }
      override fun run() {
         try {
             val buffer = ByteArray(1000 * 1000)
