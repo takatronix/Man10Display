@@ -29,6 +29,9 @@ abstract class Display<DitheringProcessor> {
     var ditherdImage: BufferedImage? = null
     var modified = false
 
+    var fixaspect = false
+    var originalWidth = 0
+    var originalHeight = 0
     var dithering = false
     var showStatus = false
     var monochrome = false
@@ -70,8 +73,8 @@ abstract class Display<DitheringProcessor> {
         get() = 1000 / refreshPeriod.toDouble()
     private val mps: Double
         get() = sentMapCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
-    private val bps: Int
-        get() = (sentBytes.toDouble() / (System.currentTimeMillis() - startTime) * 1000).toInt() * 8
+    private val bps: Long
+        get() = (sentBytes.toDouble() / (System.currentTimeMillis() - startTime) * 1000).toLong() * 8
 
     constructor(name: String, width: Int, height: Int) {
         this.name = name
@@ -134,6 +137,7 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.width", width)
         config.set("$key.height", height)
         config.set("$key.refreshPeriod", refreshPeriod)
+        config.set("$key.fixaspect", fixaspect)
         config.set("$key.dithering", dithering)
         config.set("$key.showStatus", showStatus)
         config.set("$key.monochrome", monochrome)
@@ -159,11 +163,12 @@ abstract class Display<DitheringProcessor> {
         if (refreshPeriod == 0L) {
             refreshPeriod = (1000 / 20)
         }
+        fixaspect = config.getBoolean("$key.fixaspect", false)
         dithering = config.getBoolean("$key.dithering", false)
         showStatus = config.getBoolean("$key.showStatus", false)
         monochrome = config.getBoolean("$key.monochrome", false)
         flip = config.getBoolean("$key.flip", false)
-        
+
         // load location data
         val worldName = config.getString("$key.location.world")
         val x = config.getDouble("$key.location.x")
@@ -268,12 +273,15 @@ abstract class Display<DitheringProcessor> {
     fun getInfo(): Array<String> {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
-        val mps = String.format("%.1f", this.mps).toDouble()
+        val mps = formatNumberWithCommas(sentMapCount)
+        val bps = formatNumberWithCommas(this.bps)
+        val totalSent = formatNumberWithCommas(sentBytes)
+
         return arrayOf(
             "$name($width,$height)",
             "fps:$curFps/$fps",
             "mps:$mps total:$sentMapCount",
-            "bps:$bps total:${sentBytes / 1024}MB",
+            "bps:$bps total:$totalSent",
             "lastCacheTime: $lastCacheTime",
             "lastEffectTime: $lastEffectTime",
         )
@@ -340,6 +348,7 @@ abstract class Display<DitheringProcessor> {
         // Convert cache of display to packet list
         val packets = mapIds.mapIndexedNotNull { index, mapId ->
             val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
+            sentBytes += mapData.size
             val mapPacket = createMapPacket(mapId, mapData)
             mapPacket
         }
@@ -350,7 +359,7 @@ abstract class Display<DitheringProcessor> {
                     try {
                         Main.protocolManager.sendServerPacket(player, packet)
                         sentMapCount++
-                        sentBytes += mapWidth * mapHeight * 4
+
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

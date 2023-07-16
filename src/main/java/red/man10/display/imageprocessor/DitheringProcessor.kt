@@ -2,6 +2,7 @@ package red.man10.display.imageprocessor
 
 import java.awt.Color
 import java.awt.image.BufferedImage
+import kotlin.math.sqrt
 
 class DitheringProcessor : ImageProcessor() {
     companion object{
@@ -75,7 +76,7 @@ class DitheringProcessor : ImageProcessor() {
         val redDiff = color1.red - color2.red
         val greenDiff = color1.green - color2.green
         val blueDiff = color1.blue - color2.blue
-        return Math.sqrt(redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff.toDouble())
+        return sqrt(redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff.toDouble())
     }
 
     private fun propagateError(image: BufferedImage, x: Int, y: Int, error: Color) {
@@ -110,8 +111,5 @@ class DitheringProcessor : ImageProcessor() {
     private fun clamp(value: Int): Int {
         return value.coerceIn(0, 255)
     }
-
-
-
 
 }

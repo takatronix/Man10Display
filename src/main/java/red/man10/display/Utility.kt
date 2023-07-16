@@ -26,6 +26,30 @@ fun error(message:String,sender:CommandSender? = null) {
     sender?.sendMessage(message)
 }
 
+fun formatNumber(value: Long): String {
+    val suffixes = listOf("", "K", "M", "G", "T", "P", "E")
+    var convertedValue = value.toDouble()
+    var suffixIndex = 0
+
+    while (convertedValue >= 1000 && suffixIndex < suffixes.size - 1) {
+        convertedValue /= 1000
+        suffixIndex++
+    }
+
+    val formattedValue = when {
+        convertedValue >= 1000 -> "%.0f".format(convertedValue)
+        convertedValue >= 100 -> "%.1f".format(convertedValue)
+        else -> "%.2f".format(convertedValue)
+    }
+    return "$formattedValue${suffixes[suffixIndex]}"
+}
+
+fun formatNumberWithCommas(value: Long): String {
+    val formattedValue = formatNumber(value)
+    val parts = formattedValue.split(".")
+    val integerPartWithCommas = parts[0].chunked(3).joinToString(",")
+    return if (parts.size > 1) "$integerPartWithCommas.${parts[1]}" else integerPartWithCommas
+}
 fun showModeTitle(player:Player, title:String, subtitle:String="", fadeIn:Int = 10, stay:Int=100, fadeOut:Int = 10){
     player.sendTitle(title,subtitle,fadeIn,stay,fadeOut)
 }
