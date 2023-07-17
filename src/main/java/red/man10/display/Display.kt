@@ -30,6 +30,7 @@ abstract class Display<DitheringProcessor> {
     var ditherdImage: BufferedImage? = null
     var modified = false
 
+    // filter settings
     var testMode = false
     var keepAspectRatio = false
     var aspectRatioWidth= 16.0
@@ -41,6 +42,7 @@ abstract class Display<DitheringProcessor> {
     var invert = false
     var showStatus = false
     var monochrome = false
+    var sepia = false
     var colorEnhancer = false
     var flip = false
     var saturationFactor = 1.0
@@ -153,6 +155,7 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.fastDithering", fastDithering)
         config.set("$key.showStatus", showStatus)
         config.set("$key.monochrome", monochrome)
+        config.set("$key.sepia", sepia)
         config.set("$key.colorEnhancer", colorEnhancer)
         config.set("$key.flip", flip)
         config.set("$key.invert", invert)
@@ -186,6 +189,7 @@ abstract class Display<DitheringProcessor> {
         fastDithering = config.getBoolean("$key.fastDithering", false)
         showStatus = config.getBoolean("$key.showStatus", false)
         monochrome = config.getBoolean("$key.monochrome", false)
+        sepia = config.getBoolean("$key.sepia", false)
         flip = config.getBoolean("$key.flip", false)
         invert = config.getBoolean("$key.invert", false)
         colorEnhancer = config.getBoolean("$key.colorEnhancer", false)
@@ -262,6 +266,10 @@ abstract class Display<DitheringProcessor> {
             }
             "monochrome" -> {
                 this.monochrome = value.toBoolean()
+                modified = true
+            }
+            "sepia" -> {
+                this.sepia = value.toBoolean()
                 modified = true
             }
             "flip" -> {

@@ -30,6 +30,9 @@ class StreamDisplay : Display<Any?> {
                 if (this.monochrome) {
                     this.bufferedImage = GrayscaleFilter().apply(this.bufferedImage!!)
                 }
+                if(this.sepia){
+                    this.bufferedImage = SepiaFilter().apply(this.bufferedImage!!)
+                }
                 if (this.invert) {
                     this.bufferedImage = InvertFilter().apply(this.bufferedImage!!)
                 }

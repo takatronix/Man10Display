@@ -40,7 +40,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     val parameterKeys:ArrayList<String>
         get() {
-            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","invert","saturation_factor","color_enhancer","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
+            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","sepia","invert","saturation_factor","color_enhancer","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
         }
     fun getDisplay(name: String): Display<Any?>? {
         displays.find { it.name == name }?.let {
@@ -89,6 +89,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
         // パラメータを表示
         p.sendMessage("§a§l monochrome: ${display.monochrome}")
+        p.sendMessage("§a§l sepia: ${display.sepia}")
         p.sendMessage("§a§l dithering: ${display.dithering}")
         p.sendMessage("§a§l fast_dithering: ${display.fastDithering}")
         p.sendMessage("§a§l show_status: ${display.showStatus}")
