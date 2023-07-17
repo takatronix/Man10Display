@@ -1,6 +1,5 @@
 package red.man10.display
 
-import ImageDisplay
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -40,7 +39,17 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     val parameterKeys:ArrayList<String>
         get() {
-            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","sepia","invert","saturation_factor","color_enhancer","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
+            return arrayListOf(
+                "fps","interval","refresh","dithering",
+                "fast_dithering","show_status",
+                "monochrome","sepia","invert","flip",
+                "saturation_factor","color_enhancer",
+                "keep_aspect_ratio","aspect_ratio_width", "aspect_ratio_height",
+                "noise_level","noise",
+                "quantize_level","quantize",
+                "sobel_level","sobel",
+
+                "test_mode")
         }
     fun getDisplay(name: String): Display<Any?>? {
         displays.find { it.name == name }?.let {
@@ -95,11 +104,18 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l show_status: ${display.showStatus}")
         p.sendMessage("§a§l flip: ${display.flip}")
         p.sendMessage("§a§l invert: ${display.invert}")
-        p.sendMessage("§a§l saturation_factor: ${display.saturationFactor}")
+        p.sendMessage("§a§l saturation_factor: ${display.saturationLevel}")
         p.sendMessage("§a§l color_enhancer: ${display.colorEnhancer}")
         p.sendMessage("§a§l keep_aspect_ratio: ${display.keepAspectRatio}")
         p.sendMessage("§a§l aspect_ratio_width: ${display.aspectRatioWidth}")
         p.sendMessage("§a§l aspect_ratio_height: ${display.aspectRatioHeight}")
+        p.sendMessage("§a§l noise: ${display.noise}")
+        p.sendMessage("§a§l noise_level: ${display.noiseLevel}")
+        p.sendMessage("§a§l quantize: ${display.quantize}")
+        p.sendMessage("§a§l quantize_level: ${display.quantizeLevel}")
+        p.sendMessage("§a§l sobel: ${display.sobel}")
+        p.sendMessage("§a§l sobel_level: ${display.sobelLevel}")
+
         p.sendMessage("§a§l test_mode: ${display.testMode}")
 
         return true
@@ -189,5 +205,39 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         if(ret)
             save(sender)
         return ret
+    }
+
+    fun reset(sender: CommandSender, displayName: String): Boolean {
+        val display = getDisplay(displayName) ?: return false
+
+        // reset to default
+        display.dithering = false
+        display.fastDithering = false
+        display.showStatus = false
+        display.monochrome = false
+        display.sepia = false
+        display.dithering = false
+        display.fastDithering = false
+        display.showStatus = false
+        display.flip = false
+        display.invert = false
+        display.saturationLevel = 1.0
+        display.colorEnhancer = false
+        display.keepAspectRatio = false
+        display.aspectRatioWidth = 16.0
+        display.aspectRatioHeight = 9.0
+        display.noise = false
+        display.noiseLevel = 0.05
+        display.sobel = false
+        display.sobelLevel = 125
+        display.quantize = false
+        display.quantizeLevel = 16
+
+        display.testMode = false
+
+        // update&save
+        display.modified = true
+        save(sender)
+        return true
     }
 }

@@ -43,9 +43,20 @@ abstract class Display<DitheringProcessor> {
     var showStatus = false
     var monochrome = false
     var sepia = false
-    var colorEnhancer = false
     var flip = false
-    var saturationFactor = 1.0
+
+    var colorEnhancer = false
+    var saturationLevel = 1.0
+
+    var noiseLevel = 0.2  // 0 - 1
+    var noise = false
+
+    var sobelLevel:Int = 100
+    var sobel = false
+
+    var quantize = false
+    var quantizeLevel:Int = 6
+
 
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -159,7 +170,14 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.colorEnhancer", colorEnhancer)
         config.set("$key.flip", flip)
         config.set("$key.invert", invert)
-        config.set("$key.saturationFactor", saturationFactor)
+        config.set("$key.saturationLevel", saturationLevel)
+        config.set("$key.noiseLevel", noiseLevel)
+        config.set("$key.noise", noise)
+        config.set("$key.sobelLevel", sobelLevel)
+        config.set("$key.sobel", sobel)
+        config.set("$key.quantize", quantize)
+        config.set("$key.quantizeLevel", quantizeLevel)
+
 
         // save locaiton data
         location?.let { loc ->
@@ -193,7 +211,14 @@ abstract class Display<DitheringProcessor> {
         flip = config.getBoolean("$key.flip", false)
         invert = config.getBoolean("$key.invert", false)
         colorEnhancer = config.getBoolean("$key.colorEnhancer", false)
-        saturationFactor = config.getDouble("$key.saturationFactor", 1.0)
+        saturationLevel = config.getDouble("$key.saturationLevel", 1.0)
+        noiseLevel = config.getDouble("$key.noiseLevel", 0.0)
+        noise = config.getBoolean("$key.noise", false)
+        sobelLevel = config.getInt("$key.sobelLevel", 125)
+        sobel = config.getBoolean("$key.sobel", false)
+        quantize = config.getBoolean("$key.quantize", false)
+        quantizeLevel = config.getInt("$key.quantizeLevel", 6)
+
 
         // load location data
         val worldName = config.getString("$key.location.world")
@@ -220,7 +245,7 @@ abstract class Display<DitheringProcessor> {
         }
     }
 
-    private fun setFps(sender: CommandSender, fps: Double) {
+    fun setFps(sender: CommandSender, fps: Double) {
         val intervalSeconds = 1.0 / fps
         setInterval(sender, intervalSeconds)
     }
@@ -301,7 +326,31 @@ abstract class Display<DitheringProcessor> {
                 modified = true
             }
             "saturation_factor" -> {
-                this.saturationFactor = value.toDouble()
+                this.saturationLevel = value.toDouble()
+                modified = true
+            }
+            "noise" -> {
+                this.noise = value.toBoolean()
+                modified = true
+            }
+            "noise_level" -> {
+                this.noiseLevel = value.toDouble()
+                modified = true
+            }
+            "sobel" -> {
+                this.sobel = value.toBoolean()
+                modified = true
+            }
+            "sobel_level" -> {
+                this.sobelLevel = value.toInt()
+                modified = true
+            }
+            "quantize" -> {
+                this.quantize = value.toBoolean()
+                modified = true
+            }
+            "quantize_level" -> {
+                this.quantizeLevel = value.toInt()
                 modified = true
             }
             else -> {

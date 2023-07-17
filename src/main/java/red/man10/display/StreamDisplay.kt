@@ -40,7 +40,16 @@ class StreamDisplay : Display<Any?> {
                    this.bufferedImage = AspectRatioFilter(this.aspectRatioWidth / this.aspectRatioHeight).apply(this.bufferedImage!!)
                 }
                 if(this.colorEnhancer){
-                    this.bufferedImage = ColorEnhancerFilter(saturationFactor).apply(this.bufferedImage!!)
+                    this.bufferedImage = ColorEnhancerFilter(saturationLevel).apply(this.bufferedImage!!)
+                }
+                if(this.noise){
+                    this.bufferedImage = NoiseFilter(noiseLevel).apply(this.bufferedImage!!)
+                }
+                if(this.quantize){
+                    this.bufferedImage = ColorQuantizeFilter(quantizeLevel).apply(this.bufferedImage!!)
+                }
+                if(this.sobel){
+                    this.bufferedImage = SobelFilter(sobelLevel).apply(this.bufferedImage!!)
                 }
                 if (this.dithering) {
                     this.bufferedImage = DitheringFilter().apply(this.bufferedImage!!)

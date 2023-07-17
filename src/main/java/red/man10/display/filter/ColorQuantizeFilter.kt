@@ -2,17 +2,18 @@ package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
+import kotlin.math.pow
 
-class ColorQuantizeFilter(private val levels: Int = 16) : ImageFilter() {
+class ColorQuantizeFilter(private val levels: Int = 6) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height
         val resultImage = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
 
-        // カラーパレットの生成
+        // Generate the color palette
         val palette = generatePalette(levels)
 
-        // 画像の各ピクセルをカラーパレットに量子化する
+        // Quantize each pixel of the image to the color palette
         for (y in 0 until height) {
             for (x in 0 until width) {
                 val rgb = image.getRGB(x, y)
@@ -29,10 +30,13 @@ class ColorQuantizeFilter(private val levels: Int = 16) : ImageFilter() {
         val palette = mutableListOf<Color>()
         val step = 255 / (levels - 1)
 
-        for (i in 0 until levels) {
-            val intensity = i * step
-            val color = Color(intensity, intensity, intensity)
-            palette.add(color)
+        for (r in 0 until levels) {
+            for (g in 0 until levels) {
+                for (b in 0 until levels) {
+                    val color = Color(r * step, g * step, b * step)
+                    palette.add(color)
+                }
+            }
         }
 
         return palette
@@ -53,4 +57,11 @@ class ColorQuantizeFilter(private val levels: Int = 16) : ImageFilter() {
         return closestColor
     }
 
+    private fun colorDistance(c1: Color, c2: Color): Double {
+        val rDiff = c1.red - c2.red
+        val gDiff = c1.green - c2.green
+        val bDiff = c1.blue - c2.blue
+
+        return Math.sqrt(rDiff.toDouble().pow(2.0) + gDiff.toDouble().pow(2.0) + bDiff.toDouble().pow(2.0))
+    }
 }

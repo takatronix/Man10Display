@@ -108,6 +108,15 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Set parameter")
                 .executor(SetCommand(Main.plugin))
         )
+        // reset command
+        addCommand(
+            CommandObject()
+                .prefix("reset")
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("Set parameter")
+                .executor(ResetCommand(Main.plugin))
+        )
         // place item frames command
         addCommand(
             CommandObject()
