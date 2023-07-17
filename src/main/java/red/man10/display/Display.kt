@@ -249,40 +249,52 @@ abstract class Display<DitheringProcessor> {
             "dithering" -> {
                 this.dithering = value.toBoolean()
                 this.fastDithering = false
+                modified = true
             }
             "fast_dithering" -> {
                 this.fastDithering = value.toBoolean()
                 this.dithering = false
+                modified = true
             }
             "show_status" -> {
                 this.showStatus = value.toBoolean()
+                modified = true
             }
             "monochrome" -> {
                 this.monochrome = value.toBoolean()
+                modified = true
             }
             "flip" -> {
                 this.flip = value.toBoolean()
+                modified = true
             }
             "invert" -> {
                 this.invert = value.toBoolean()
+                modified = true
             }
             "keep_aspect_ratio" -> {
                 this.keepAspectRatio = value.toBoolean()
+                modified = true
             }
             "aspect_ratio_width" -> {
                 this.aspectRatioWidth = value.toDouble()
+                modified = true
             }
             "aspect_ratio_height" -> {
                 this.aspectRatioHeight = value.toDouble()
+                modified = true
             }
             "test_mode" -> {
                 this.testMode = value.toBoolean()
+                modified = true
             }
             "color_enhancer" -> {
                 this.colorEnhancer = value.toBoolean()
+                modified = true
             }
             "saturation_factor" -> {
                 this.saturationFactor = value.toDouble()
+                modified = true
             }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
