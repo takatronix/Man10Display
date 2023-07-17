@@ -49,7 +49,7 @@ class StreamDisplay : Display<Any?> {
                     this.bufferedImage = OrderedDitheringFilter().apply(this.bufferedImage!!)
                 }
                 if(this.testMode){
-
+                    this.bufferedImage = ColorQuantizeFilter().apply(this.bufferedImage!!)
                 }
                 if (this.showStatus) {
                     this.drawInformation()
