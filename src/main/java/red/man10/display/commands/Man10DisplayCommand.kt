@@ -80,6 +80,15 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Show display list")
                 .executor(ListCommand(Main.plugin))
         )
+        // info command
+        addCommand(
+            CommandObject()
+                .prefix("info")
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("Show display information")
+                .executor(InfoCommand(Main.plugin))
+        )
         // itemframe staff command
         addCommand(
             CommandObject()
@@ -93,7 +102,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
             CommandObject()
                 .prefix("set")
                 .argument("display_name") { _ -> Main.displayManager.names }
-                .argument("key") { _ -> Main.displayManager.parameterKeys }
+                .argument("[setting keyword]") { _ -> Main.displayManager.parameterKeys }
                 .argument("value")
                 .permission("red.man10.display.op")
                 .explanation("Set parameter")

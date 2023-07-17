@@ -40,7 +40,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     val parameterKeys:ArrayList<String>
         get() {
-            return arrayListOf("fps","interval","refresh","dithering","show_status","monochrome","flip","keep_aspect_ratio")
+            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
         }
     fun getDisplay(name: String): Display<Any?>? {
         displays.find { it.name == name }?.let {
@@ -76,6 +76,28 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         for (display in displays) {
             p.sendMessage("§a§l ${display.name}")
         }
+        return true
+    }
+    fun showInfo(p: CommandSender, name: String): Boolean {
+        val display = getDisplay(name) ?: return false
+        p.sendMessage(Main.prefix + "§a§l Display Info")
+        p.sendMessage("§a§l name: ${display.name}")
+        p.sendMessage("§a§l width: ${display.width}")
+        p.sendMessage("§a§l height: ${display.height}")
+        p.sendMessage("§a§l location: ${display.location}")
+        p.sendMessage("§a§l fps: ${display.fps}")
+
+        // パラメータを表示
+        p.sendMessage("§a§l monochrome: ${display.monochrome}")
+        p.sendMessage("§a§l dithering: ${display.dithering}")
+        p.sendMessage("§a§l fast_dithering: ${display.fastDithering}")
+        p.sendMessage("§a§l show_status: ${display.showStatus}")
+        p.sendMessage("§a§l flip: ${display.flip}")
+        p.sendMessage("§a§l keep_aspect_ratio: ${display.keepAspectRatio}")
+        p.sendMessage("§a§l aspect_ratio_width: ${display.aspectRatioWidth}")
+        p.sendMessage("§a§l aspect_ratio_height: ${display.aspectRatioHeight}")
+        p.sendMessage("§a§l test_mode: ${display.testMode}")
+
         return true
     }
 

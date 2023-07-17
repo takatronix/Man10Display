@@ -35,5 +35,13 @@ abstract class ImageProcessor {
             }
             return emptyArray()
         }
+
+        fun clamp(value: Int): Int {
+            return when {
+                value < 0 -> 0
+                value > 255 -> 255
+                else -> value
+            }
+        }
     }
 }

@@ -30,6 +30,13 @@ class StreamDisplay : Display<Any?> {
                 if (this.dithering) {
                     this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
                 }
+                if (this.fastDithering) {
+                    this.bufferedImage = OrderedDitheringProcessor().apply(this.bufferedImage!!)
+                }
+
+                if(this.testMode){
+                    this.bufferedImage = OrderedDitheringProcessor().apply(this.bufferedImage!!)
+                }
                 if (this.monochrome) {
                     this.bufferedImage = GrayscaleProcessor().apply(this.bufferedImage!!)
                 }

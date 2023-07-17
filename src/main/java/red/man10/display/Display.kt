@@ -20,6 +20,7 @@ private const val mapHeight = 128
 
 abstract class Display<DitheringProcessor> {
 
+
     var name: String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
@@ -29,12 +30,14 @@ abstract class Display<DitheringProcessor> {
     var ditherdImage: BufferedImage? = null
     var modified = false
 
+    var testMode = false
     var keepAspectRatio = false
     var aspectRatioWidth= 16.0
     var aspectRatioHeight = 9.0
     var originalWidth = 0
     var originalHeight = 0
     var dithering = false
+    var fastDithering = false
     var showStatus = false
     var monochrome = false
     var flip = false
@@ -71,7 +74,7 @@ abstract class Display<DitheringProcessor> {
         get() = width * height
     private val currentFPS: Double
         get() = refreshCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
-    private val fps: Double
+    val fps: Double
         get() = 1000 / refreshPeriod.toDouble()
     private val mps: Double
         get() = sentMapCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000
@@ -139,10 +142,12 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.width", width)
         config.set("$key.height", height)
         config.set("$key.refreshPeriod", refreshPeriod)
+        config.set("$key.testMode", testMode)
         config.set("$key.keepAspectRatio", keepAspectRatio)
         config.set("$key.aspectRatioWidth", aspectRatioWidth)
         config.set("$key.aspectRatioHeight", aspectRatioHeight)
         config.set("$key.dithering", dithering)
+        config.set("$key.fastDithering", fastDithering)
         config.set("$key.showStatus", showStatus)
         config.set("$key.monochrome", monochrome)
         config.set("$key.flip", flip)
@@ -167,10 +172,12 @@ abstract class Display<DitheringProcessor> {
         if (refreshPeriod == 0L) {
             refreshPeriod = (1000 / 20)
         }
+        testMode = config.getBoolean("$key.testMode", false)
         keepAspectRatio = config.getBoolean("$key.keepAspectRatio", false)
         aspectRatioWidth = config.getDouble("$key.aspectRatioWidth", 16.0)
         aspectRatioHeight = config.getDouble("$key.aspectRatioHeight", 9.0)
         dithering = config.getBoolean("$key.dithering", false)
+        fastDithering = config.getBoolean("$key.fastDithering", false)
         showStatus = config.getBoolean("$key.showStatus", false)
         monochrome = config.getBoolean("$key.monochrome", false)
         flip = config.getBoolean("$key.flip", false)
@@ -232,6 +239,11 @@ abstract class Display<DitheringProcessor> {
             }
             "dithering" -> {
                 this.dithering = value.toBoolean()
+                this.fastDithering = false
+            }
+            "fast_dithering" -> {
+                this.fastDithering = value.toBoolean()
+                this.dithering = false
             }
             "show_status" -> {
                 this.showStatus = value.toBoolean()
@@ -244,6 +256,15 @@ abstract class Display<DitheringProcessor> {
             }
             "keep_aspect_ratio" -> {
                 this.keepAspectRatio = value.toBoolean()
+            }
+            "aspect_ratio_width" -> {
+                this.aspectRatioWidth = value.toDouble()
+            }
+            "aspect_ratio_height" -> {
+                this.aspectRatioHeight = value.toDouble()
+            }
+            "test_mode" -> {
+                this.testMode = value.toBoolean()
             }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
