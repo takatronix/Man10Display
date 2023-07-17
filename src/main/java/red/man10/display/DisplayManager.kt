@@ -51,6 +51,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "sobel_level","sobel",
                 "cartoon",
                 "blur","blur_radius",
+                "denoise","denoise_radius",
+                "contrast","contrast_level",
 
                 "test_mode")
         }
@@ -118,6 +120,13 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l quantize_level: ${display.quantizeLevel}")
         p.sendMessage("§a§l sobel: ${display.sobel}")
         p.sendMessage("§a§l sobel_level: ${display.sobelLevel}")
+        p.sendMessage("§a§l cartoon: ${display.cartoon}")
+        p.sendMessage("§a§l blur: ${display.blur}")
+        p.sendMessage("§a§l blur_radius: ${display.blurRadius}")
+        p.sendMessage("§a§l denoise: ${display.denoise}")
+        p.sendMessage("§a§l denoise_radius: ${display.denoiseRadius}")
+        p.sendMessage("§a§l contrast: ${display.contrast}")
+        p.sendMessage("§a§l contrast_level: ${display.contrastLevel}")
 
         p.sendMessage("§a§l test_mode: ${display.testMode}")
 
@@ -238,6 +247,11 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.cartoon = false
         display.blur = false
         display.blurRadius = defaultBlurRadius
+        display.denoise = false
+        display.denoiseRadius = defaultDenoiseRadius
+        display.contrast = false
+        display.contrastLevel = defaultContrastLevel
+
 
         display.testMode = false
 

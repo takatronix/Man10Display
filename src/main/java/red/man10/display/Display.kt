@@ -8,9 +8,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
-import red.man10.display.filter.defaultBlurRadius
-import red.man10.display.filter.defaultQuantizeLevel
-import red.man10.display.filter.defaultSobelLevel
+import red.man10.display.filter.*
 import java.awt.image.BufferedImage
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
@@ -47,19 +45,19 @@ abstract class Display<DitheringProcessor> {
     var monochrome = false
     var sepia = false
     var flip = false
-
     var colorEnhancer = false
     var saturationLevel = 1.0
-
     var noiseLevel = 0.2  // 0 - 1
     var noise = false
-
     var sobelLevel:Int = 100
     var sobel = false
-
     var quantize = false
     var quantizeLevel:Int = 6
     var cartoon = false
+    var denoise = false
+    var denoiseRadius = 2
+    var contrast = false
+    var contrastLevel = 1.5
 
     var blur = false
     var blurRadius = defaultBlurRadius
@@ -186,6 +184,10 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.cartoon", cartoon)
         config.set("$key.blur", blur)
         config.set("$key.blurRadius", blurRadius)
+        config.set("$key.denoise", denoise)
+        config.set("$key.denoiseRadius", denoiseRadius)
+        config.set("$key.contrast", contrast)
+        config.set("$key.contrastLevel", contrastLevel)
 
 
         // save locaiton data
@@ -230,6 +232,11 @@ abstract class Display<DitheringProcessor> {
         cartoon = config.getBoolean("$key.cartoon", false)
         blur = config.getBoolean("$key.blur", false)
         blurRadius = config.getInt("$key.blurRadius", defaultBlurRadius)
+        denoise = config.getBoolean("$key.denoise", false)
+        denoiseRadius = config.getInt("$key.denoiseRadius", defaultDenoiseRadius)
+        contrast = config.getBoolean("$key.contrast", false)
+        contrastLevel = config.getDouble("$key.contrastLevel", defaultContrastLevel)
+
 
 
         // load location data
@@ -375,6 +382,22 @@ abstract class Display<DitheringProcessor> {
             }
             "blur_radius" -> {
                 this.blurRadius = value.toInt()
+                modified = true
+            }
+            "denoise" -> {
+                this.denoise = value.toBoolean()
+                modified = true
+            }
+            "denoise_radius" -> {
+                this.denoiseRadius = value.toInt()
+                modified = true
+            }
+            "contrast" -> {
+                this.contrast = value.toBoolean()
+                modified = true
+            }
+            "contrast_level" -> {
+                this.contrastLevel = value.toDouble()
                 modified = true
             }
             else -> {

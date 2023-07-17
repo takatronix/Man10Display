@@ -60,6 +60,12 @@ class StreamDisplay : Display<Any?> {
                 if (this.fastDithering) {
                     this.bufferedImage = OrderedDitheringFilter().apply(this.bufferedImage!!)
                 }
+                if(this.denoise){
+                    this.bufferedImage = DenoiseFilter(denoiseRadius).apply(this.bufferedImage!!)
+                }
+                if(this.contrast){
+                    this.bufferedImage = ContrastFilter(contrastLevel).apply(this.bufferedImage!!)
+                }
                 if(this.blur){
                     this.bufferedImage = BlurFilter(blurRadius).apply(this.bufferedImage!!)
                 }
