@@ -69,6 +69,9 @@ class StreamDisplay : Display<Any?> {
                 if(this.blur){
                     this.bufferedImage = BlurFilter(blurRadius).apply(this.bufferedImage!!)
                 }
+                if(this.scanline){
+                    this.bufferedImage = ScanlineFilter(scanlineWidth).apply(this.bufferedImage!!)
+                }
                 if(this.testMode){
 
                 }

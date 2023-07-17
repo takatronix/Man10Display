@@ -53,6 +53,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "blur","blur_radius",
                 "denoise","denoise_radius",
                 "contrast","contrast_level",
+                "scanline","scanline_width",
 
                 "test_mode")
         }
@@ -251,6 +252,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.denoiseRadius = defaultDenoiseRadius
         display.contrast = false
         display.contrastLevel = defaultContrastLevel
+        display.scanline = false
+        display.scanlineWidth = defaultScanlineWidth
 
 
         display.testMode = false

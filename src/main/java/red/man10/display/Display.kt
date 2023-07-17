@@ -58,6 +58,8 @@ abstract class Display<DitheringProcessor> {
     var denoiseRadius = 2
     var contrast = false
     var contrastLevel = 1.5
+    var scanline = false
+    var scanlineWidth = defaultScanlineWidth
 
     var blur = false
     var blurRadius = defaultBlurRadius
@@ -188,6 +190,8 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.denoiseRadius", denoiseRadius)
         config.set("$key.contrast", contrast)
         config.set("$key.contrastLevel", contrastLevel)
+        config.set("$key.scanline", scanline)
+        config.set("$key.scanlineWidth", scanlineWidth)
 
 
         // save locaiton data
@@ -236,6 +240,8 @@ abstract class Display<DitheringProcessor> {
         denoiseRadius = config.getInt("$key.denoiseRadius", defaultDenoiseRadius)
         contrast = config.getBoolean("$key.contrast", false)
         contrastLevel = config.getDouble("$key.contrastLevel", defaultContrastLevel)
+        scanline = config.getBoolean("$key.scanline", false)
+        scanlineWidth = config.getInt("$key.scanlineWidth", defaultScanlineWidth)
 
 
 
@@ -398,6 +404,14 @@ abstract class Display<DitheringProcessor> {
             }
             "contrast_level" -> {
                 this.contrastLevel = value.toDouble()
+                modified = true
+            }
+            "scanline" -> {
+                this.scanline = value.toBoolean()
+                modified = true
+            }
+            "scanline_width" -> {
+                this.scanlineWidth = value.toInt()
                 modified = true
             }
             else -> {
