@@ -35,7 +35,7 @@ class StreamDisplay : Display<Any?> {
                 }
 
                 if(this.testMode){
-                    this.bufferedImage = OrderedDitheringProcessor().apply(this.bufferedImage!!)
+                    this.bufferedImage = ErrorDiffusionDitheringProcessor().apply(this.bufferedImage!!)
                 }
                 if (this.monochrome) {
                     this.bufferedImage = GrayscaleProcessor().apply(this.bufferedImage!!)
