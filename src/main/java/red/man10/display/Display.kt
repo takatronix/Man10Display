@@ -60,9 +60,12 @@ abstract class Display<DitheringProcessor> {
     var contrastLevel = 1.5
     var scanline = false
     var scanlineWidth = defaultScanlineWidth
-
+    var sharpen = false
+    var sharpenLevel = defaultSharpenLevel
     var blur = false
     var blurRadius = defaultBlurRadius
+    var brightness = false
+    var brightnessLevel = defaultBrightnessLevel
 
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -192,6 +195,10 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.contrastLevel", contrastLevel)
         config.set("$key.scanline", scanline)
         config.set("$key.scanlineWidth", scanlineWidth)
+        config.set("$key.sharpen", sharpen)
+        config.set("$key.sharpenLevel", sharpenLevel)
+        config.set("$key.brightness", brightness)
+        config.set("$key.brightnessLevel", brightnessLevel)
 
 
         // save locaiton data
@@ -242,8 +249,10 @@ abstract class Display<DitheringProcessor> {
         contrastLevel = config.getDouble("$key.contrastLevel", defaultContrastLevel)
         scanline = config.getBoolean("$key.scanline", false)
         scanlineWidth = config.getInt("$key.scanlineWidth", defaultScanlineWidth)
-
-
+        sharpen = config.getBoolean("$key.sharpen", false)
+        sharpenLevel = config.getDouble("$key.sharpenLevel", defaultSharpenLevel)
+        brightness = config.getBoolean("$key.brightness", false)
+        brightnessLevel = config.getDouble("$key.brightnessLevel", defaultBrightnessLevel)
 
         // load location data
         val worldName = config.getString("$key.location.world")
@@ -297,122 +306,104 @@ abstract class Display<DitheringProcessor> {
             }
             "refresh" -> {
                 resetStats()
-                modified = true
-                sender.sendMessage("§aReset refresh count")
             }
             "dithering" -> {
                 this.dithering = value.toBoolean()
                 this.fastDithering = false
-                modified = true
             }
             "fast_dithering" -> {
                 this.fastDithering = value.toBoolean()
                 this.dithering = false
-                modified = true
             }
             "show_status" -> {
                 this.showStatus = value.toBoolean()
-                modified = true
             }
             "monochrome" -> {
                 this.monochrome = value.toBoolean()
-                modified = true
             }
             "sepia" -> {
                 this.sepia = value.toBoolean()
-                modified = true
             }
             "flip" -> {
                 this.flip = value.toBoolean()
-                modified = true
             }
             "invert" -> {
                 this.invert = value.toBoolean()
-                modified = true
             }
             "keep_aspect_ratio" -> {
                 this.keepAspectRatio = value.toBoolean()
-                modified = true
             }
             "aspect_ratio_width" -> {
                 this.aspectRatioWidth = value.toDouble()
-                modified = true
             }
             "aspect_ratio_height" -> {
                 this.aspectRatioHeight = value.toDouble()
-                modified = true
             }
             "test_mode" -> {
                 this.testMode = value.toBoolean()
-                modified = true
             }
             "color_enhancer" -> {
                 this.colorEnhancer = value.toBoolean()
-                modified = true
             }
             "saturation_factor" -> {
                 this.saturationLevel = value.toDouble()
-                modified = true
             }
             "noise" -> {
                 this.noise = value.toBoolean()
-                modified = true
             }
             "noise_level" -> {
                 this.noiseLevel = value.toDouble()
-                modified = true
             }
             "sobel" -> {
                 this.sobel = value.toBoolean()
-                modified = true
             }
             "sobel_level" -> {
                 this.sobelLevel = value.toInt()
-                modified = true
             }
             "quantize" -> {
                 this.quantize = value.toBoolean()
-                modified = true
             }
             "quantize_level" -> {
                 this.quantizeLevel = value.toInt()
-                modified = true
             }
             "cartoon" -> {
                 this.cartoon = value.toBoolean()
-                modified = true
             }
             "blur" -> {
                 this.blur = value.toBoolean()
-                modified = true
             }
             "blur_radius" -> {
                 this.blurRadius = value.toInt()
-                modified = true
             }
             "denoise" -> {
                 this.denoise = value.toBoolean()
-                modified = true
             }
             "denoise_radius" -> {
                 this.denoiseRadius = value.toInt()
-                modified = true
             }
             "contrast" -> {
                 this.contrast = value.toBoolean()
-                modified = true
             }
             "contrast_level" -> {
                 this.contrastLevel = value.toDouble()
-                modified = true
+            }
+            "brightness" -> {
+                this.brightness = value.toBoolean()
+            }
+            "brightness_level" -> {
+                this.brightnessLevel = value.toDouble()
             }
             "scanline" -> {
                 this.scanline = value.toBoolean()
-                modified = true
             }
             "scanline_width" -> {
                 this.scanlineWidth = value.toInt()
-                modified = true
+            }
+            "sharpen" -> {
+                this.sharpen = value.toBoolean()
+            }
+            "sharpen_level" -> {
+                this.sharpenLevel = value.toDouble()
             }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
@@ -420,6 +411,7 @@ abstract class Display<DitheringProcessor> {
             }
         }
 
+        this.modified = true
         return true
     }
     // endregion

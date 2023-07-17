@@ -39,8 +39,14 @@ class StreamDisplay : Display<Any?> {
                 if(this.keepAspectRatio){
                    this.bufferedImage = AspectRatioFilter(this.aspectRatioWidth / this.aspectRatioHeight).apply(this.bufferedImage!!)
                 }
+                if(this.brightness){
+                    this.bufferedImage = BrightnessFilter(brightnessLevel).apply(this.bufferedImage!!)
+                }
                 if(this.colorEnhancer){
                     this.bufferedImage = ColorEnhancerFilter(saturationLevel).apply(this.bufferedImage!!)
+                }
+                if(this.sharpen){
+                    this.bufferedImage = SharpenFilter(sharpenLevel).apply(this.bufferedImage!!)
                 }
                 if(this.cartoon){
                     this.bufferedImage = CartoonFilter(quantizeLevel,sobelLevel).apply(this.bufferedImage!!)

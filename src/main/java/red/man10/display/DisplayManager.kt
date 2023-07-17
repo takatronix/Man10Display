@@ -52,7 +52,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "cartoon",
                 "blur","blur_radius",
                 "denoise","denoise_radius",
-                "contrast","contrast_level",
+                "contrast","contrast_level","brightness","brightness_level",
+                "sharpen","sharpen_level",
                 "scanline","scanline_width",
 
                 "test_mode")
@@ -128,6 +129,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l denoise_radius: ${display.denoiseRadius}")
         p.sendMessage("§a§l contrast: ${display.contrast}")
         p.sendMessage("§a§l contrast_level: ${display.contrastLevel}")
+        p.sendMessage("§a§l sharpen: ${display.sharpen}")
+        p.sendMessage("§a§l sharpen_level: ${display.sharpenLevel}")
+        p.sendMessage("§a§l scanline: ${display.scanline}")
+        p.sendMessage("§a§l scanline_width: ${display.scanlineWidth}")
+        p.sendMessage("§a§l brightness: ${display.brightness}")
+        p.sendMessage("§a§l brightnessLevel: ${display.brightnessLevel}")
 
         p.sendMessage("§a§l test_mode: ${display.testMode}")
 
@@ -254,7 +261,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.contrastLevel = defaultContrastLevel
         display.scanline = false
         display.scanlineWidth = defaultScanlineWidth
-
+        display.sharpen = false
+        display.sharpenLevel = defaultSharpenLevel
+        display.brightness = false
+        display.brightnessLevel = defaultBrightnessLevel
 
         display.testMode = false
 
