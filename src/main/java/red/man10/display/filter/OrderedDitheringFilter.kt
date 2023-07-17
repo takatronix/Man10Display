@@ -1,9 +1,9 @@
-package red.man10.display.imageprocessor
+package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-class OrderedDitheringProcessor : ImageProcessor() {
+class OrderedDitheringFilter : ImageFilter() {
     private val ditherMatrix = arrayOf(
         arrayOf(0, 48, 12, 60, 3, 51, 15, 63),
         arrayOf(32, 16, 44, 28, 35, 19, 47, 31),

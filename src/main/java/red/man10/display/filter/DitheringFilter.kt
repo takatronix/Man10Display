@@ -1,10 +1,10 @@
-package red.man10.display.imageprocessor
+package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.sqrt
 
-class DitheringProcessor : ImageProcessor() {
+class DitheringFilter : ImageFilter() {
 
     override fun apply(image: BufferedImage): BufferedImage {
         val ditheredImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_RGB)
@@ -79,8 +79,6 @@ class DitheringProcessor : ImageProcessor() {
         image.setRGB(x, y, modifiedColor.rgb)
     }
 
-    private fun clamp(value: Int): Int {
-        return value.coerceIn(0, 255)
-    }
+
 
 }

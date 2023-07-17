@@ -1,15 +1,12 @@
-package red.man10.display.imageprocessor
+package red.man10.display.filter
 
-import org.bytedeco.javacpp.Loader
 import org.bytedeco.javacv.Java2DFrameUtils
-import org.bytedeco.opencv.global.opencv_core
-import org.bytedeco.opencv.global.opencv_imgcodecs
 import org.bytedeco.opencv.global.opencv_imgproc
 import org.bytedeco.opencv.opencv_core.Mat
 import java.awt.image.BufferedImage
 
 
-open class OpenCvProcessor : ImageProcessor() {
+open class OpenCvFilter : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

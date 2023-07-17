@@ -1,9 +1,9 @@
-package red.man10.display.imageprocessor
+package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-class ColorEnhancerProcessor(private val saturationFactor: Double) : ImageProcessor() {
+class ColorEnhancerFilter(private val saturationFactor: Double) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

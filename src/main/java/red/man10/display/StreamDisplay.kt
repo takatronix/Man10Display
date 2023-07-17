@@ -1,6 +1,6 @@
 package red.man10.display
 
-import red.man10.display.imageprocessor.*
+import red.man10.display.filter.*
 import org.bukkit.configuration.file.YamlConfiguration
 import java.util.function.Consumer
 import kotlin.system.measureTimeMillis
@@ -25,25 +25,28 @@ class StreamDisplay : Display<Any?> {
             this.bufferedImage = image
             this.lastEffectTime = measureTimeMillis {
                 if(this.flip) {
-                    this.bufferedImage = FlipProcessor().apply(this.bufferedImage!!)
+                    this.bufferedImage = FlipFilter().apply(this.bufferedImage!!)
                 }
                 if (this.monochrome) {
-                    this.bufferedImage = GrayscaleProcessor().apply(this.bufferedImage!!)
+                    this.bufferedImage = GrayscaleFilter().apply(this.bufferedImage!!)
+                }
+                if (this.invert) {
+                    this.bufferedImage = InvertFilter().apply(this.bufferedImage!!)
                 }
                 if(this.keepAspectRatio){
-                   this.bufferedImage = AspectRatioProcessor(this.aspectRatioWidth / this.aspectRatioHeight).apply(this.bufferedImage!!)
+                   this.bufferedImage = AspectRatioFilter(this.aspectRatioWidth / this.aspectRatioHeight).apply(this.bufferedImage!!)
                 }
                 if(this.colorEnhancer){
-                    this.bufferedImage = ColorEnhancerProcessor(saturationFactor).apply(this.bufferedImage!!)
+                    this.bufferedImage = ColorEnhancerFilter(saturationFactor).apply(this.bufferedImage!!)
                 }
                 if (this.dithering) {
-                    this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
+                    this.bufferedImage = DitheringFilter().apply(this.bufferedImage!!)
                 }
                 if (this.fastDithering) {
-                    this.bufferedImage = OrderedDitheringProcessor().apply(this.bufferedImage!!)
+                    this.bufferedImage = OrderedDitheringFilter().apply(this.bufferedImage!!)
                 }
                 if(this.testMode){
-                    this.bufferedImage = ErrorDiffusionDitheringProcessor().apply(this.bufferedImage!!)
+
                 }
                 if (this.showStatus) {
                     this.drawInformation()

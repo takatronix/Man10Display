@@ -38,6 +38,7 @@ abstract class Display<DitheringProcessor> {
     var originalHeight = 0
     var dithering = false
     var fastDithering = false
+    var invert = false
     var showStatus = false
     var monochrome = false
     var colorEnhancer = false
@@ -154,6 +155,7 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.monochrome", monochrome)
         config.set("$key.colorEnhancer", colorEnhancer)
         config.set("$key.flip", flip)
+        config.set("$key.invert", invert)
         config.set("$key.saturationFactor", saturationFactor)
 
         // save locaiton data
@@ -185,6 +187,7 @@ abstract class Display<DitheringProcessor> {
         showStatus = config.getBoolean("$key.showStatus", false)
         monochrome = config.getBoolean("$key.monochrome", false)
         flip = config.getBoolean("$key.flip", false)
+        invert = config.getBoolean("$key.invert", false)
         colorEnhancer = config.getBoolean("$key.colorEnhancer", false)
         saturationFactor = config.getDouble("$key.saturationFactor", 1.0)
 
@@ -259,6 +262,9 @@ abstract class Display<DitheringProcessor> {
             }
             "flip" -> {
                 this.flip = value.toBoolean()
+            }
+            "invert" -> {
+                this.invert = value.toBoolean()
             }
             "keep_aspect_ratio" -> {
                 this.keepAspectRatio = value.toBoolean()

@@ -1,9 +1,9 @@
-package red.man10.display.imageprocessor
+package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-abstract class ImageProcessor {
+abstract class ImageFilter {
     abstract fun apply(image: BufferedImage): BufferedImage
 
     companion object {
@@ -35,13 +35,8 @@ abstract class ImageProcessor {
             }
             return emptyArray()
         }
-
         fun clamp(value: Int): Int {
-            return when {
-                value < 0 -> 0
-                value > 255 -> 255
-                else -> value
-            }
+            return value.coerceIn(0, 255)
         }
     }
 }

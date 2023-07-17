@@ -1,10 +1,9 @@
-package red.man10.display.imageprocessor
+package red.man10.display.filter
 
-import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 
-class AspectRatioProcessor(private val aspectRatio: Double) : ImageProcessor() {
+class AspectRatioFilter(private val aspectRatio: Double) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val originalWidth = image.width
         val originalHeight = image.height

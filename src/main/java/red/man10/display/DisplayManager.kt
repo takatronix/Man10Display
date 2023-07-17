@@ -40,7 +40,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     val parameterKeys:ArrayList<String>
         get() {
-            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","saturation_factor","color_enhancer","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
+            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","invert","saturation_factor","color_enhancer","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
         }
     fun getDisplay(name: String): Display<Any?>? {
         displays.find { it.name == name }?.let {
@@ -93,6 +93,9 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l fast_dithering: ${display.fastDithering}")
         p.sendMessage("§a§l show_status: ${display.showStatus}")
         p.sendMessage("§a§l flip: ${display.flip}")
+        p.sendMessage("§a§l invert: ${display.invert}")
+        p.sendMessage("§a§l saturation_factor: ${display.saturationFactor}")
+        p.sendMessage("§a§l color_enhancer: ${display.colorEnhancer}")
         p.sendMessage("§a§l keep_aspect_ratio: ${display.keepAspectRatio}")
         p.sendMessage("§a§l aspect_ratio_width: ${display.aspectRatioWidth}")
         p.sendMessage("§a§l aspect_ratio_height: ${display.aspectRatioHeight}")
