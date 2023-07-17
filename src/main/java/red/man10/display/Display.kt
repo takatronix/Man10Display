@@ -40,7 +40,9 @@ abstract class Display<DitheringProcessor> {
     var fastDithering = false
     var showStatus = false
     var monochrome = false
+    var colorEnhancer = false
     var flip = false
+    var saturationFactor = 1.0
 
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -150,7 +152,9 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.fastDithering", fastDithering)
         config.set("$key.showStatus", showStatus)
         config.set("$key.monochrome", monochrome)
+        config.set("$key.colorEnhancer", colorEnhancer)
         config.set("$key.flip", flip)
+        config.set("$key.saturationFactor", saturationFactor)
 
         // save locaiton data
         location?.let { loc ->
@@ -181,6 +185,8 @@ abstract class Display<DitheringProcessor> {
         showStatus = config.getBoolean("$key.showStatus", false)
         monochrome = config.getBoolean("$key.monochrome", false)
         flip = config.getBoolean("$key.flip", false)
+        colorEnhancer = config.getBoolean("$key.colorEnhancer", false)
+        saturationFactor = config.getDouble("$key.saturationFactor", 1.0)
 
         // load location data
         val worldName = config.getString("$key.location.world")
@@ -265,6 +271,12 @@ abstract class Display<DitheringProcessor> {
             }
             "test_mode" -> {
                 this.testMode = value.toBoolean()
+            }
+            "color_enhancer" -> {
+                this.colorEnhancer = value.toBoolean()
+            }
+            "saturation_factor" -> {
+                this.saturationFactor = value.toDouble()
             }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")

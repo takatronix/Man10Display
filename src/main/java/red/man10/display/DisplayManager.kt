@@ -40,7 +40,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
     val parameterKeys:ArrayList<String>
         get() {
-            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
+            return arrayListOf("fps","interval","refresh","dithering","fast_dithering","show_status","monochrome","saturation_factor","color_enhancer","flip","keep_aspect_ratio","aspect_ratio_width","aspect_ratio_height","test_mode")
         }
     fun getDisplay(name: String): Display<Any?>? {
         displays.find { it.name == name }?.let {

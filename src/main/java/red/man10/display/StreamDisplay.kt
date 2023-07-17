@@ -27,23 +27,24 @@ class StreamDisplay : Display<Any?> {
                 if(this.flip) {
                     this.bufferedImage = FlipProcessor().apply(this.bufferedImage!!)
                 }
-                if (this.dithering) {
-                    this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
-                }
-                if (this.fastDithering) {
-                    this.bufferedImage = OrderedDitheringProcessor().apply(this.bufferedImage!!)
-                }
-
-                if(this.testMode){
-                    this.bufferedImage = ErrorDiffusionDitheringProcessor().apply(this.bufferedImage!!)
-                }
                 if (this.monochrome) {
                     this.bufferedImage = GrayscaleProcessor().apply(this.bufferedImage!!)
                 }
                 if(this.keepAspectRatio){
                    this.bufferedImage = AspectRatioProcessor(this.aspectRatioWidth / this.aspectRatioHeight).apply(this.bufferedImage!!)
                 }
-
+                if(this.colorEnhancer){
+                    this.bufferedImage = ColorEnhancerProcessor(saturationFactor).apply(this.bufferedImage!!)
+                }
+                if (this.dithering) {
+                    this.bufferedImage = DitheringProcessor().apply(this.bufferedImage!!)
+                }
+                if (this.fastDithering) {
+                    this.bufferedImage = OrderedDitheringProcessor().apply(this.bufferedImage!!)
+                }
+                if(this.testMode){
+                    this.bufferedImage = ErrorDiffusionDitheringProcessor().apply(this.bufferedImage!!)
+                }
                 if (this.showStatus) {
                     this.drawInformation()
                 }
