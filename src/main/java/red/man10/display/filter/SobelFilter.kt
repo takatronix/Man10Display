@@ -10,8 +10,8 @@ threshold: しきい値
 高いしきい値（例: 200〜255）: エッジの検出が厳しくなり、より明確なエッジのみが残ります。細かい特徴が欠落する可能性があります。
  */
 
-
-class SobelFilter(private val threshold: Int = 125) : ImageFilter() {
+const val defaultSobelLevel = 100
+class SobelFilter(private val threshold: Int = defaultSobelLevel) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

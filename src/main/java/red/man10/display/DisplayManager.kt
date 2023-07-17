@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
+import red.man10.display.filter.*
 import java.io.File
 
 
@@ -48,6 +49,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "noise_level","noise",
                 "quantize_level","quantize",
                 "sobel_level","sobel",
+                "cartoon",
+                "blur","blur_radius",
 
                 "test_mode")
         }
@@ -229,9 +232,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.noise = false
         display.noiseLevel = 0.05
         display.sobel = false
-        display.sobelLevel = 125
+        display.sobelLevel = defaultSobelLevel
         display.quantize = false
-        display.quantizeLevel = 16
+        display.quantizeLevel = defaultQuantizeLevel
+        display.cartoon = false
+        display.blur = false
+        display.blurRadius = defaultBlurRadius
 
         display.testMode = false
 

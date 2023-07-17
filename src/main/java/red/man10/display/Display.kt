@@ -8,6 +8,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
+import red.man10.display.filter.defaultBlurRadius
+import red.man10.display.filter.defaultQuantizeLevel
+import red.man10.display.filter.defaultSobelLevel
 import java.awt.image.BufferedImage
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
@@ -56,7 +59,10 @@ abstract class Display<DitheringProcessor> {
 
     var quantize = false
     var quantizeLevel:Int = 6
+    var cartoon = false
 
+    var blur = false
+    var blurRadius = defaultBlurRadius
 
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -177,6 +183,9 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.sobel", sobel)
         config.set("$key.quantize", quantize)
         config.set("$key.quantizeLevel", quantizeLevel)
+        config.set("$key.cartoon", cartoon)
+        config.set("$key.blur", blur)
+        config.set("$key.blurRadius", blurRadius)
 
 
         // save locaiton data
@@ -214,10 +223,13 @@ abstract class Display<DitheringProcessor> {
         saturationLevel = config.getDouble("$key.saturationLevel", 1.0)
         noiseLevel = config.getDouble("$key.noiseLevel", 0.0)
         noise = config.getBoolean("$key.noise", false)
-        sobelLevel = config.getInt("$key.sobelLevel", 125)
+        sobelLevel = config.getInt("$key.sobelLevel", defaultSobelLevel)
         sobel = config.getBoolean("$key.sobel", false)
         quantize = config.getBoolean("$key.quantize", false)
-        quantizeLevel = config.getInt("$key.quantizeLevel", 6)
+        quantizeLevel = config.getInt("$key.quantizeLevel", defaultQuantizeLevel)
+        cartoon = config.getBoolean("$key.cartoon", false)
+        blur = config.getBoolean("$key.blur", false)
+        blurRadius = config.getInt("$key.blurRadius", defaultBlurRadius)
 
 
         // load location data
@@ -351,6 +363,18 @@ abstract class Display<DitheringProcessor> {
             }
             "quantize_level" -> {
                 this.quantizeLevel = value.toInt()
+                modified = true
+            }
+            "cartoon" -> {
+                this.cartoon = value.toBoolean()
+                modified = true
+            }
+            "blur" -> {
+                this.blur = value.toBoolean()
+                modified = true
+            }
+            "blur_radius" -> {
+                this.blurRadius = value.toInt()
                 modified = true
             }
             else -> {

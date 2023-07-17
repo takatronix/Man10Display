@@ -42,6 +42,9 @@ class StreamDisplay : Display<Any?> {
                 if(this.colorEnhancer){
                     this.bufferedImage = ColorEnhancerFilter(saturationLevel).apply(this.bufferedImage!!)
                 }
+                if(this.cartoon){
+                    this.bufferedImage = CartoonFilter(quantizeLevel,sobelLevel).apply(this.bufferedImage!!)
+                }
                 if(this.noise){
                     this.bufferedImage = NoiseFilter(noiseLevel).apply(this.bufferedImage!!)
                 }
@@ -57,9 +60,13 @@ class StreamDisplay : Display<Any?> {
                 if (this.fastDithering) {
                     this.bufferedImage = OrderedDitheringFilter().apply(this.bufferedImage!!)
                 }
-                if(this.testMode){
-                    this.bufferedImage = ColorQuantizeFilter().apply(this.bufferedImage!!)
+                if(this.blur){
+                    this.bufferedImage = BlurFilter(blurRadius).apply(this.bufferedImage!!)
                 }
+                if(this.testMode){
+
+                }
+
                 if (this.showStatus) {
                     this.drawInformation()
                 }

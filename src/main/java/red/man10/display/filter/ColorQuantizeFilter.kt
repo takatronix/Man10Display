@@ -4,7 +4,8 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import kotlin.math.pow
 
-class ColorQuantizeFilter(private val levels: Int = 6) : ImageFilter() {
+const val defaultQuantizeLevel = 6
+class ColorQuantizeFilter(private val levels: Int = defaultQuantizeLevel) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height
