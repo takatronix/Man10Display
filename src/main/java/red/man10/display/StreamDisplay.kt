@@ -1,6 +1,5 @@
 package red.man10.display
 
-import red.man10.display.imageprocessor.DitheringProcessor
 import red.man10.display.imageprocessor.*
 import org.bukkit.configuration.file.YamlConfiguration
 import java.util.function.Consumer
@@ -34,6 +33,10 @@ class StreamDisplay : Display<Any?> {
                 if (this.monochrome) {
                     this.bufferedImage = GrayscaleProcessor().apply(this.bufferedImage!!)
                 }
+                if(this.keepAspectRatio){
+                   this.bufferedImage = AspectRatioProcessor(this.aspectRatioWidth / this.aspectRatioHeight).apply(this.bufferedImage!!)
+                }
+
                 if (this.showStatus) {
                     this.drawInformation()
                 }

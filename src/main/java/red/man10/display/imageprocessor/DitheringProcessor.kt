@@ -5,35 +5,6 @@ import java.awt.image.BufferedImage
 import kotlin.math.sqrt
 
 class DitheringProcessor : ImageProcessor() {
-    companion object{
-        private val palette: List<Color> = createPaletteFromMapPalette()
-        private fun createPaletteFromMapPalette(): List<Color> {
-            val mapPaletteColors = getMapPaletteColors()
-            val palette = mutableListOf<Color>()
-
-            for (color in mapPaletteColors) {
-                val rgb = color.rgb
-                val red = rgb shr 16 and 0xFF
-                val green = rgb shr 8 and 0xFF
-                val blue = rgb and 0xFF
-                val paletteColor = Color(red, green, blue)
-                palette.add(paletteColor)
-            }
-
-            return palette
-        }
-        private fun getMapPaletteColors(): Array<Color> {
-            try {
-                val mapPaletteClass = Class.forName("org.bukkit.map.MapPalette")
-                val colorsField = mapPaletteClass.getDeclaredField("colors")
-                colorsField.isAccessible = true
-                return colorsField.get(null) as Array<Color>
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            return emptyArray()
-        }
-    }
 
     override fun apply(image: BufferedImage): BufferedImage {
         val ditheredImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_RGB)

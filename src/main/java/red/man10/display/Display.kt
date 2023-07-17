@@ -29,7 +29,9 @@ abstract class Display<DitheringProcessor> {
     var ditherdImage: BufferedImage? = null
     var modified = false
 
-    var fixaspect = false
+    var keepAspectRatio = false
+    var aspectRatioWidth= 16.0
+    var aspectRatioHeight = 9.0
     var originalWidth = 0
     var originalHeight = 0
     var dithering = false
@@ -137,7 +139,9 @@ abstract class Display<DitheringProcessor> {
         config.set("$key.width", width)
         config.set("$key.height", height)
         config.set("$key.refreshPeriod", refreshPeriod)
-        config.set("$key.fixaspect", fixaspect)
+        config.set("$key.keepAspectRatio", keepAspectRatio)
+        config.set("$key.aspectRatioWidth", aspectRatioWidth)
+        config.set("$key.aspectRatioHeight", aspectRatioHeight)
         config.set("$key.dithering", dithering)
         config.set("$key.showStatus", showStatus)
         config.set("$key.monochrome", monochrome)
@@ -163,7 +167,9 @@ abstract class Display<DitheringProcessor> {
         if (refreshPeriod == 0L) {
             refreshPeriod = (1000 / 20)
         }
-        fixaspect = config.getBoolean("$key.fixaspect", false)
+        keepAspectRatio = config.getBoolean("$key.keepAspectRatio", false)
+        aspectRatioWidth = config.getDouble("$key.aspectRatioWidth", 16.0)
+        aspectRatioHeight = config.getDouble("$key.aspectRatioHeight", 9.0)
         dithering = config.getBoolean("$key.dithering", false)
         showStatus = config.getBoolean("$key.showStatus", false)
         monochrome = config.getBoolean("$key.monochrome", false)
@@ -235,6 +241,9 @@ abstract class Display<DitheringProcessor> {
             }
             "flip" -> {
                 this.flip = value.toBoolean()
+            }
+            "keep_aspect_ratio" -> {
+                this.keepAspectRatio = value.toBoolean()
             }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
