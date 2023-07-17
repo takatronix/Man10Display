@@ -38,5 +38,19 @@ abstract class ImageFilter {
         fun clamp(value: Int): Int {
             return value.coerceIn(0, 255)
         }
+        fun colorDistance(color1: Color, color2: Color): Double {
+            val rDiff = color1.red - color2.red
+            val gDiff = color1.green - color2.green
+            val bDiff = color1.blue - color2.blue
+            return Math.hypot(rDiff.toDouble(), Math.hypot(gDiff.toDouble(), bDiff.toDouble()))
+        }
+
+        fun colorDiff(color1: Color, color2: Color): Int {
+            val rDiff = Math.abs(color1.red - color2.red)
+            val gDiff = Math.abs(color1.green - color2.green)
+            val bDiff = Math.abs(color1.blue - color2.blue)
+            return rDiff + gDiff + bDiff
+        }
+
     }
 }
