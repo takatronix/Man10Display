@@ -79,7 +79,7 @@ class StreamDisplay : Display<Any?> {
                     this.bufferedImage = ScanlineFilter(scanlineWidth).apply(this.bufferedImage!!)
                 }
                 if(this.testMode){
-
+                //    this.bufferedImage = ParallelDitheringFilter(4).apply(this.bufferedImage!!)
                 }
 
                 if (this.showStatus) {
