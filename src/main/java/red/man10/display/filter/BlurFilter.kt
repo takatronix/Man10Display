@@ -2,8 +2,8 @@ package red.man10.display.filter
 
 import java.awt.image.BufferedImage
 
-const val defaultBlurRadius = 3
-class BlurFilter(private val radius: Int = defaultBlurRadius) : ImageFilter() {
+const val DEFAULT_BLUR_RADIUS = 3
+class BlurFilter(private val radius: Int = DEFAULT_BLUR_RADIUS) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

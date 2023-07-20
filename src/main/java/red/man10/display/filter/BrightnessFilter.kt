@@ -3,8 +3,8 @@ package red.man10.display.filter
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-const val defaultBrightnessLevel = 1.5
-class BrightnessFilter(private val brightness: Double = defaultBrightnessLevel) : ImageFilter() {
+const val DEFAULT_BRIGHTNESS_LEVEL = 1.5
+class BrightnessFilter(private val brightness: Double = DEFAULT_BRIGHTNESS_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

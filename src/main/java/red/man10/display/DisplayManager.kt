@@ -55,6 +55,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "contrast","contrast_level","brightness","brightness_level",
                 "sharpen","sharpen_level",
                 "scanline","scanline_width",
+                "distance",
 
                 "test_mode")
         }
@@ -101,6 +102,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l width: ${display.width}")
         p.sendMessage("§a§l height: ${display.height}")
         p.sendMessage("§a§l location: ${display.location}")
+        p.sendMessage("§a§l distance: ${display.distance}")
         p.sendMessage("§a§l fps: ${display.fps}")
 
         // パラメータを表示
@@ -247,30 +249,43 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.aspectRatioWidth = 16.0
         display.aspectRatioHeight = 9.0
         display.noise = false
-        display.noiseLevel = 0.05
+        display.noiseLevel = DEFAULT_NOISE_LEVEL
         display.sobel = false
-        display.sobelLevel = defaultSobelLevel
+        display.sobelLevel = DEFAULT_SOBEL_LEVEL
         display.quantize = false
-        display.quantizeLevel = defaultQuantizeLevel
+        display.quantizeLevel = DEFAULT_QUANTIZE_LEVEL
         display.cartoon = false
         display.blur = false
-        display.blurRadius = defaultBlurRadius
+        display.blurRadius = DEFAULT_BLUR_RADIUS
         display.denoise = false
-        display.denoiseRadius = defaultDenoiseRadius
+        display.denoiseRadius = DEFAULT_DENOISE_RADIUS
         display.contrast = false
-        display.contrastLevel = defaultContrastLevel
+        display.contrastLevel = DEFAULT_CONTRAST_LEVEL
         display.scanline = false
-        display.scanlineWidth = defaultScanlineWidth
+        display.scanlineWidth = DEFAULT_SCANLINE_HEIGHT
         display.sharpen = false
-        display.sharpenLevel = defaultSharpenLevel
+        display.sharpenLevel = DEFAULT_SHARPEN_LEVEL
         display.brightness = false
-        display.brightnessLevel = defaultBrightnessLevel
+        display.brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
+        display.distance = DEFAULT_DISTANCE
 
         display.testMode = false
 
         // update&save
         display.modified = true
         save(sender)
+        return true
+    }
+
+    fun saveImage(player:Player,name:String): Boolean{
+        val display = getDisplay(name) ?: return false
+        val fileName = Main.imageManager.createKey(player.name)
+
+        if(!Main.imageManager.save(fileName,display.bufferedImage!!)){
+           player.sendMessage(Main.prefix + "§c§l Failed to save image")
+           return false
+        }
+
         return true
     }
 }

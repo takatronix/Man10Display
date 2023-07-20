@@ -1,7 +1,6 @@
 package red.man10.display.filter
 
 import java.awt.image.BufferedImage
-import java.awt.image.DataBufferInt
 
 class FlipFilter : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {

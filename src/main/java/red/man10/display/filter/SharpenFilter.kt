@@ -3,8 +3,8 @@ package red.man10.display.filter
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-const val defaultSharpenLevel = 1.0
-class SharpenFilter(private val strength: Double = defaultSharpenLevel) : ImageFilter() {
+const val DEFAULT_SHARPEN_LEVEL = 1.0
+class SharpenFilter(private val strength: Double = DEFAULT_SHARPEN_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

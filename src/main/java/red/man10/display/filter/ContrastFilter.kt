@@ -3,8 +3,8 @@ package red.man10.display.filter
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-const val defaultContrastLevel = 1.3
-class ContrastFilter(private val factor: Double = defaultContrastLevel) : ImageFilter() {
+const val DEFAULT_CONTRAST_LEVEL = 1.3
+class ContrastFilter(private val factor: Double = DEFAULT_CONTRAST_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

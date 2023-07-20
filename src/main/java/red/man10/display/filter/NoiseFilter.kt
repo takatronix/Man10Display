@@ -3,8 +3,9 @@ package red.man10.display.filter
 import java.awt.image.BufferedImage
 import java.util.*
 
-//  intensity = 0.05 // グリッチの強度（0から1の範囲で指定）
-class NoiseFilter(private val intensity: Double = 0.05) : ImageFilter() {
+//  強度（0から1の範囲で指定）
+const val DEFAULT_NOISE_LEVEL = 0.05
+class NoiseFilter(private val intensity: Double = DEFAULT_NOISE_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

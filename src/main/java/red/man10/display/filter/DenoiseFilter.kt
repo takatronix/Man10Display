@@ -3,8 +3,8 @@ package red.man10.display.filter
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-const val defaultDenoiseRadius = 2
-class DenoiseFilter(private val radius: Int = defaultDenoiseRadius) : ImageFilter() {
+const val DEFAULT_DENOISE_RADIUS = 2
+class DenoiseFilter(private val radius: Int = DEFAULT_DENOISE_RADIUS) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

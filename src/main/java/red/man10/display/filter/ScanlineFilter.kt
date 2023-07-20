@@ -3,8 +3,8 @@ package red.man10.display.filter
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-const val defaultScanlineWidth = 2
-class ScanlineFilter(private val scanlineHeight: Int = defaultScanlineWidth, private val scanlineColor: Color = Color.BLACK) : ImageFilter() {
+const val DEFAULT_SCANLINE_HEIGHT = 2
+class ScanlineFilter(private val scanlineHeight: Int = DEFAULT_SCANLINE_HEIGHT, private val scanlineColor: Color = Color.BLACK) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
         val height = image.height

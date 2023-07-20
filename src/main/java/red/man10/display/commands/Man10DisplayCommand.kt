@@ -63,6 +63,15 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Delete display with specified id")
                 .executor(DeleteCommand(Main.plugin))
         )
+        // save command
+        addCommand(
+            CommandObject()
+                .prefix("save")
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("save display with specified id")
+                .executor(SaveCommand(Main.plugin))
+        )
         // map command
         addCommand(
             CommandObject()
