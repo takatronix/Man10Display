@@ -67,6 +67,7 @@ abstract class Display<DitheringProcessor> {
     var brightness = false
     var brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
 
+    private var blankMap : ByteArray? = null
     private var mapCache = mutableListOf<ByteArray?>()
     private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
@@ -80,7 +81,8 @@ abstract class Display<DitheringProcessor> {
     var startTime: Long = System.currentTimeMillis()
     var lastPacketSentTime: Long = System.currentTimeMillis()
     var lastEffectTime: Long = System.currentTimeMillis()
-
+    var playersCount: Int = 0
+    var sentPlayers = mutableListOf<Player>()
     fun resetStats() {
         refreshCount = 0
         sentMapCount = 0
@@ -123,6 +125,13 @@ abstract class Display<DitheringProcessor> {
         for (i in 0 until this.mapCount) {
             mapCache.add(null)
         }
+        val blankImage = BufferedImage(MC_MAP_SIZE_X, MC_MAP_SIZE_Y, BufferedImage.TYPE_INT_RGB)
+        // blankImageを塗りつぶす
+        val graphics = blankImage.graphics
+        graphics.color = java.awt.Color.BLUE
+        graphics.fillRect(0, 0, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
+
+        blankMap = MapPalette.imageToBytes(blankImage)
         startSendingPacketsTask()
     }
 
@@ -491,6 +500,7 @@ abstract class Display<DitheringProcessor> {
         return arrayOf(
             "$name($width,$height)",
             "fps:$curFps/$fps",
+            "players:${sentPlayers.size}/$playersCount",
             "mps:$mps total:$sentMapCount",
             "bps:$bps total:$totalSent",
             "lastCacheTime: $lastCacheTime",
@@ -564,8 +574,21 @@ abstract class Display<DitheringProcessor> {
             mapPacket
         }
 
+        // Send packets to players
+        val targets = mutableListOf<Player>()
         lastPacketSentTime = measureTimeMillis {
+            this.playersCount = Bukkit.getOnlinePlayers().size
             for (player in Bukkit.getOnlinePlayers()) {
+
+                // check distance
+                if(this.location != null && this.distance > 0.0){
+                    if(this.location!!.world != player.world)
+                        continue
+                    if(player.location.distance(this.location!!) > distance)
+                        continue
+                }
+
+                // send packets
                 for (packet in packets) {
                     try {
                         Main.protocolManager.sendServerPacket(player, packet)
@@ -575,8 +598,31 @@ abstract class Display<DitheringProcessor> {
                         e.printStackTrace()
                     }
                 }
+                targets.add(player)
+            }
+        }
+
+        // 前回送信した対象から外れたプレイヤーには、ブランクパケットを送る
+        for (player in sentPlayers) {
+            if (targets.contains(player))
+                continue
+            sendBank(player)
+        }
+
+        this.sentPlayers = targets
+    }
+    private fun sendBank(player:Player){
+        if(!player.isOnline)
+            return
+        for (mapId in mapIds) {
+            val packet = createMapPacket(mapId, blankMap)
+            try {
+                Main.protocolManager.sendServerPacket(player, packet)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
+
     // endregion
 }
