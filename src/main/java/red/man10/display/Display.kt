@@ -622,6 +622,7 @@ abstract class Display<DitheringProcessor> {
                 e.printStackTrace()
             }
         }
+        info("send blank map to ${player.name}")
     }
 
     // endregion
