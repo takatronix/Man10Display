@@ -25,10 +25,13 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     fun deinit(){
         for (display in displays) {
             if(display is StreamDisplay){
+                info("stream display ${display.name} deinit start")
                 display.deinit()
+                info("stream display ${display.name} deinited")
             }
         }
         displays.clear()
+        info("displays cleared")
     }
 
     val names:ArrayList<String>
@@ -273,7 +276,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.testMode = false
 
         // update&save
-        display.modified = true
+        display.refreshFlag = true
         save(sender)
         return true
     }

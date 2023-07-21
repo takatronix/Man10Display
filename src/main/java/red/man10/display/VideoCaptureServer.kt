@@ -5,11 +5,12 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+import java.net.InetSocketAddress
 import java.util.function.Consumer
 import javax.imageio.ImageIO
 
 open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
-    private var running = true
+    @Volatile var running = true
     private var socket: DatagramSocket? = null
     private var frameConsumer: Consumer<BufferedImage>? = null
     private var portNo = port
@@ -17,12 +18,17 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     var frameReceivedTime: Long = 0
     var frameErrorCount: Long = 0
     override fun close() {
+        info("closing VideoCaptureServer port:$portNo")
         running = false
-        socket?.let {
-            it.disconnect()
-            it.close()
+        if(socket != null){
+            if(socket?.isConnected == true){
+                socket?.disconnect()
+            }
+            socket?.close()
+            socket = null
         }
         frameConsumer = null
+        join()
     }
     fun onFrame(consumer: Consumer<BufferedImage>) {
         frameConsumer = consumer
@@ -33,12 +39,16 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
      override fun run() {
         try {
             val buffer = ByteArray(1000 * 1000)
-            socket = DatagramSocket(portNo)
+            socket = DatagramSocket(null)
+            socket?.reuseAddress = true
+            socket?.bind(InetSocketAddress(portNo))
+
             val packet = DatagramPacket(buffer, buffer.size)
             val output = ByteArrayOutputStream()
             var soi = 0 // start of image / SOI
             var eoi = 0 // end of image / EOI
             while (running) {
+                if (!running) break
                 socket!!.receive(packet)
                 val data = packet.data
                 val length = packet.length
@@ -91,6 +101,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
                     }
                 }
             }
+            info("server stopped port:$portNo")
         } catch (e: IOException) {
             e.printStackTrace()
         }

@@ -31,15 +31,12 @@ abstract class Display : MapPacketSender {
     var distance = DEFAULT_DISTANCE
 
     var bufferedImage: BufferedImage? = null
-    var modified = false
 
     // filter settings
     var testMode = false
     var keepAspectRatio = false
     var aspectRatioWidth = 16.0
     var aspectRatioHeight = 9.0
-    var originalWidth = 0
-    var originalHeight = 0
     var dithering = false
     var fastDithering = false
     var invert = false
@@ -51,15 +48,15 @@ abstract class Display : MapPacketSender {
     var saturationLevel = 1.0
     var noiseLevel = DEFAULT_NOISE_LEVEL
     var noise = false
-    var sobelLevel: Int = 100
+    var sobelLevel: Int = DEFAULT_SOBEL_LEVEL
     var sobel = false
     var quantize = false
-    var quantizeLevel: Int = 6
+    var quantizeLevel: Int = DEFAULT_QUANTIZE_LEVEL
     var cartoon = false
     var denoise = false
-    var denoiseRadius = 2
+    var denoiseRadius = DEFAULT_DENOISE_RADIUS
     var contrast = false
-    var contrastLevel = 1.5
+    var contrastLevel = DEFAULT_CONTRAST_LEVEL
     var scanline = false
     var scanlineWidth = DEFAULT_SCANLINE_HEIGHT
     var sharpen = false
@@ -77,7 +74,7 @@ abstract class Display : MapPacketSender {
     var frameReceivedTime: Long = 0
     var startTime: Long = System.currentTimeMillis()
     var lastPacketSentTime: Long = System.currentTimeMillis()
-    var lastEffectTime: Long = System.currentTimeMillis()
+    var lastFilterTime: Long = System.currentTimeMillis()
     var playersCount: Int = 0
     var sentPlayers = mutableListOf<Player>()
     var refreshCount: Long = 0
@@ -124,14 +121,7 @@ abstract class Display : MapPacketSender {
 
     private fun init() {
         this.bufferedImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
-        // オフライン時の表示
         val blankImage = BufferedImage(MC_MAP_SIZE_X, MC_MAP_SIZE_Y, BufferedImage.TYPE_INT_RGB)
-/*
-        val g = blankImage.graphics
-        g.color = java.awt.Color.BLUE
-        g.fillRect(0, 0, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
-
- */
         blankMap = MapPalette.imageToBytes(blankImage)
 
         for (i in 0 until this.mapCount) {
@@ -146,8 +136,7 @@ abstract class Display : MapPacketSender {
     }
 
     open fun deinit() {
-        bufferedImage?.flush()
-        mapCache.clear()
+        this.refreshFlag = false
         stopSendingPacketsTask()
     }
 
@@ -175,7 +164,6 @@ abstract class Display : MapPacketSender {
             val graphics = image.graphics
             graphics.color = java.awt.Color(color)
             graphics.drawString(text, x, y)
-            modified = true
         }
     }
     // endregion
@@ -471,9 +459,78 @@ abstract class Display : MapPacketSender {
             }
         }
 
-        this.modified = true
+        this.refreshFlag = true
         return true
     }
+    fun filterImage(image:BufferedImage):BufferedImage{
+        var result = image
+        this.lastFilterTime = measureTimeMillis {
+            if (this.flip) {
+                result = FlipFilter().apply(result)
+            }
+            if (this.monochrome) {
+                result = GrayscaleFilter().apply(result)
+            }
+            if (this.sepia) {
+                result = SepiaFilter().apply(result)
+            }
+            if (this.invert) {
+                result = InvertFilter().apply(result)
+            }
+            if (this.keepAspectRatio) {
+                result = AspectRatioFilter(this.aspectRatioWidth / this.aspectRatioHeight).apply(result)
+            }
+            if (this.brightness) {
+                result = BrightnessFilter(brightnessLevel).apply(result)
+            }
+            if (this.colorEnhancer) {
+                result = ColorEnhancerFilter(saturationLevel).apply(result)
+            }
+            if (this.sharpen) {
+                result = SharpenFilter(sharpenLevel).apply(result)
+            }
+            if (this.cartoon) {
+                result = CartoonFilter(quantizeLevel, sobelLevel).apply(result)
+            }
+            if (this.noise) {
+                result = NoiseFilter(noiseLevel).apply(result)
+            }
+            if (this.quantize) {
+                result = ColorQuantizeFilter(quantizeLevel).apply(result)
+            }
+            if (this.sobel) {
+                result = SobelFilter(sobelLevel).apply(result)
+            }
+            if (this.dithering) {
+                result = DitheringFilter().apply(result)
+            }
+            if (this.fastDithering) {
+                result = OrderedDitheringFilter().apply(result)
+            }
+            if (this.denoise) {
+                result = DenoiseFilter(denoiseRadius).apply(result)
+            }
+            if (this.contrast) {
+                result = ContrastFilter(contrastLevel).apply(result)
+            }
+            if (this.blur) {
+                result = BlurFilter(blurRadius).apply(result)
+            }
+            if (this.scanline) {
+                result = ScanlineFilter(scanlineWidth).apply(result)
+            }
+            if (this.testMode) {
+                //    result = ParallelDitheringFilter(4).apply(result!!)
+            }
+
+            if (this.showStatus) {
+                // this.drawInformation()
+            }
+        }
+        return result
+    }
+
+
     // endregion
 
     // region: MapPacketSender
@@ -494,12 +551,13 @@ abstract class Display : MapPacketSender {
             "mps:$mps total:$sentMapCount",
             "bps:$bps total:$totalSent",
             "lastCacheTime: $lastCacheTime",
-            "lastEffectTime: $lastEffectTime",
+            "lastFilterTime: $lastFilterTime",
         )
     }
 
     private fun getTargetPlayers():List<Player>{
         val players = mutableListOf<Player>()
+        this.playersCount = Bukkit.getOnlinePlayers().size
         for (player in Bukkit.getOnlinePlayers()) {
             // check distance
             if(this.location != null && this.distance > 0.0){
@@ -514,20 +572,7 @@ abstract class Display : MapPacketSender {
         }
         return players
     }
-    private fun sendMapPacketsToPlayers() {
-        val players = getTargetPlayers()
-        MapPacketSender.send(players, mapPackets)
 
-        // 前回送信して今回送信しないプレイヤーには、ブランクパケットを送る
-        for (player in sentPlayers) {
-            if (players.contains(player))
-                continue
-            if(blankMap != null)
-                sendMapImage(player, blankMap!!, mapIds)
-        }
-
-        this.sentPlayers = players.toMutableList()
-    }
     private fun startSendingPacketsTask() {
         stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
         info("startSendingPacketsTask $refreshPeriod ms")
@@ -542,11 +587,26 @@ abstract class Display : MapPacketSender {
         )
     }
 
+    private fun sendMapPacketsToPlayers() {
+        val players = getTargetPlayers()
+        val sent = MapPacketSender.send(players, mapPackets)
+        this.sentMapCount += sent
+        this.sentBytes += sent * MC_MAP_SIZE_X * MC_MAP_SIZE_Y
+
+        // 前回送信して今回送信しないプレイヤーには、ブランクパケットを送ってディスプレイを消す
+        for (player in sentPlayers) {
+            if (players.contains(player))
+                continue
+            if(blankMap != null)
+                sendMapImage(player, blankMap!!, mapIds)
+        }
+
+        this.sentPlayers = players.toMutableList()
+    }
     private fun stopSendingPacketsTask() {
         future?.cancel(false)
         future = null
     }
-
 
     private var mapCache = mutableListOf<ByteArray?>()
     private var mapPackets = mutableListOf<PacketContainer>()

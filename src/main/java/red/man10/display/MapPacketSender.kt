@@ -10,17 +10,15 @@ public interface  MapPacketSender {
     companion object{
         fun send(players:List<Player>,packets:List<PacketContainer>):Int {
             var sent = 0
-            val time = measureTimeMillis {
-                for (player in players) {
-                    if(!player.isOnline)
-                        continue
-                    for (packet in packets) {
-                        try {
-                            Main.protocolManager.sendServerPacket(player, packet)
-                            sent ++
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                        }
+            for (player in players) {
+                if(!player.isOnline)
+                    continue
+                for (packet in packets) {
+                    try {
+                        Main.protocolManager.sendServerPacket(player, packet)
+                        sent ++
+                    } catch (e: Exception) {
+                        e.printStackTrace()
                     }
                 }
             }
