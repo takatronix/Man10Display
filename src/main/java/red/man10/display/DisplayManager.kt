@@ -16,7 +16,8 @@ import java.io.File
 
 
 class DisplayManager(main: JavaPlugin)   : Listener {
-    val displays = mutableListOf<Display<Any?>>()
+    val displays = mutableListOf<Display>()
+
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
     }
@@ -59,14 +60,14 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
                 "test_mode")
         }
-    fun getDisplay(name: String): Display<Any?>? {
+    fun getDisplay(name: String): Display? {
         displays.find { it.name == name }?.let {
             return it
         }
         return null
     }
 
-    fun create(player: Player,display: Display<Any?>) : Boolean{
+    fun create(player: Player,display: Display) : Boolean{
         if(getDisplay(display.name) != null){
             player.sendMessage(Main.prefix + "§a§l ${display.name} already exists")
             return false
@@ -143,7 +144,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    private fun createMaps(display:Display<Any?>, player: Player, xSize:Int, ySize:Int): Boolean {
+    private fun createMaps(display:Display, player: Player, xSize:Int, ySize:Int): Boolean {
         for(y in 0 until ySize){
             for(x in 0 until xSize){
                 val mapView = Bukkit.getServer().createMap(player.world)
@@ -166,7 +167,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    private fun getMaps(display:Display<Any?>, player: Player): Boolean {
+    private fun getMaps(display:Display, player: Player): Boolean {
         val items = getMaps(display)
         for(item in items){
             player.world.dropItem(player.location,item)
@@ -174,7 +175,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    fun getMaps(display: Display<Any?>): ArrayList<ItemStack> {
+    fun getMaps(display: Display): ArrayList<ItemStack> {
         val items = arrayListOf<ItemStack>()
         for(y in 0 until display.height){
             for(x in 0 until display.width){

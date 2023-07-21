@@ -6,7 +6,7 @@ import java.util.function.Consumer
 import kotlin.system.measureTimeMillis
 
 
-class StreamDisplay : Display<Any?> {
+class StreamDisplay : Display {
     private var port: Int = 0
     private var videoCaptureServer = VideoCaptureServer(port)
 
@@ -23,6 +23,7 @@ class StreamDisplay : Display<Any?> {
     private fun startServer() {
         videoCaptureServer.onFrame(Consumer { image ->
             this.bufferedImage = image
+
             this.lastEffectTime = measureTimeMillis {
                 if(this.flip) {
                     this.bufferedImage = FlipFilter().apply(this.bufferedImage!!)
@@ -88,7 +89,8 @@ class StreamDisplay : Display<Any?> {
             }
 
             this.updateMapCache()
-            this.modified = true
+            this.mapCacheToPackets()
+            this.refreshFlag = true
         })
         videoCaptureServer.start()
         info("Server started on port $port")

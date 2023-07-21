@@ -8,6 +8,8 @@ import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
+import red.man10.display.MapPacketSender.Companion.createMapPacket
+import red.man10.display.MapPacketSender.Companion.sendMapImage
 import red.man10.display.filter.*
 import java.awt.image.BufferedImage
 import java.util.concurrent.Executors
@@ -16,11 +18,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 
 // minecraft map size
-private const val MC_MAP_SIZE_X = 128
-private const val MC_MAP_SIZE_Y = 128
+const val MC_MAP_SIZE_X = 128
+const val MC_MAP_SIZE_Y = 128
 //
 const val DEFAULT_DISTANCE = 32.0
-abstract class Display<DitheringProcessor> {
+abstract class Display : MapPacketSender {
     var name: String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
@@ -67,14 +69,9 @@ abstract class Display<DitheringProcessor> {
     var brightness = false
     var brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
 
-    private var blankMap : ByteArray? = null
-    private var mapCache = mutableListOf<ByteArray?>()
-    private var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
+    var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
     // statistics
-    var sentMapCount: Long = 0
-    var refreshCount: Long = 0
-    var sentBytes: Long = 0
     var lastCacheTime: Long = 0
     var frameReceivedCount: Long = 0
     var frameReceivedTime: Long = 0
@@ -83,6 +80,11 @@ abstract class Display<DitheringProcessor> {
     var lastEffectTime: Long = System.currentTimeMillis()
     var playersCount: Int = 0
     var sentPlayers = mutableListOf<Player>()
+    var refreshCount: Long = 0
+    var sentMapCount: Long = 0
+    var sentBytes: Long = 0
+    var refreshFlag = false
+
     fun resetStats() {
         refreshCount = 0
         sentMapCount = 0
@@ -92,7 +94,7 @@ abstract class Display<DitheringProcessor> {
         frameReceivedTime = 0
         startTime = System.currentTimeMillis()
     }
-
+    var blankMap : ByteArray? = null
     open val imageWidth: Int
         get() = width * MC_MAP_SIZE_X
     open val imageHeight: Int
@@ -122,16 +124,24 @@ abstract class Display<DitheringProcessor> {
 
     private fun init() {
         this.bufferedImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+        // オフライン時の表示
+        val blankImage = BufferedImage(MC_MAP_SIZE_X, MC_MAP_SIZE_Y, BufferedImage.TYPE_INT_RGB)
+/*
+        val g = blankImage.graphics
+        g.color = java.awt.Color.BLUE
+        g.fillRect(0, 0, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
+
+ */
+        blankMap = MapPalette.imageToBytes(blankImage)
+
         for (i in 0 until this.mapCount) {
             mapCache.add(null)
+            mapPackets.add(PacketContainer(PacketType.Play.Server.MAP))
+            createMapPacket(mapIds[i],blankMap!!).let { packet ->
+                blankPackets.add(packet)
+            }
         }
-        val blankImage = BufferedImage(MC_MAP_SIZE_X, MC_MAP_SIZE_Y, BufferedImage.TYPE_INT_RGB)
-        // blankImageを塗りつぶす
-        val graphics = blankImage.graphics
-        graphics.color = java.awt.Color.BLUE
-        graphics.fillRect(0, 0, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
 
-        blankMap = MapPalette.imageToBytes(blankImage)
         startSendingPacketsTask()
     }
 
@@ -470,26 +480,6 @@ abstract class Display<DitheringProcessor> {
     private val executor = Executors.newSingleThreadScheduledExecutor()
     private var future: ScheduledFuture<*>? = null
 
-    private fun startSendingPacketsTask() {
-        stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
-        info("startSendingPacketsTask $refreshPeriod ms")
-        future = executor.scheduleAtFixedRate(
-            {
-                if (!this.modified)
-                    return@scheduleAtFixedRate
-                this.modified = false
-                sendMapPacketsToPlayers()
-                refreshCount++
-            }, 0, refreshPeriod, TimeUnit.MILLISECONDS
-        )
-    }
-
-    private fun stopSendingPacketsTask() {
-        future?.cancel(false)
-        future = null
-        info("$name stopSendingPacketsTask")
-    }
-
     fun getInfo(): Array<String> {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
@@ -508,122 +498,65 @@ abstract class Display<DitheringProcessor> {
         )
     }
 
-    private fun createMapPacket(mapId: Int, data: ByteArray?): PacketContainer {
-        if (data == null) {
-            throw NullPointerException("data is null")
-        }
-        val packet = PacketContainer(PacketType.Play.Server.MAP)
-        val packetModifier = packet.modifier
-        packetModifier.writeDefaults()
-        val packetIntegers = packet.integers
-        if (packetModifier.size() > 5) {
-            packetIntegers.write(1, 0).write(2, 0).write(3, MC_MAP_SIZE_X).write(4, MC_MAP_SIZE_Y)
-            packet.byteArrays.write(0, data)
-        } else {
-            try {
-                val lastArg = packetModifier.size() - 1
-                packetModifier.write(
-                    lastArg, packetModifier.getField(lastArg).type.getConstructor(
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType,
-                        Int::class.javaPrimitiveType,
-                        ByteArray::class.java
-                    ).newInstance(0, 0, 128, 128, data)
-                )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        packetIntegers.write(0, mapId)
-        packet.bytes.write(0, 0.toByte())
-        val packetBooleans = packet.booleans
-        if (packetBooleans.size() > 0) {
-            packetBooleans.write(0, false)
-        }
-        return packet
-    }
-
-    private fun sendMapData(player: Player, mapId: Int, mapData: ByteArray) {
-
-        val packet = createMapPacket(mapId, mapData)
-        // Send the packet to the player
-        try {
-            Main.protocolManager.sendServerPacket(player, packet)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    fun sendMapPacketsToPlayers_x() {
+    private fun getTargetPlayers():List<Player>{
+        val players = mutableListOf<Player>()
         for (player in Bukkit.getOnlinePlayers()) {
-            for (i in 0 until mapCount) {
-                val mapData = mapCache.getOrNull(i) ?: continue
-                sendMapData(player, mapIds[i], mapData)
-                sentMapCount++
+            // check distance
+            if(this.location != null && this.distance > 0.0){
+                if(this.location!!.world != player.world)
+                    continue
+                if(player.location.distance(this.location!!) > distance)
+                    continue
+            }
+            if (player.isOnline) {
+                players.add(player)
             }
         }
+        return players
     }
-
     private fun sendMapPacketsToPlayers() {
-        // Convert cache of display to packet list
-        val packets = mapIds.mapIndexedNotNull { index, mapId ->
-            val mapData = mapCache.getOrNull(index) ?: return@mapIndexedNotNull null
-            sentBytes += mapData.size
-            val mapPacket = createMapPacket(mapId, mapData)
-            mapPacket
-        }
+        val players = getTargetPlayers()
+        MapPacketSender.send(players, mapPackets)
 
-        // Send packets to players
-        val targets = mutableListOf<Player>()
-        lastPacketSentTime = measureTimeMillis {
-            this.playersCount = Bukkit.getOnlinePlayers().size
-            for (player in Bukkit.getOnlinePlayers()) {
-
-                // check distance
-                if(this.location != null && this.distance > 0.0){
-                    if(this.location!!.world != player.world)
-                        continue
-                    if(player.location.distance(this.location!!) > distance)
-                        continue
-                }
-
-                // send packets
-                for (packet in packets) {
-                    try {
-                        Main.protocolManager.sendServerPacket(player, packet)
-                        sentMapCount++
-
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-                targets.add(player)
-            }
-        }
-
-        // 前回送信した対象から外れたプレイヤーには、ブランクパケットを送る
+        // 前回送信して今回送信しないプレイヤーには、ブランクパケットを送る
         for (player in sentPlayers) {
-            if (targets.contains(player))
+            if (players.contains(player))
                 continue
-            sendBank(player)
+            if(blankMap != null)
+                sendMapImage(player, blankMap!!, mapIds)
         }
 
-        this.sentPlayers = targets
+        this.sentPlayers = players.toMutableList()
     }
-    private fun sendBank(player:Player){
-        if(!player.isOnline)
-            return
-        for (mapId in mapIds) {
-            val packet = createMapPacket(mapId, blankMap)
-            try {
-                Main.protocolManager.sendServerPacket(player, packet)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-        info("send blank map to ${player.name}")
+    private fun startSendingPacketsTask() {
+        stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
+        info("startSendingPacketsTask $refreshPeriod ms")
+        future = executor.scheduleAtFixedRate(
+            {
+                if (!this.refreshFlag)
+                    return@scheduleAtFixedRate
+                this.refreshFlag = false
+                sendMapPacketsToPlayers()
+                refreshCount++
+            }, 0, refreshPeriod, TimeUnit.MILLISECONDS
+        )
     }
 
+    private fun stopSendingPacketsTask() {
+        future?.cancel(false)
+        future = null
+    }
+
+
+    private var mapCache = mutableListOf<ByteArray?>()
+    private var mapPackets = mutableListOf<PacketContainer>()
+    private var blankPackets = mutableListOf<PacketContainer>()
+    fun mapCacheToPackets(){
+        for (i in 0 until mapCache.size) {
+            val data = mapCache[i] ?: continue
+            val packet = createMapPacket(mapIds[i], data)
+            mapPackets[i] = packet
+        }
+    }
     // endregion
 }
