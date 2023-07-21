@@ -20,12 +20,16 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     override fun close() {
         info("closing VideoCaptureServer port:$portNo")
         running = false
-        if(socket != null){
-            if(socket?.isConnected == true){
-                socket?.disconnect()
+        try{
+            if(socket != null){
+                if(socket?.isConnected == true){
+                    socket?.disconnect()
+                }
+                socket?.close()
+                socket = null
             }
-            socket?.close()
-            socket = null
+        }catch (e:Exception) {
+            e.printStackTrace()
         }
         frameConsumer = null
         join()
