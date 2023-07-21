@@ -45,7 +45,7 @@ abstract class Display : MapPacketSender {
     var sepia = false
     var flip = false
     var colorEnhancer = false
-    var saturationLevel = 1.0
+    var saturationLevel = DEFAULT_SATURATION_LEVEL
     var noiseLevel = DEFAULT_NOISE_LEVEL
     var noise = false
     var sobelLevel: Int = DEFAULT_SOBEL_LEVEL
@@ -65,13 +65,14 @@ abstract class Display : MapPacketSender {
     var blurRadius = DEFAULT_BLUR_RADIUS
     var brightness = false
     var brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
+    var parallelDithering = false
+    var parallelism = DEFAULT_PARALLELISM
+
 
     var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
     // statistics
     var lastCacheTime: Long = 0
-    var frameReceivedCount: Long = 0
-    var frameReceivedTime: Long = 0
     var startTime: Long = System.currentTimeMillis()
     var lastPacketSentTime: Long = System.currentTimeMillis()
     var lastFilterTime: Long = System.currentTimeMillis()
@@ -80,6 +81,9 @@ abstract class Display : MapPacketSender {
     var refreshCount: Long = 0
     var sentMapCount: Long = 0
     var sentBytes: Long = 0
+    var frameReceivedCount: Long = 0
+    var frameReceivedBytes: Long = 0
+    var frameErrorCount: Long = 0
     var refreshFlag = false
 
     fun resetStats() {
@@ -88,7 +92,8 @@ abstract class Display : MapPacketSender {
         sentBytes = 0
         lastCacheTime = 0
         frameReceivedCount = 0
-        frameReceivedTime = 0
+        frameReceivedBytes = 0
+        frameErrorCount = 0
         startTime = System.currentTimeMillis()
     }
     var blankMap : ByteArray? = null
@@ -157,15 +162,6 @@ abstract class Display : MapPacketSender {
         }
     }
 
-
-    // region draw functions
-    fun drawText(text: String, x: Int, y: Int, color: Int) {
-        bufferedImage?.let { image ->
-            val graphics = image.graphics
-            graphics.color = java.awt.Color(color)
-            graphics.drawString(text, x, y)
-        }
-    }
     // endregion
 
     // region config
@@ -208,6 +204,8 @@ abstract class Display : MapPacketSender {
         config.set("$key.brightness", brightness)
         config.set("$key.brightnessLevel", brightnessLevel)
         config.set("$key.distance", distance)
+        config.set("$key.parallelDithering", parallelDithering)
+        config.set("$key.parallelism", parallelism)
 
         // save locaiton data
         location?.let { loc ->
@@ -262,6 +260,8 @@ abstract class Display : MapPacketSender {
         brightness = config.getBoolean("$key.brightness", false)
         brightnessLevel = config.getDouble("$key.brightnessLevel", DEFAULT_BRIGHTNESS_LEVEL)
         distance = config.getDouble("$key.distance", DEFAULT_DISTANCE)
+        parallelDithering = config.getBoolean("$key.parallelDithering", false)
+        parallelism = config.getInt("$key.parallelism", DEFAULT_PARALLELISM)
 
         // load location data
         val worldName = config.getString("$key.location.world")
@@ -322,11 +322,13 @@ abstract class Display : MapPacketSender {
             "dithering" -> {
                 this.dithering = value.toBoolean()
                 this.fastDithering = false
+                this.parallelDithering = false
             }
 
             "fast_dithering" -> {
                 this.fastDithering = value.toBoolean()
                 this.dithering = false
+                this.parallelDithering = false
             }
 
             "show_status" -> {
@@ -452,7 +454,14 @@ abstract class Display : MapPacketSender {
             "distance" -> {
                 this.distance = value.toDouble()
             }
-
+            "parallel_dithering" -> {
+                this.parallelDithering = value.toBoolean()
+                this.dithering = false
+                this.fastDithering = false
+            }
+            "parallelism" -> {
+                this.parallelism = value.toInt()
+            }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
                 return false
@@ -519,17 +528,29 @@ abstract class Display : MapPacketSender {
             if (this.scanline) {
                 result = ScanlineFilter(scanlineWidth).apply(result)
             }
+            if(this.parallelDithering){
+                result = ParallelDitheringFilter(parallelism).apply(result)
+            }
             if (this.testMode) {
                 //    result = ParallelDitheringFilter(4).apply(result!!)
             }
 
             if (this.showStatus) {
-                // this.drawInformation()
+                result = showStatus(result)
             }
         }
         return result
     }
-
+    private fun showStatus(image: BufferedImage):BufferedImage{
+        val info = getStatistics()
+        val graphics = image.graphics
+        graphics.color = java.awt.Color.GREEN
+        for(i in info.indices){
+            graphics.drawString(info[i],4,12 + i * 13)
+        }
+        graphics.dispose()
+        return image
+    }
 
     // endregion
 
@@ -537,21 +558,27 @@ abstract class Display : MapPacketSender {
     private val executor = Executors.newSingleThreadScheduledExecutor()
     private var future: ScheduledFuture<*>? = null
 
-    fun getInfo(): Array<String> {
+    fun getStatistics(): Array<String> {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
         val mps = formatNumberWithCommas(sentMapCount)
         val bps = formatNumberWithCommas(this.bps)
         val totalSent = formatNumberWithCommas(sentBytes)
 
+        val receivedBps = formatNumberWithCommas(frameReceivedBytes / (System.currentTimeMillis() - startTime) * 1000)
+        val receivedFps = String.format("%.1f", frameReceivedCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000)
+        val receivedTotal = formatNumberWithCommas(frameReceivedBytes)
+
         return arrayOf(
             "$name($width,$height)",
             "fps:$curFps/$fps",
             "players:${sentPlayers.size}/$playersCount",
             "mps:$mps total:$sentMapCount",
-            "bps:$bps total:$totalSent",
+            "bps:$bps total:$totalSent(bytes)",
             "lastCacheTime: $lastCacheTime",
             "lastFilterTime: $lastFilterTime",
+            "receivedFps:$receivedFps",
+            "receivedBps:$receivedBps total:$receivedTotal(bytes)",
         )
     }
 

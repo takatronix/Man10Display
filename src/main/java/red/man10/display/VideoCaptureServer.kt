@@ -15,7 +15,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     private var frameConsumer: Consumer<BufferedImage>? = null
     private var portNo = port
     var frameReceivedCount: Long = 0
-    var frameReceivedTime: Long = 0
+    var frameReceivedBytes: Long = 0
     var frameErrorCount: Long = 0
     override fun close() {
         info("closing VideoCaptureServer port:$portNo")
@@ -56,6 +56,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
                 socket!!.receive(packet)
                 val data = packet.data
                 val length = packet.length
+                frameReceivedBytes += length.toLong()
                 for (i in packet.offset until length) {
                     val b = data[i]
                     when (b) {

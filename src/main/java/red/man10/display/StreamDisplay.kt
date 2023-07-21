@@ -1,9 +1,7 @@
 package red.man10.display
 
-import red.man10.display.filter.*
 import org.bukkit.configuration.file.YamlConfiguration
 import java.util.function.Consumer
-import kotlin.system.measureTimeMillis
 
 
 class StreamDisplay : Display {
@@ -30,6 +28,10 @@ class StreamDisplay : Display {
 
     private fun startServer() {
         videoCaptureServer?.onFrame(Consumer { image ->
+            this.frameReceivedCount = videoCaptureServer?.frameReceivedCount ?: 0
+            this.frameReceivedBytes = videoCaptureServer?.frameReceivedBytes ?: 0
+            this.frameErrorCount = videoCaptureServer?.frameErrorCount ?: 0
+
             this.bufferedImage = filterImage(image)
             this.updateMapCache()
             this.mapCacheToPackets()
@@ -38,23 +40,15 @@ class StreamDisplay : Display {
         videoCaptureServer?.start()
     }
 
-    override fun save(config: YamlConfiguration, path: String) {
-        super.save(config, path)
-        config.set("$path.port", port)
+    override fun save(config: YamlConfiguration, key: String) {
+        super.save(config, key)
+        config.set("$key.port", port)
     }
 
-    override fun load(config: YamlConfiguration, name: String) {
-        super.load(config, name)
-        port = config.getInt("$name.port")
+    override fun load(config: YamlConfiguration, key: String) {
+        super.load(config, key)
+        port = config.getInt("$key.port")
     }
 
-    fun drawInformation() {
-        val info = getInfo()
-        // infoを出力
-        for (i in info.indices) {
-            drawText(info[i], 0, 20 + i * 20, color = 0x00ff00)
-        }
 
-
-    }
 }

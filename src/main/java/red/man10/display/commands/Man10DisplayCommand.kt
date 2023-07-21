@@ -98,6 +98,16 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Show display information")
                 .executor(InfoCommand(Main.plugin))
         )
+        // stats command
+        addCommand(
+            CommandObject()
+                .prefix("stats")
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("Show statistics")
+                .executor(StatsCommand(Main.plugin))
+        )
+
         // itemframe staff command
         addCommand(
             CommandObject()

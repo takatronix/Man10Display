@@ -60,7 +60,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "sharpen","sharpen_level",
                 "scanline","scanline_width",
                 "distance",
-
+                "parallel_dithering","parallelism",
                 "test_mode")
         }
     fun getDisplay(name: String): Display? {
@@ -141,12 +141,24 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l scanline_width: ${display.scanlineWidth}")
         p.sendMessage("§a§l brightness: ${display.brightness}")
         p.sendMessage("§a§l brightnessLevel: ${display.brightnessLevel}")
+        p.sendMessage("§a§l distance: ${display.distance}")
+        p.sendMessage("§a§l parallelDithering: ${display.parallelDithering}")
+        p.sendMessage("§a§l parallelism: ${display.parallelism}")
 
         p.sendMessage("§a§l test_mode: ${display.testMode}")
 
         return true
     }
+    fun showStats(sender: CommandSender, name: String): Boolean {
+        sender.sendMessage(Main.prefix + "§a§l Display Stats")
+        val display = getDisplay(name) ?: return false
+        val stats = display.getStatistics()
+        for(v in stats){
+            sender.sendMessage("§a§l $v")
+        }
 
+        return true
+    }
     private fun createMaps(display:Display, player: Player, xSize:Int, ySize:Int): Boolean {
         for(y in 0 until ySize){
             for(x in 0 until xSize){
