@@ -41,7 +41,7 @@ class ItemFrameListener : Listener {
 
         if (remover is Player) {
             val hand = remover.inventory.itemInMainHand
-            if (isStaff(hand)) {
+            if (isWand(hand)) {
                 remover.sendMessage(Main.prefix + "§bProtection forcibly destroyed")
                 return
             }
@@ -60,7 +60,7 @@ class ItemFrameListener : Listener {
         getEntityAsMap(e.rightClicked) ?: return
 
         val hand = e.player.inventory.itemInMainHand
-        if (isStaff(hand)) {
+        if (isWand(hand)) {
             e.player.sendMessage(Main.prefix + "§bIgnored protections")
             return
         }
@@ -84,7 +84,7 @@ class ItemFrameListener : Listener {
 
         if (remover is Player) {
             val hand = remover.inventory.itemInMainHand
-            if (isStaff(hand)) {
+            if (isWand(hand)) {
                 remover.sendMessage(Main.prefix + "§bIgnored protections")
                 return
             }
@@ -218,9 +218,9 @@ class ItemFrameListener : Listener {
         return false
     }
 
-    private fun isStaff(item: ItemStack): Boolean {
+    private fun isWand(item: ItemStack): Boolean {
         return !item.type.isAir && item.itemMeta.persistentDataContainer.has(
-            NamespacedKey(Main.plugin, "displaystaff"),
+            NamespacedKey(Main.plugin, "Man10DisplayWand"),
             PersistentDataType.INTEGER
         )
     }

@@ -110,13 +110,13 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .executor(StatsCommand(Main.plugin))
         )
 
-        // itemframe staff command
+        // itemframe wand command
         addCommand(
             CommandObject()
-                .prefix("staff")
+                .prefix("wand")
                 .permission("red.man10.display.op")
-                .explanation("Give staff for break item frame")
-                .executor(ItemFrameRemoveStaffCommand(Main.plugin))
+                .explanation("Get item frame wand")
+                .executor(WandCommand(Main.plugin))
         )
         // set command
         addCommand(
@@ -137,6 +137,15 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .permission("red.man10.display.op")
                 .explanation("Set parameter")
                 .executor(ResetCommand(Main.plugin))
+        )
+        // reset command
+        addCommand(
+            CommandObject()
+                .prefix("refresh")
+                .argument("display_name") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("Refresh display")
+                .executor(RefreshCommand(Main.plugin))
         )
         // place item frames command
         addCommand(

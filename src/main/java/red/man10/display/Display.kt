@@ -87,7 +87,7 @@ abstract class Display : MapPacketSender {
     var frameErrorCount: Long = 0
     var refreshFlag = false
 
-    private fun resetStats() {
+    fun resetStats() {
         refreshCount = 0
         sentMapCount = 0
         sentBytes = 0
@@ -344,10 +344,6 @@ abstract class Display : MapPacketSender {
                 }
                 setFps(sender, fps)
                 sender.sendMessage("§aSet fps to $fps")
-            }
-
-            "refresh" -> {
-                resetStats()
             }
 
             "dithering" -> {

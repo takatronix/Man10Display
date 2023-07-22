@@ -45,7 +45,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     val parameterKeys:ArrayList<String>
         get() {
             return arrayListOf(
-                "fps","interval","refresh","dithering",
+                "fps","interval","dithering",
                 "fast_dithering","show_status",
                 "monochrome","sepia","invert","flip",
                 "saturation_factor","color_enhancer",
@@ -243,6 +243,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         if(ret)
             save(sender)
         return ret
+    }
+    fun refresh(sender: CommandSender, displayName: String): Boolean {
+        val display = getDisplay(displayName) ?: return false
+        display.resetStats()
+        display.refreshFlag = true
+        return  true
     }
 
     fun reset(sender: CommandSender, displayName: String): Boolean {
