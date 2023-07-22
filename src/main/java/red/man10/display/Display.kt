@@ -29,6 +29,7 @@ abstract class Display : MapPacketSender {
     var height: Int = 1
     var location: Location? = null
     var distance = DEFAULT_DISTANCE
+    var port: Int = 0
 
     var bufferedImage: BufferedImage? = null
 
@@ -86,7 +87,7 @@ abstract class Display : MapPacketSender {
     var frameErrorCount: Long = 0
     var refreshFlag = false
 
-    fun resetStats() {
+    private fun resetStats() {
         refreshCount = 0
         sentMapCount = 0
         sentBytes = 0
@@ -95,6 +96,9 @@ abstract class Display : MapPacketSender {
         frameReceivedBytes = 0
         frameErrorCount = 0
         startTime = System.currentTimeMillis()
+        if(this is StreamDisplay){
+            this.resetVideoStats()
+        }
     }
     var blankMap : ByteArray? = null
     open val imageWidth: Int
@@ -112,6 +116,18 @@ abstract class Display : MapPacketSender {
     private val bps: Long
         get() = (sentBytes.toDouble() / (System.currentTimeMillis() - startTime) * 1000).toLong() * 8
 
+    val className:String
+        get() {
+            return this.javaClass.simpleName
+        }
+    val locInfo:String
+        get() {
+            return if(location == null){
+                "None"
+            }else{
+                "${location!!.world?.name}(${location!!.x.toInt()},${location!!.y.toInt()},${location!!.z.toInt()})"
+            }
+        }
     constructor(name: String, width: Int, height: Int) {
         this.name = name
         this.width = width
@@ -132,13 +148,18 @@ abstract class Display : MapPacketSender {
         for (i in 0 until this.mapCount) {
             mapCache.add(null)
             mapPackets.add(PacketContainer(PacketType.Play.Server.MAP))
-            createMapPacket(mapIds[i],blankMap!!).let { packet ->
+        }
+        createBlankDisplayPacket()
+        startSendingPacketsTask()
+    }
+    private fun createBlankDisplayPacket(){
+        for(mapId in mapIds){
+            createMapPacket(mapId,blankMap!!).let { packet ->
                 blankPackets.add(packet)
             }
         }
-
-        startSendingPacketsTask()
     }
+
 
     open fun deinit() {
         this.refreshFlag = false
@@ -164,12 +185,21 @@ abstract class Display : MapPacketSender {
 
     // endregion
 
+    companion object{
+        val displayTypes:ArrayList<String>
+            get() {
+                return arrayListOf(
+                    "stream","image")
+            }
+
+    }
     // region config
     open fun save(config: YamlConfiguration, key: String) {
-        config.set("$key.class", javaClass.simpleName)
+        config.set("$key.class", className)
         config.set("$key.mapIds", mapIds)
         config.set("$key.width", width)
         config.set("$key.height", height)
+        config.set("$key.port", port)
         config.set("$key.refreshPeriod", refreshPeriod)
         config.set("$key.testMode", testMode)
         config.set("$key.keepAspectRatio", keepAspectRatio)
@@ -223,6 +253,7 @@ abstract class Display : MapPacketSender {
         mapIds = config.getIntegerList("$key.mapIds").toMutableList()
         width = config.getInt("$key.width")
         height = config.getInt("$key.height")
+        port = config.getInt("$key.port")
         refreshPeriod = config.getLong("$key.refreshPeriod")
         if (refreshPeriod == 0L) {
             refreshPeriod = (1000 / 20)
@@ -561,7 +592,7 @@ abstract class Display : MapPacketSender {
     fun getStatistics(): Array<String> {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
-        val mps = formatNumberWithCommas(sentMapCount)
+        val mps =  String.format("%.1f", this.mps)
         val bps = formatNumberWithCommas(this.bps)
         val totalSent = formatNumberWithCommas(sentBytes)
 
@@ -575,8 +606,8 @@ abstract class Display : MapPacketSender {
             "players:${sentPlayers.size}/$playersCount",
             "mps:$mps total:$sentMapCount",
             "bps:$bps total:$totalSent(bytes)",
-            "lastCacheTime: $lastCacheTime",
-            "lastFilterTime: $lastFilterTime",
+            "lastCacheTime: $lastCacheTime(ms)",
+            "lastFilterTime: $lastFilterTime(ms)",
             "receivedFps:$receivedFps",
             "receivedBps:$receivedBps total:$receivedTotal(bytes)",
         )
@@ -601,6 +632,7 @@ abstract class Display : MapPacketSender {
     }
 
     private fun startSendingPacketsTask() {
+        info("$name stopSendingPacketsTask $refreshPeriod ms" )
         stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
         info("startSendingPacketsTask $refreshPeriod ms")
         future = executor.scheduleAtFixedRate(

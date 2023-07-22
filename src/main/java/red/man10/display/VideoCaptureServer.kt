@@ -17,6 +17,11 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
     var frameReceivedCount: Long = 0
     var frameReceivedBytes: Long = 0
     var frameErrorCount: Long = 0
+    fun resetStats() {
+        frameReceivedCount = 0
+        frameReceivedBytes = 0
+        frameErrorCount = 0
+    }
     override fun close() {
         info("closing VideoCaptureServer port:$portNo")
         running = false

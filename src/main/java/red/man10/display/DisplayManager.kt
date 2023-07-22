@@ -95,7 +95,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     fun showList(p: CommandSender): Boolean {
         p.sendMessage(Main.prefix + "§a§l Display List")
         for (display in displays) {
-            p.sendMessage("§a§l ${display.name}")
+            p.sendMessage("§a§l ${display.name} ${display.className} ${display.width}x${display.height} ${display.locInfo}")
         }
         return true
     }
@@ -105,7 +105,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l name: ${display.name}")
         p.sendMessage("§a§l width: ${display.width}")
         p.sendMessage("§a§l height: ${display.height}")
-        p.sendMessage("§a§l location: ${display.location}")
+        p.sendMessage("§a§l location: ${display.locInfo}")
         p.sendMessage("§a§l distance: ${display.distance}")
         p.sendMessage("§a§l fps: ${display.fps}")
 

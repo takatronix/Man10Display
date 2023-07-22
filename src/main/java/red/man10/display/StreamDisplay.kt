@@ -5,16 +5,19 @@ import java.util.function.Consumer
 
 
 class StreamDisplay : Display {
-    private var port: Int = 0
     private var videoCaptureServer: VideoCaptureServer? = null
 
     init{
-        videoCaptureServer = VideoCaptureServer(port)
+        if(port != 0)
+            videoCaptureServer = VideoCaptureServer(port)
     }
     override fun deinit(){
         super.deinit()
         videoCaptureServer?.deinit()
         videoCaptureServer = null
+    }
+    fun resetVideoStats() {
+        videoCaptureServer?.resetStats()
     }
     constructor(name: String, width: Int, height: Int, port: Int) : super(name, width, height) {
         this.port = port
@@ -39,16 +42,5 @@ class StreamDisplay : Display {
         })
         videoCaptureServer?.start()
     }
-
-    override fun save(config: YamlConfiguration, key: String) {
-        super.save(config, key)
-        config.set("$key.port", port)
-    }
-
-    override fun load(config: YamlConfiguration, key: String) {
-        super.load(config, key)
-        port = config.getInt("$key.port")
-    }
-
 
 }

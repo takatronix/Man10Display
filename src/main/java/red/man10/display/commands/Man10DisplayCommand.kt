@@ -3,6 +3,7 @@ package red.man10.display.commands
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.commandrouter.*
+import red.man10.display.Display
 import red.man10.display.Main
 import red.man10.display.commands.logic.*
 
@@ -48,11 +49,12 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // create stream command
         addCommand(
             CommandObject()
-                .prefix("create_stream")
-                .argument("name").argument("x_size(1-24)").argument("y_size(1-24)").argument("port(1-65535)")
+                .prefix("create")
+                .argument("display_type") { _ -> Display.displayTypes }
+                .argument("name").argument("x_size(1-24)").argument("y_size(1-24)").argument("port(0-65535) or program")
                 .permission("red.man10.display.op")
-                .explanation("Create a display for streaming")
-                .executor(CreateStreamCommand(Main.plugin))
+                .explanation("Create a display")
+                .executor(CreateCommand(Main.plugin))
         )
         // delete command
         addCommand(
