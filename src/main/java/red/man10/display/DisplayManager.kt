@@ -45,10 +45,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     val parameterKeys:ArrayList<String>
         get() {
             return arrayListOf(
-                "fps","interval","dithering",
+                "fps","interval","dithering","location",
                 "fast_dithering","show_status",
                 "monochrome","sepia","invert","flip",
-                "saturation_factor","color_enhancer",
+                "saturation_level","color_enhancer",
                 "keep_aspect_ratio","aspect_ratio_width", "aspect_ratio_height",
                 "noise_level","noise",
                 "raster_noise","raster_noise_level",
@@ -239,6 +239,11 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 displays.add(display)
                 continue
             }
+            if(className == ImageDisplay::class.simpleName){
+                val display = ImageDisplay(config,key)
+                displays.add(display)
+                continue
+            }
         }
         return true
     }
@@ -256,6 +261,27 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.refreshFlag = true
         return  true
     }
+    fun runMacro(sender: CommandSender, displayName: String,macroName: String? = null): Boolean {
+        val display = getDisplay(displayName) ?: return false
+
+        if(macroName == null){
+            display.macro.stop()
+            return false
+        }
+        display.runMacro(macroName)
+        display.resetStats()
+        display.refreshFlag = true
+        return  true
+    }
+    fun showMacroList(sender: CommandSender): Boolean {
+        val list = Macro.macroList
+        sender.sendMessage(Main.prefix + "§a§l Macro List")
+        for (macro in list) {
+            sender.sendMessage("§a§l $macro")
+        }
+        return true
+    }
+
 
     fun reset(sender: CommandSender, displayName: String): Boolean {
         val display = getDisplay(displayName) ?: return false

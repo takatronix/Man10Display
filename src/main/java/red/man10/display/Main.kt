@@ -3,7 +3,6 @@ package red.man10.display
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.ProtocolManager
 import org.bukkit.command.CommandSender
-import org.bukkit.configuration.file.FileConfiguration
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.commands.Man10DisplayCommand
@@ -53,4 +52,5 @@ class Main : JavaPlugin(), Listener {
         //     info("broadcast:${Main.configData.broadcast}")
         //    info("switchTime:${Main.configData.switchTime}")
     }
+
 }

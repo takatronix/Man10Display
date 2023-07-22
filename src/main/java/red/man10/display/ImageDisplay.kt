@@ -4,7 +4,7 @@ import org.bukkit.configuration.file.YamlConfiguration
 import java.util.function.Consumer
 
 class ImageDisplay : Display {
-    var program = Program()
+
     init{
     }
     override fun deinit(){

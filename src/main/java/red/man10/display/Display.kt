@@ -9,6 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
 import red.man10.display.MapPacketSender.Companion.createMapPacket
+import red.man10.display.MapPacketSender.Companion.send
 import red.man10.display.MapPacketSender.Companion.sendMapImage
 import red.man10.display.filter.*
 import java.awt.image.BufferedImage
@@ -22,6 +23,7 @@ const val MC_MAP_SIZE_X = 128
 const val MC_MAP_SIZE_Y = 128
 //
 const val DEFAULT_DISTANCE = 32.0
+const val DEFAULT_FPS = 10.0
 abstract class Display : MapPacketSender {
     var name: String = ""
     var mapIds = mutableListOf<Int>()
@@ -30,7 +32,7 @@ abstract class Display : MapPacketSender {
     var location: Location? = null
     var distance = DEFAULT_DISTANCE
     var port: Int = 0
-
+    var macro = Macro()
     var bufferedImage: BufferedImage? = null
 
     // filter settings
@@ -72,9 +74,10 @@ abstract class Display : MapPacketSender {
     var parallelism = DEFAULT_PARALLELISM
     var vignette = false
     var vignetteLevel = DEFAULT_VIGNETTE_LEVEL
+    var macroName:String? = ""
 
 
-    var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
+    var refreshPeriod: Long = (1000 / DEFAULT_FPS.toLong()) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
     // statistics
     var lastCacheTime: Long = 0
@@ -204,6 +207,7 @@ abstract class Display : MapPacketSender {
         config.set("$key.width", width)
         config.set("$key.height", height)
         config.set("$key.port", port)
+        config.set("$key.macroName", macroName)
         config.set("$key.refreshPeriod", refreshPeriod)
         config.set("$key.testMode", testMode)
         config.set("$key.keepAspectRatio", keepAspectRatio)
@@ -264,9 +268,10 @@ abstract class Display : MapPacketSender {
         port = config.getInt("$key.port")
         refreshPeriod = config.getLong("$key.refreshPeriod")
         if (refreshPeriod == 0L) {
-            refreshPeriod = (1000 / 20)
+            refreshPeriod = (1000 / DEFAULT_FPS.toLong())
         }
         testMode = config.getBoolean("$key.testMode", false)
+        macroName = config.getString("$key.macroName","")
         keepAspectRatio = config.getBoolean("$key.keepAspectRatio", false)
         aspectRatioWidth = config.getDouble("$key.aspectRatioWidth", 16.0)
         aspectRatioHeight = config.getDouble("$key.aspectRatioHeight", 9.0)
@@ -318,6 +323,19 @@ abstract class Display : MapPacketSender {
             val world = Bukkit.getWorld(worldName)
             location = Location(world, x, y, z, yaw, pitch)
         }
+
+        if(macroName?.isNotEmpty() == false){
+            macro.load(macroName!!)
+            macro.execute { macroData, i ->
+
+                if(macroData.command == "image"){
+                    info("image")
+//                    val image = ImageDisplay(macroData.fileName)
+ //                   image.load()
+   //                 bufferedImage = image.bufferedImage
+                }
+            }
+        }
     }
 
     private fun setInterval(sender: CommandSender, intervalSeconds: Double) {
@@ -358,6 +376,10 @@ abstract class Display : MapPacketSender {
                 sender.sendMessage("§aSet fps to $fps")
             }
 
+            "test_mode" -> {
+                this.testMode = value.toBoolean()
+            }
+
             "dithering" -> {
                 this.dithering = value.toBoolean()
                 this.fastDithering = false
@@ -370,151 +392,54 @@ abstract class Display : MapPacketSender {
                 this.parallelDithering = false
             }
 
-            "show_status" -> {
-                this.showStatus = value.toBoolean()
-            }
-
-            "monochrome" -> {
-                this.monochrome = value.toBoolean()
-            }
-
-            "sepia" -> {
-                this.sepia = value.toBoolean()
-            }
-
-            "flip" -> {
-                this.flip = value.toBoolean()
-            }
-
-            "invert" -> {
-                this.invert = value.toBoolean()
-            }
-
-            "keep_aspect_ratio" -> {
-                this.keepAspectRatio = value.toBoolean()
-            }
-
-            "aspect_ratio_width" -> {
-                this.aspectRatioWidth = value.toDouble()
-            }
-
-            "aspect_ratio_height" -> {
-                this.aspectRatioHeight = value.toDouble()
-            }
-
-            "test_mode" -> {
-                this.testMode = value.toBoolean()
-            }
-
-            "color_enhancer" -> {
-                this.colorEnhancer = value.toBoolean()
-            }
-
-            "saturation_factor" -> {
-                this.saturationLevel = value.toDouble()
-            }
-
-            "noise" -> {
-                this.noise = value.toBoolean()
-            }
-
-            "noise_level" -> {
-                this.noiseLevel = value.toDouble()
-
-            }
-            "raster_noise" -> {
-                this.rasterNoise = value.toBoolean()
-
-            }
-            "raster_noise_level" -> {
-                this.rasterNoiseLevel = value.toInt()
-
-            }
-            "vignette" -> {
-                this.vignette = value.toBoolean()
-
-            }
-            "vignette_level" -> {
-                this.vignetteLevel = value.toDouble()
-            }
-            "sobel" -> {
-                this.sobel = value.toBoolean()
-            }
-
-            "sobel_level" -> {
-                this.sobelLevel = value.toInt()
-            }
-
-            "quantize" -> {
-                this.quantize = value.toBoolean()
-            }
-
-            "quantize_level" -> {
-                this.quantizeLevel = value.toInt()
-            }
-
-            "cartoon" -> {
-                this.cartoon = value.toBoolean()
-            }
-
-            "blur" -> {
-                this.blur = value.toBoolean()
-            }
-
-            "blur_radius" -> {
-                this.blurRadius = value.toInt()
-            }
-
-            "denoise" -> {
-                this.denoise = value.toBoolean()
-            }
-
-            "denoise_radius" -> {
-                this.denoiseRadius = value.toInt()
-            }
-
-            "contrast" -> {
-                this.contrast = value.toBoolean()
-            }
-
-            "contrast_level" -> {
-                this.contrastLevel = value.toDouble()
-            }
-
-            "brightness" -> {
-                this.brightness = value.toBoolean()
-            }
-
-            "brightness_level" -> {
-                this.brightnessLevel = value.toDouble()
-            }
-
-            "scanline" -> {
-                this.scanline = value.toBoolean()
-            }
-
-            "scanline_height" -> {
-                this.scanlineHeight = value.toInt()
-            }
-
-            "sharpen" -> {
-                this.sharpen = value.toBoolean()
-            }
-
-            "sharpen_level" -> {
-                this.sharpenLevel = value.toDouble()
-            }
-
-            "distance" -> {
-                this.distance = value.toDouble()
-            }
+            "show_status" -> this.showStatus = value.toBoolean()
+            "monochrome" -> this.monochrome = value.toBoolean()
+            "sepia" -> this.sepia = value.toBoolean()
+            "flip" -> this.flip = value.toBoolean()
+            "invert" -> this.invert = value.toBoolean()
+            "keep_aspect_ratio" -> this.keepAspectRatio = value.toBoolean()
+            "aspect_ratio_width" -> this.aspectRatioWidth = value.toDouble()
+            "aspect_ratio_height" -> this.aspectRatioHeight = value.toDouble()
+            "color_enhancer" -> this.colorEnhancer = value.toBoolean()
+            "saturation_level" -> this.saturationLevel = value.toDouble()
+            "noise" -> this.noise = value.toBoolean()
+            "noise_level" -> this.noiseLevel = value.toDouble()
+            "raster_noise" -> this.rasterNoise = value.toBoolean()
+            "raster_noise_level" -> this.rasterNoiseLevel = value.toInt()
+            "vignette" -> this.vignette = value.toBoolean()
+            "vignette_level" -> this.vignetteLevel = value.toDouble()
+            "sobel" -> this.sobel = value.toBoolean()
+            "sobel_level" -> this.sobelLevel = value.toInt()
+            "quantize" -> this.quantize = value.toBoolean()
+            "quantize_level" -> this.quantizeLevel = value.toInt()
+            "cartoon" -> this.cartoon = value.toBoolean()
+            "blur" -> this.blur = value.toBoolean()
+            "blur_radius" -> this.blurRadius = value.toInt()
+            "denoise" -> this.denoise = value.toBoolean()
+            "denoise_radius" -> this.denoiseRadius = value.toInt()
+            "contrast" -> this.contrast = value.toBoolean()
+            "contrast_level" -> this.contrastLevel = value.toDouble()
+            "brightness" -> this.brightness = value.toBoolean()
+            "brightness_level" -> this.brightnessLevel = value.toDouble()
+            "scanline" -> this.scanline = value.toBoolean()
+            "scanline_height" -> this.scanlineHeight = value.toInt()
+            "sharpen" -> this.sharpen = value.toBoolean()
+            "sharpen_level" -> this.sharpenLevel = value.toDouble()
+            "distance" -> this.distance = value.toDouble()
             "parallel_dithering" -> {
                 this.parallelDithering = value.toBoolean()
                 this.dithering = false
                 this.fastDithering = false
             }
-            "parallelism" -> {
-                this.parallelism = value.toInt()
+            "parallelism" -> this.parallelism = value.toInt()
+            "location" -> {
+                if(sender !is Player){
+                    sender.sendMessage("§c this command is only available for player")
+                    return false
+                }
+                val loc = sender.location
+                this.location = loc
+                sender.sendMessage("§aSet location to ${loc.world?.name}(${loc.x.toInt()},${loc.y.toInt()},${loc.z.toInt()})")
             }
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
@@ -706,5 +631,24 @@ abstract class Display : MapPacketSender {
             mapPackets[i] = packet
         }
     }
+    // endregion
+    // region: Macro
+    fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean{
+        //this.macroName = macroName
+        if(!macro.load(macroName)){
+            error("macro load error : $macroName",sender)
+            return false
+        }
+        macro.execute { macroData, i ->
+            when(macroData.command){
+                "image" -> {
+                    info("image")
+                    //bufferedImage = ImageLoader.loadImage(macroData.fileName)
+                }
+            }
+        }
+        return true
+    }
+
     // endregion
 }

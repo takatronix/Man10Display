@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.commandrouter.*
 import red.man10.display.Display
+import red.man10.display.Macro
 import red.man10.display.Main
 import red.man10.display.commands.logic.*
 
@@ -51,7 +52,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
             CommandObject()
                 .prefix("create")
                 .argument("display_type") { _ -> Display.displayTypes }
-                .argument("name").argument("x_size(1-24)").argument("y_size(1-24)").argument("port(0-65535) or program")
+                .argument("[new_display_name]").argument("[x_size(1-24)]").argument("[y_size(1-24)]").argument("port(0-65535)")
                 .permission("red.man10.display.op")
                 .explanation("Create a display")
                 .executor(CreateCommand(Main.plugin))
@@ -60,7 +61,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         addCommand(
             CommandObject()
                 .prefix("delete")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Delete display with specified id")
                 .executor(DeleteCommand(Main.plugin))
@@ -69,7 +70,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         addCommand(
             CommandObject()
                 .prefix("save")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("save display with specified id")
                 .executor(SaveCommand(Main.plugin))
@@ -78,7 +79,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         addCommand(
             CommandObject()
                 .prefix("map")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Get maps with specified id")
                 .executor(MapCommand(Main.plugin))
@@ -95,7 +96,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         addCommand(
             CommandObject()
                 .prefix("info")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Show display information")
                 .executor(InfoCommand(Main.plugin))
@@ -104,7 +105,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         addCommand(
             CommandObject()
                 .prefix("stats")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Show statistics")
                 .executor(StatsCommand(Main.plugin))
@@ -115,34 +116,46 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
             CommandObject()
                 .prefix("wand")
                 .permission("red.man10.display.op")
-                .explanation("Get item frame wand")
+                .explanation("Get wand for item frame")
                 .executor(WandCommand(Main.plugin))
         )
         // set command
         addCommand(
             CommandObject()
                 .prefix("set")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .argument("[setting keyword]") { _ -> Main.displayManager.parameterKeys }
                 .argument("value")
                 .permission("red.man10.display.op")
                 .explanation("Set parameter")
                 .executor(SetCommand(Main.plugin))
         )
+        // macro command
+        addCommand(
+            CommandObject()
+                .prefix("macro")
+                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[commands]") { _ -> Macro.commands }
+                .argument("[macro_name]") { _ -> Macro.macroList }
+                .permission("red.man10.display.op")
+                .explanation("[run/stop] macro")
+                .executor(MacroCommand(Main.plugin))
+        )
+
         // reset command
         addCommand(
             CommandObject()
                 .prefix("reset")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Set parameter")
                 .executor(ResetCommand(Main.plugin))
         )
-        // reset command
+        // refresh command
         addCommand(
             CommandObject()
                 .prefix("refresh")
-                .argument("display_name") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.names }
                 .permission("red.man10.display.op")
                 .explanation("Refresh display")
                 .executor(RefreshCommand(Main.plugin))
@@ -151,7 +164,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         addCommand(
             CommandObject()
                     .prefix("place")
-                    .argument("display_name") { _ -> Main.displayManager.names }
+                    .argument("[display_name]") { _ -> Main.displayManager.names }
                     .argument("x1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0])}, false)
                     .argument("y1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1])}, false)
                     .argument("z1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2])}, false)
