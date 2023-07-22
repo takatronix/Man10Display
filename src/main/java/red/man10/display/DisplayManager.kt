@@ -51,6 +51,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "saturation_factor","color_enhancer",
                 "keep_aspect_ratio","aspect_ratio_width", "aspect_ratio_height",
                 "noise_level","noise",
+                "raster_noise","raster_noise_level",
                 "quantize_level","quantize",
                 "sobel_level","sobel",
                 "cartoon",

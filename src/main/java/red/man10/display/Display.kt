@@ -49,6 +49,8 @@ abstract class Display : MapPacketSender {
     var saturationLevel = DEFAULT_SATURATION_LEVEL
     var noiseLevel = DEFAULT_NOISE_LEVEL
     var noise = false
+    var rasterNoise = false
+    var rasterNoiseLevel = DEFAULT_RASTER_NOISE_AMPLITUDE
     var sobelLevel: Int = DEFAULT_SOBEL_LEVEL
     var sobel = false
     var quantize = false
@@ -216,6 +218,8 @@ abstract class Display : MapPacketSender {
         config.set("$key.saturationLevel", saturationLevel)
         config.set("$key.noiseLevel", noiseLevel)
         config.set("$key.noise", noise)
+        config.set("$key.rasterNoise", rasterNoise)
+        config.set("$key.rasterNoiseLevel", rasterNoiseLevel)
         config.set("$key.sobelLevel", sobelLevel)
         config.set("$key.sobel", sobel)
         config.set("$key.quantize", quantize)
@@ -273,6 +277,8 @@ abstract class Display : MapPacketSender {
         saturationLevel = config.getDouble("$key.saturationLevel", 1.0)
         noiseLevel = config.getDouble("$key.noiseLevel", 0.0)
         noise = config.getBoolean("$key.noise", false)
+        rasterNoise = config.getBoolean("$key.rasterNoise", false)
+        rasterNoiseLevel = config.getInt("$key.rasterNoiseLevel", DEFAULT_RASTER_NOISE_AMPLITUDE)
         sobelLevel = config.getInt("$key.sobelLevel", DEFAULT_SOBEL_LEVEL)
         sobel = config.getBoolean("$key.sobel", false)
         quantize = config.getBoolean("$key.quantize", false)
@@ -409,6 +415,12 @@ abstract class Display : MapPacketSender {
             "noise_level" -> {
                 this.noiseLevel = value.toDouble()
             }
+            "raster_noise" -> {
+                this.rasterNoise = value.toBoolean()
+            }
+            "raster_noise_level" -> {
+                this.rasterNoiseLevel = value.toInt()
+            }
 
             "sobel" -> {
                 this.sobel = value.toBoolean()
@@ -528,6 +540,9 @@ abstract class Display : MapPacketSender {
             if (this.cartoon) {
                 result = CartoonFilter(quantizeLevel, sobelLevel).apply(result)
             }
+            if(this.rasterNoise){
+                result = RasterNoiseFilter(rasterNoiseLevel).apply(result)
+            }
             if (this.noise) {
                 result = NoiseFilter(noiseLevel).apply(result)
             }
@@ -559,7 +574,7 @@ abstract class Display : MapPacketSender {
                 result = ParallelDitheringFilter(parallelism).apply(result)
             }
             if (this.testMode) {
-                //    result = ParallelDitheringFilter(4).apply(result!!)
+
             }
 
             if (this.showStatus) {
