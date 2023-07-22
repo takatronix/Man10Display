@@ -9,9 +9,10 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
 import red.man10.display.MapPacketSender.Companion.createMapPacket
-import red.man10.display.MapPacketSender.Companion.send
 import red.man10.display.MapPacketSender.Companion.sendMapImage
+import red.man10.display.*
 import red.man10.display.filter.*
+import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
@@ -24,7 +25,7 @@ const val MC_MAP_SIZE_Y = 128
 //
 const val DEFAULT_DISTANCE = 32.0
 const val DEFAULT_FPS = 10.0
-abstract class Display : MapPacketSender {
+abstract class Display : MapPacketSender  {
     var name: String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
@@ -324,18 +325,6 @@ abstract class Display : MapPacketSender {
             location = Location(world, x, y, z, yaw, pitch)
         }
 
-        if(macroName?.isNotEmpty() == false){
-            macro.load(macroName!!)
-            macro.execute { macroData, i ->
-
-                if(macroData.command == "image"){
-                    info("image")
-//                    val image = ImageDisplay(macroData.fileName)
- //                   image.load()
-   //                 bufferedImage = image.bufferedImage
-                }
-            }
-        }
     }
 
     private fun setInterval(sender: CommandSender, intervalSeconds: Double) {
@@ -616,6 +605,14 @@ abstract class Display : MapPacketSender {
 
         this.sentPlayers = players.toMutableList()
     }
+    fun sendBlankMapPacketsToPlayers(){
+        if(blankMap == null)
+            return
+        val players = getTargetPlayers()
+        for (player in players) {
+            sendMapImage(player, blankMap!!, mapIds)
+        }
+    }
     private fun stopSendingPacketsTask() {
         future?.cancel(false)
         future = null
@@ -631,6 +628,18 @@ abstract class Display : MapPacketSender {
             mapPackets[i] = packet
         }
     }
+    fun refresh(){
+        this.updateMapCache()
+        this.mapCacheToPackets()
+        this.refreshFlag = true
+    }
+    fun update(){
+        this.updateMapCache()
+        this.mapCacheToPackets()
+        this.sendMapPacketsToPlayers()
+        this.refreshCount++
+    }
+
     // endregion
     // region: Macro
     fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean{
@@ -640,10 +649,32 @@ abstract class Display : MapPacketSender {
             return false
         }
         macro.execute { macroData, i ->
+            info("macro execute : ${macroData.command}",sender)
+            if(bufferedImage == null)
+                return@execute
+
             when(macroData.command){
+
                 "image" -> {
-                    info("image")
-                    //bufferedImage = ImageLoader.loadImage(macroData.fileName)
+                    val image = ImageLoader.get(macroData.fileName)
+                    if(image == null){
+                        error("image load error : ${macroData.fileName}",sender)
+                        return@execute
+                    }
+                    this.bufferedImage?.clear()
+                    this.bufferedImage?.drawImage(image)
+                    this.bufferedImage = filterImage(this.bufferedImage!!)
+                    update()
+                }
+                "stretch" -> {
+                    val image = ImageLoader.get(macroData.fileName)
+                    if(image == null){
+                        error("image load error : ${macroData.fileName}",sender)
+                        return@execute
+                    }
+                    this.bufferedImage?.stretchImage(image)
+                    this.bufferedImage = filterImage(this.bufferedImage!!)
+                    update()
                 }
             }
         }

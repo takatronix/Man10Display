@@ -36,9 +36,7 @@ class StreamDisplay : Display {
             this.frameErrorCount = videoCaptureServer?.frameErrorCount ?: 0
 
             this.bufferedImage = filterImage(image)
-            this.updateMapCache()
-            this.mapCacheToPackets()
-            this.refreshFlag = true
+            refresh()
         })
         videoCaptureServer?.start()
     }

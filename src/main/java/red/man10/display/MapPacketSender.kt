@@ -5,7 +5,7 @@ import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.entity.Player
 import kotlin.system.measureTimeMillis
 
-public interface  MapPacketSender {
+public interface MapPacketSender {
 
     companion object{
         fun send(players:List<Player>,packets:List<PacketContainer>):Int {

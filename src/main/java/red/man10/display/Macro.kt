@@ -16,15 +16,12 @@ class MacroData(var command: String = "", var duration:Double = DEFAULT_PROGRAM_
     fun load(str:String){
         val list = str.split(",")
         command = list[0]
+        command = command.trimStart()
         if(command.isEmpty())
             return
         if(list.size == 1)
             return
-        if(list[1].isNotEmpty())
-           duration = list[1].toDouble()
-        if(list.size == 2)
-            return
-        fileName = list[2].replace("\"","")
+        fileName = list[1].replace("\"","")
     }
 }
 class Macro {

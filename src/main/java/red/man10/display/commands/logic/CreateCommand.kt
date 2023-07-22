@@ -26,8 +26,7 @@ class CreateCommand(private var plugin: JavaPlugin) : CommandExecutor {
                 }
             }
             if(type == "image"){
-                val programName = args[5]
-                if(!Main.displayManager.create(sender as Player, ImageDisplay(name, width, height, programName))){
+                if(!Main.displayManager.create(sender as Player, ImageDisplay(name, width, height))){
                     sender.sendMessage(Main.prefix + "§a§l $name already exists")
                     return false
                 }

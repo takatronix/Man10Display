@@ -11,7 +11,7 @@ import red.man10.display.itemframe.ItemFrameListener
 
 class Main : JavaPlugin(), Listener {
     companion object {
-        val version = "2023/4/10"
+        val version = "2023/7/22"
         var commandSender: CommandSender? = null
         val prefix = "[Man10Display]"
         lateinit var plugin: JavaPlugin

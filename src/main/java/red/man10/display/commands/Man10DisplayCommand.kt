@@ -130,16 +130,33 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Set parameter")
                 .executor(SetCommand(Main.plugin))
         )
-        // macro command
+        // run command
         addCommand(
             CommandObject()
-                .prefix("macro")
+                .prefix("run")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
-                .argument("[commands]") { _ -> Macro.commands }
                 .argument("[macro_name]") { _ -> Macro.macroList }
                 .permission("red.man10.display.op")
-                .explanation("[run/stop] macro")
-                .executor(MacroCommand(Main.plugin))
+                .explanation("run macro")
+                .executor(RunCommand(Main.plugin))
+        )
+        // stop command
+        addCommand(
+            CommandObject()
+                .prefix("stop")
+                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("stop display")
+                .executor(StopCommand(Main.plugin))
+        )
+        // clear command
+        addCommand(
+            CommandObject()
+                .prefix("clear")
+                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.op")
+                .explanation("clear display")
+                .executor(ClearCommand(Main.plugin))
         )
 
         // reset command
