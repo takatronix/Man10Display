@@ -52,6 +52,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "keep_aspect_ratio","aspect_ratio_width", "aspect_ratio_height",
                 "noise_level","noise",
                 "raster_noise","raster_noise_level",
+                "vignette","vignette_level",
                 "quantize_level","quantize",
                 "sobel_level","sobel",
                 "cartoon",
@@ -147,6 +148,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l parallelism: ${display.parallelism}")
         p.sendMessage("§a§l rasterNoise: ${display.rasterNoise}")
         p.sendMessage("§a§l rasterNoiseLevel: ${display.rasterNoiseLevel}")
+        p.sendMessage("§a§l vignette: ${display.vignette}")
+        p.sendMessage("§a§l vignetteLevel: ${display.vignetteLevel}")
 
         p.sendMessage("§a§l test_mode: ${display.testMode}")
 
@@ -297,6 +300,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.parallelism = DEFAULT_PARALLELISM
         display.rasterNoise = false
         display.rasterNoiseLevel = DEFAULT_RASTER_NOISE_LEVEL
+        display.vignette = false
+        display.vignetteLevel = DEFAULT_VIGNETTE_LEVEL
 
         display.testMode = false
 

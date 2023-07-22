@@ -70,6 +70,8 @@ abstract class Display : MapPacketSender {
     var brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
     var parallelDithering = false
     var parallelism = DEFAULT_PARALLELISM
+    var vignette = false
+    var vignetteLevel = DEFAULT_VIGNETTE_LEVEL
 
 
     var refreshPeriod: Long = (1000 / 20) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -240,6 +242,8 @@ abstract class Display : MapPacketSender {
         config.set("$key.distance", distance)
         config.set("$key.parallelDithering", parallelDithering)
         config.set("$key.parallelism", parallelism)
+        config.set("$key.vignette", vignette)
+        config.set("$key.vignetteLevel", vignetteLevel)
 
         // save locaiton data
         location?.let { loc ->
@@ -299,6 +303,8 @@ abstract class Display : MapPacketSender {
         distance = config.getDouble("$key.distance", DEFAULT_DISTANCE)
         parallelDithering = config.getBoolean("$key.parallelDithering", false)
         parallelism = config.getInt("$key.parallelism", DEFAULT_PARALLELISM)
+        vignette = config.getBoolean("$key.vignette", false)
+        vignetteLevel = config.getDouble("$key.vignetteLevel", DEFAULT_VIGNETTE_LEVEL)
 
         // load location data
         val worldName = config.getString("$key.location.world")
@@ -414,14 +420,23 @@ abstract class Display : MapPacketSender {
 
             "noise_level" -> {
                 this.noiseLevel = value.toDouble()
+
             }
             "raster_noise" -> {
                 this.rasterNoise = value.toBoolean()
+
             }
             "raster_noise_level" -> {
                 this.rasterNoiseLevel = value.toInt()
-            }
 
+            }
+            "vignette" -> {
+                this.vignette = value.toBoolean()
+
+            }
+            "vignette_level" -> {
+                this.vignetteLevel = value.toDouble()
+            }
             "sobel" -> {
                 this.sobel = value.toBoolean()
             }
@@ -572,6 +587,9 @@ abstract class Display : MapPacketSender {
             }
             if(this.parallelDithering){
                 result = ParallelDitheringFilter(parallelism).apply(result)
+            }
+            if(this.vignette){
+                result = VignetteFilter(vignetteLevel).apply(result)
             }
             if (this.testMode) {
 
