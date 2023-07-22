@@ -10,6 +10,7 @@ class StopCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         return try{
             val displayName = args[1]
+            // マクロを停止し、ブランクマップを送信する
             Main.displayManager.runMacro(sender,displayName,null)
             val display = Main.displayManager.getDisplay(displayName)
             display?.sendBlankMapPacketsToPlayers()

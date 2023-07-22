@@ -649,7 +649,7 @@ abstract class Display : MapPacketSender  {
             return false
         }
         macro.execute { macroData, i ->
-            info("macro execute : ${macroData.command}",sender)
+           // info("macro execute : ${macroData.command}",sender)
             if(bufferedImage == null)
                 return@execute
 

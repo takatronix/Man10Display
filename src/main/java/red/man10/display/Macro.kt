@@ -1,27 +1,47 @@
 package red.man10.display
 
-import org.bukkit.command.CommandSender
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 
-const val DEFAULT_PROGRAM_DURATION = 0.0
+const val DEFAULT_PROGRAM_WAIT_TIME = 0.0
 const val DEFAULT_MACRO_FOLDER = "macro"
-class MacroData(var command: String = "", var duration:Double = DEFAULT_PROGRAM_DURATION,var fileName:String = ""){
+class MacroData(var command: String = "", var fileName: String = "", var params: String = ""){
 
     override fun toString(): String {
-        return "$command,$duration,\"$fileName\""
+        return "$command \"$fileName\" \"$params\""
     }
     fun load(str:String){
-        val list = str.split(",")
-        command = list[0]
-        command = command.trimStart()
-        if(command.isEmpty())
+
+        val text = str.trimStart()
+        // コメントは無視
+        if(text.startsWith("#") || text.startsWith("//"))
             return
-        if(list.size == 1)
+        // 空行は無視
+        if(text.isEmpty())
             return
-        fileName = list[1].replace("\"","")
+
+        val cmd = text.split(" ")
+        if(cmd.isNotEmpty()){
+            command = cmd[0]
+        }
+        if(cmd.size >= 2) {
+            if(command == "image")
+                fileName = cmd[1]
+            if(command == "stretch")
+                fileName = cmd[1]
+
+            // 組み込み関数は引数含める
+            when (command) {
+                "wait" -> command = text
+                "goto" -> command = text
+                "set" -> command = text
+                "if" -> command = text
+                "log" -> command = text
+            }
+            fileName = fileName .replace("\"","")
+        }
     }
 }
 class Macro {
@@ -102,7 +122,7 @@ class Macro {
     private var stringVariables = mutableMapOf<String, String>()
 
     // 数値変数を保存するマップ
-    private var numericVariables = mutableMapOf<String, Int>()
+    private var numericVariables = mutableMapOf<String, Number>()
 
     // 実行中のマクロの現在のインデックス
     private var currentIndex = 0
@@ -135,15 +155,15 @@ class Macro {
         future = executor.schedule({
             while (currentIndex < data.size && !shouldStop) {
                 val macroData = data[currentIndex]
-                info("Executing: $currentMacroName($currentIndex) ${macroData.command} ")
+               info("Executing: $currentMacroName($currentIndex) ${macroData.command} ")
+
+
+
                 when {
                     macroData.command.startsWith("goto ") -> goto(macroData)
                     macroData.command.startsWith("set ") -> set(macroData)
-                    macroData.command.startsWith("wait ") -> {
-                        val duration = macroData.command.substring("wait ".length).toDoubleOrNull() ?: 0.0
-                        Thread.sleep((duration * 1000).toLong())
-                    }
-                    macroData.command.startsWith("if ") -> ifStatement(macroData, callback)
+                    macroData.command.startsWith("wait ") -> wait(macroData)
+                    macroData.command.startsWith("if ") -> ifStatement(macroData)
                     macroData.command.startsWith("log ") -> log(macroData)
                     else -> callback(macroData, currentIndex)
                 }
@@ -154,63 +174,100 @@ class Macro {
             info("Macro execution finished ")
         }, 0, TimeUnit.SECONDS)  // すぐに開始する
     }
-
+    private fun processCommand(command: String, macroData: MacroData) {
+        when {
+            command.startsWith("goto ") -> goto(MacroData(command, macroData.fileName, macroData.params))
+            command.startsWith("set ") -> set(MacroData(command, macroData.fileName, macroData.params))
+            command.startsWith("wait ") -> wait(MacroData(command, macroData.fileName, macroData.params))
+            command.startsWith("if ") -> ifStatement(MacroData(command, macroData.fileName, macroData.params))
+            command.startsWith("log ") -> log(MacroData(command, macroData.fileName, macroData.params))
+            // 他のコマンドも同様に追加
+            else -> throw IllegalArgumentException("Invalid command: $command")
+        }
+    }
     // "goto" コマンドを処理する関数
     private fun goto(macroData: MacroData) {
         val label = macroData.command.substring("goto ".length)
         val labelIndex = labels[label]
         if (labelIndex != null) {
             currentIndex = labelIndex
+            info("Jumping to label $label ($currentIndex)")
         } else {
             error("Label $label not found")
         }
     }
 
-    // "set" コマンドを処理する関数
+    private fun substituteVariables(expression: String, variables: Map<String, Number>): String {
+        var substitutedExpression = expression
+        for ((varName, varValue) in variables) {
+            substitutedExpression = substitutedExpression.replace("{$varName}", varValue.toString())
+        }
+        return substitutedExpression
+    }
     private fun set(macroData: MacroData) {
         val (varName, value) = macroData.command.substring("set ".length).split(" ", limit = 2)
-        if (value.toIntOrNull() != null) {
-            numericVariables[varName] = value.toInt()
+
+        if (value.startsWith("{") && value.endsWith("}")) {
+            val expression = value.substring(1, value.length - 1)
+            val substitutedExpression = substituteVariables(expression, numericVariables)
+            val evaluatedValue = evaluateExpression(substitutedExpression, numericVariables)
+            numericVariables[varName] = evaluatedValue
+        } else if (value.toDoubleOrNull() != null) {
+            // valueが数値なので直接設定します
+            if (value.contains(".")) {
+                numericVariables[varName] = value.toDouble()
+            } else {
+                numericVariables[varName] = value.toInt()
+            }
         } else {
+            // valueが文字列なので直接設定します
             stringVariables[varName] = value
+        }
+    }
+    private fun add(macroData: MacroData) {
+        val (varName, value) = macroData.command.substring("add ".length).split(" ", limit = 2)
+        val addValue = value.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number: $value")
+        val originalValue = numericVariables[varName]?.toDouble() ?: throw IllegalArgumentException("Undefined variable: $varName")
+        numericVariables[varName] = originalValue + addValue
+    }
+    private fun evaluateExpression(expression: String, variables: Map<String, Number>): Double {
+
+        val (varName, operation, number) = expression.split(" ")
+        val varValue = variables[varName] ?: 0.0
+        val numberValue = number.toDoubleOrNull() ?: 0.0
+
+        return when (operation) {
+            "+" -> varValue.toDouble() + numberValue.toDouble()
+            "-" -> varValue.toDouble() - numberValue.toDouble()
+            "*" -> varValue.toDouble() * numberValue.toDouble()
+            "/" -> varValue.toDouble() / numberValue.toDouble()
+            else -> throw IllegalArgumentException("不明な演算子: $operation")
         }
     }
 
     // "if" コマンドを処理する関数
-    private fun ifStatement(macroData: MacroData, callback: (MacroData, Int) -> Unit) {
+    private fun ifStatement(macroData: MacroData) {
         val (condition, thenCommand) = macroData.command.substring("if ".length).split(" then ", limit = 2)
-        val (varName, operator, expectedValue) = condition.split(" ", limit = 3)
-        val actualStringValue = stringVariables[varName]
-        val actualNumericValue = numericVariables[varName]
+        val (left, operator, right) = condition.split(" ", limit = 3)
 
-        val conditionIsTrue = when (operator) {
-            "==" -> (actualStringValue == expectedValue) || (actualNumericValue == expectedValue.toIntOrNull())
-            "!=" -> (actualStringValue != expectedValue) || (actualNumericValue != expectedValue.toIntOrNull())
-            "<", ">", "<=", ">=" -> {
-                if (actualNumericValue != null && expectedValue.toIntOrNull() != null) {
-                    when (operator) {
-                        "<" -> actualNumericValue < expectedValue.toInt()
-                        ">" -> actualNumericValue > expectedValue.toInt()
-                        "<=" -> actualNumericValue <= expectedValue.toInt()
-                        ">=" -> actualNumericValue >= expectedValue.toInt()
-                        else -> false
-                    }
-                } else {
-                    throw RuntimeException("Invalid comparison between non-integer values")
-                }
-            }
-            else -> throw RuntimeException("Invalid operator $operator in if statement")
+        val leftVariableName = if (left.startsWith("{") && left.endsWith("}")) left.substring(1, left.length - 1) else left
+        val rightVariableName = if (right.startsWith("{") && right.endsWith("}")) right.substring(1, right.length - 1) else right
+
+        val leftValue = getValue(leftVariableName)
+        val rightValue = getValue(rightVariableName)
+
+        val result = when (operator) {
+            "==" -> leftValue == rightValue
+            "!=" -> leftValue != rightValue
+            "<" -> leftValue.toDouble() < rightValue.toDouble()
+            "<=" -> leftValue.toDouble() <= rightValue.toDouble()
+            ">" -> leftValue.toDouble() > rightValue.toDouble()
+            ">=" -> leftValue.toDouble() >= rightValue.toDouble()
+            else -> throw IllegalArgumentException("Invalid operator: $operator")
         }
-        if (conditionIsTrue) {
-            // 'then' の後のコマンドを実行する
-            val thenCommandParts = thenCommand.split(" ", limit = 2)
-            if (thenCommandParts.size == 2) {
-                val duration = thenCommandParts[0].toDoubleOrNull() ?: 0.0
-                val command = thenCommandParts[1]
-                callback(MacroData(command, duration), currentIndex)
-            } else {
-                callback(MacroData(thenCommand, 0.0), currentIndex)
-            }
+
+        if (result) {
+            processCommand(thenCommand, macroData)
         }
     }
 
@@ -221,11 +278,22 @@ class Macro {
             message = message.replace("\${$varName}", value)
         }
         for ((varName, value) in numericVariables) {
-            message = message.replace("\${$varName}", value.toString())
+            if (value is Int) {
+                message = message.replace("\${$varName}", value.toString())
+            } else if (value is Double) {
+                message = message.replace("\${$varName}", value.toString())
+            }
+        }
+        //\u3000""があれば、左右の""を削除する
+        if(message.startsWith("\"") && message.endsWith("\"")){
+            message = message.substring(1,message.length-1)
         }
         info(message)
     }
-
+    private fun wait(macroData: MacroData) {
+        val duration = getValue(macroData.command.substring("wait ".length))
+        Thread.sleep((duration * 1000).toLong())  // durationは秒単位と仮定
+    }
     // マクロの実行を停止する関数
     fun stop() {
         shouldStop = true
@@ -238,6 +306,30 @@ class Macro {
         stop()
         executor.shutdownNow()  // 実行中のタスクを強制的に停止する
         executor = Executors.newSingleThreadScheduledExecutor()  // 新しいタスクのための新しいエグゼキュータを作成する
+    }
+
+    private fun getValue(value: String): Double {
+        // 変数名が {...} 形式で与えられた場合、 {...} を取り除く
+        val variableName = if (value.startsWith("{") && value.endsWith("}")) {
+            value.substring(1, value.length - 1)
+        } else {
+            value
+        }
+
+        // 数値として解釈できる場合はそのまま数値として返す
+        val doubleValue = value.toDoubleOrNull()
+        if (doubleValue != null) {
+            return doubleValue
+        }
+
+        // 変数として解釈できる場合はその値を返す
+        val variableValue = numericVariables[value]?.toDouble()
+        if (variableValue != null) {
+            return variableValue
+        }
+
+        // それ以外の場合はエラー
+        throw IllegalArgumentException("Invalid value: $value")
     }
 }
     // endregion
