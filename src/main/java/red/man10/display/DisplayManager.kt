@@ -145,6 +145,8 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l distance: ${display.distance}")
         p.sendMessage("§a§l parallelDithering: ${display.parallelDithering}")
         p.sendMessage("§a§l parallelism: ${display.parallelism}")
+        p.sendMessage("§a§l rasterNoise: ${display.rasterNoise}")
+        p.sendMessage("§a§l rasterNoiseLevel: ${display.rasterNoiseLevel}")
 
         p.sendMessage("§a§l test_mode: ${display.testMode}")
 
@@ -291,6 +293,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.brightness = false
         display.brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
         display.distance = DEFAULT_DISTANCE
+        display.parallelDithering = false
+        display.parallelism = DEFAULT_PARALLELISM
+        display.rasterNoise = false
+        display.rasterNoiseLevel = DEFAULT_RASTER_NOISE_LEVEL
 
         display.testMode = false
 

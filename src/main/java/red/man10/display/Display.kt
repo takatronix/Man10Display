@@ -50,7 +50,7 @@ abstract class Display : MapPacketSender {
     var noiseLevel = DEFAULT_NOISE_LEVEL
     var noise = false
     var rasterNoise = false
-    var rasterNoiseLevel = DEFAULT_RASTER_NOISE_AMPLITUDE
+    var rasterNoiseLevel = DEFAULT_RASTER_NOISE_LEVEL
     var sobelLevel: Int = DEFAULT_SOBEL_LEVEL
     var sobel = false
     var quantize = false
@@ -278,7 +278,7 @@ abstract class Display : MapPacketSender {
         noiseLevel = config.getDouble("$key.noiseLevel", 0.0)
         noise = config.getBoolean("$key.noise", false)
         rasterNoise = config.getBoolean("$key.rasterNoise", false)
-        rasterNoiseLevel = config.getInt("$key.rasterNoiseLevel", DEFAULT_RASTER_NOISE_AMPLITUDE)
+        rasterNoiseLevel = config.getInt("$key.rasterNoiseLevel", DEFAULT_RASTER_NOISE_LEVEL)
         sobelLevel = config.getInt("$key.sobelLevel", DEFAULT_SOBEL_LEVEL)
         sobel = config.getBoolean("$key.sobel", false)
         quantize = config.getBoolean("$key.quantize", false)
