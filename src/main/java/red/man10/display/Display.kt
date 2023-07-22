@@ -59,7 +59,7 @@ abstract class Display : MapPacketSender {
     var contrast = false
     var contrastLevel = DEFAULT_CONTRAST_LEVEL
     var scanline = false
-    var scanlineWidth = DEFAULT_SCANLINE_HEIGHT
+    var scanlineHeight = DEFAULT_SCANLINE_HEIGHT
     var sharpen = false
     var sharpenLevel = DEFAULT_SHARPEN_LEVEL
     var blur = false
@@ -228,7 +228,7 @@ abstract class Display : MapPacketSender {
         config.set("$key.contrast", contrast)
         config.set("$key.contrastLevel", contrastLevel)
         config.set("$key.scanline", scanline)
-        config.set("$key.scanlineWidth", scanlineWidth)
+        config.set("$key.scanlineHeight", scanlineHeight)
         config.set("$key.sharpen", sharpen)
         config.set("$key.sharpenLevel", sharpenLevel)
         config.set("$key.brightness", brightness)
@@ -285,7 +285,7 @@ abstract class Display : MapPacketSender {
         contrast = config.getBoolean("$key.contrast", false)
         contrastLevel = config.getDouble("$key.contrastLevel", DEFAULT_CONTRAST_LEVEL)
         scanline = config.getBoolean("$key.scanline", false)
-        scanlineWidth = config.getInt("$key.scanlineWidth", DEFAULT_SCANLINE_HEIGHT)
+        scanlineHeight = config.getInt("$key.scanlineHeight", DEFAULT_SCANLINE_HEIGHT)
         sharpen = config.getBoolean("$key.sharpen", false)
         sharpenLevel = config.getDouble("$key.sharpenLevel", DEFAULT_SHARPEN_LEVEL)
         brightness = config.getBoolean("$key.brightness", false)
@@ -466,8 +466,8 @@ abstract class Display : MapPacketSender {
                 this.scanline = value.toBoolean()
             }
 
-            "scanline_width" -> {
-                this.scanlineWidth = value.toInt()
+            "scanline_height" -> {
+                this.scanlineHeight = value.toInt()
             }
 
             "sharpen" -> {
@@ -553,7 +553,7 @@ abstract class Display : MapPacketSender {
                 result = BlurFilter(blurRadius).apply(result)
             }
             if (this.scanline) {
-                result = ScanlineFilter(scanlineWidth).apply(result)
+                result = ScanlineFilter(scanlineHeight).apply(result)
             }
             if(this.parallelDithering){
                 result = ParallelDitheringFilter(parallelism).apply(result)

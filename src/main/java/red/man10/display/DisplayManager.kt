@@ -58,7 +58,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 "denoise","denoise_radius",
                 "contrast","contrast_level","brightness","brightness_level",
                 "sharpen","sharpen_level",
-                "scanline","scanline_width",
+                "scanline","scanline_height",
                 "distance",
                 "parallel_dithering","parallelism",
                 "test_mode")
@@ -138,7 +138,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l sharpen: ${display.sharpen}")
         p.sendMessage("§a§l sharpen_level: ${display.sharpenLevel}")
         p.sendMessage("§a§l scanline: ${display.scanline}")
-        p.sendMessage("§a§l scanline_width: ${display.scanlineWidth}")
+        p.sendMessage("§a§l scanline_width: ${display.scanlineHeight}")
         p.sendMessage("§a§l brightness: ${display.brightness}")
         p.sendMessage("§a§l brightnessLevel: ${display.brightnessLevel}")
         p.sendMessage("§a§l distance: ${display.distance}")
@@ -284,7 +284,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.contrast = false
         display.contrastLevel = DEFAULT_CONTRAST_LEVEL
         display.scanline = false
-        display.scanlineWidth = DEFAULT_SCANLINE_HEIGHT
+        display.scanlineHeight = DEFAULT_SCANLINE_HEIGHT
         display.sharpen = false
         display.sharpenLevel = DEFAULT_SHARPEN_LEVEL
         display.brightness = false

@@ -3,7 +3,7 @@ package red.man10.display
 import org.bukkit.command.CommandSender
 import java.io.File
 
-const val DEFAULT_PROGRAM_DURATION = 10.0
+const val DEFAULT_PROGRAM_DURATION = 0.0
 class ProgramData{
     var command = ""
     var fileName = ""
@@ -15,7 +15,8 @@ class ProgramData{
     fun load(str:String){
         val list = str.split(",")
         command = list[0]
-        duration = list[1].toDouble()
+        if(list[1].isNotEmpty())
+           duration = list[1].toDouble()
         fileName = list[2].replace("\"","")
     }
 }
