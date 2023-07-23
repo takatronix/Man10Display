@@ -155,9 +155,7 @@ class Macro {
         future = executor.schedule({
             while (currentIndex < data.size && !shouldStop) {
                 val macroData = data[currentIndex]
-               info("Executing: $currentMacroName($currentIndex) ${macroData.command} ")
-
-
+//               info("Executing: $currentMacroName($currentIndex) ${macroData.command} ")
 
                 when {
                     macroData.command.startsWith("goto ") -> goto(macroData)

@@ -1,6 +1,7 @@
 package red.man10.display.filter
 
 import java.awt.Color
+import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 
 abstract class ImageFilter {
@@ -51,6 +52,14 @@ abstract class ImageFilter {
             val bDiff = Math.abs(color1.blue - color2.blue)
             return rDiff + gDiff + bDiff
         }
-
+        // 画像をリサイズするメソッド
+        fun resizeImage(image: BufferedImage, newWidth: Int, newHeight: Int): BufferedImage {
+            val resizedImage = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB)
+            val g = resizedImage.createGraphics()
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+            g.drawImage(image, 0, 0, newWidth, newHeight, null)
+            g.dispose()
+            return resizedImage
+        }
     }
 }
