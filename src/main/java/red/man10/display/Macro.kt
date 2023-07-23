@@ -1,5 +1,6 @@
 package red.man10.display
 
+import org.bukkit.command.CommandSender
 import java.io.File
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
@@ -7,20 +8,39 @@ import java.util.concurrent.TimeUnit
 
 const val DEFAULT_PROGRAM_WAIT_TIME = 0.0
 const val DEFAULT_MACRO_FOLDER = "macro"
+/*
+enum class Command(val action: String) {
+    WAIT("wait"),
+    GOTO("goto"),
+    SET("set"),
+    IF("if"),
+    LOG("log");
+    companion object {
+        fun from(action: String): Command? = Command.values().firstOrNull { it.action == action }
+    }
+}
+data class red.man10.display.MacroCommand(val command: Command, val filename: String, val parameters: List<String>)
+
+*/
+
 class MacroData(var command: String = "", var fileName: String = "", var params: String = ""){
 
     override fun toString(): String {
         return "$command \"$fileName\" \"$params\""
     }
-    fun load(str:String){
+    fun load(str:String):Boolean{
 
-        val text = str.trimStart()
+        var text = str.trimStart()
         // コメントは無視
         if(text.startsWith("#") || text.startsWith("//"))
-            return
+            return false
+
+        // コマンドの前後の空白を削除
+        text = text.trimStart()
         // 空行は無視
         if(text.isEmpty())
-            return
+            return false
+
 
         val cmd = text.split(" ")
         if(cmd.isNotEmpty()){
@@ -42,11 +62,15 @@ class MacroData(var command: String = "", var fileName: String = "", var params:
             }
             fileName = fileName .replace("\"","")
         }
+        return true
     }
 }
+
+
 class Macro {
     private var data = mutableListOf<MacroData>()
-    var currentMacroName = ""
+    private var currentMacroName = ""
+
 
     init{
         createProgramDirectory()
@@ -93,7 +117,7 @@ class Macro {
         lines.forEach {
             val d = MacroData()
             d.load(it)
-            data.add(d)
+            //data.add(d)
         }
         return true
     }
@@ -155,7 +179,7 @@ class Macro {
         future = executor.schedule({
             while (currentIndex < data.size && !shouldStop) {
                 val macroData = data[currentIndex]
-//               info("Executing: $currentMacroName($currentIndex) ${macroData.command} ")
+               info("Executing: $currentMacroName($currentIndex) ${macroData.command} ")
 
                 when {
                     macroData.command.startsWith("goto ") -> goto(macroData)
@@ -290,13 +314,20 @@ class Macro {
     }
     private fun wait(macroData: MacroData) {
         val duration = getValue(macroData.command.substring("wait ".length))
-        Thread.sleep((duration * 1000).toLong())  // durationは秒単位と仮定
+        val startTime = System.currentTimeMillis()
+        info("Waiting for $duration seconds")
+        while (System.currentTimeMillis() - startTime < duration * 1000 && !shouldStop) {
+            Thread.sleep(10)
+        }
+        info("Wait finished")
     }
     // マクロの実行を停止する関数
-    fun stop() {
+    fun stop(sender: CommandSender? = null) {
+        info("Stopping macro execution", sender)
         shouldStop = true
         future?.cancel(false)
         future = null
+        info("Macro execution stopped", sender)
     }
 
     // マクロの実行を強制的に停止する関数

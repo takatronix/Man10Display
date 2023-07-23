@@ -268,6 +268,11 @@ class DisplayManager(main: JavaPlugin)   : Listener {
             display.macro.stop()
             return false
         }
+        // もしマクロ実行中なら停止する
+        if(display.macro.isRunning()){
+            display.macro.stop()
+        }
+
         display.runMacro(macroName)
         display.resetStats()
         display.refreshFlag = true

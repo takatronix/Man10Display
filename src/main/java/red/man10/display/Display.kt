@@ -644,14 +644,14 @@ abstract class Display : MapPacketSender  {
     // region: Macro
     fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean{
         //this.macroName = macroName
+        info("macro loading : $macroName",sender)
         if(!macro.load(macroName)){
             error("macro load error : $macroName",sender)
             return false
         }
-        macro.execute { macroData, i ->
-           // info("macro execute : ${macroData.command}",sender)
-            if(bufferedImage == null)
-                return@execute
+        info("macro loaded : $macroName",sender)
+        macro.execute { macroData, _ ->
+           info("[$macroName]macro execute : ${macroData.command}",sender)
 
             when(macroData.command){
 

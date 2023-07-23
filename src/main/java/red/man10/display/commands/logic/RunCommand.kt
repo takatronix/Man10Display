@@ -11,8 +11,7 @@ class RunCommand(private var plugin: JavaPlugin) : CommandExecutor {
         return try{
             val displayName = args[1]
             val macroName = args[2]
-            Main.displayManager.runMacro(sender,displayName,macroName)
-            true
+            return Main.displayManager.runMacro(sender,displayName,macroName)
         }catch (e:Exception){
             sender.sendMessage(Main.prefix + "§c§l{$e.message}")
             true
