@@ -13,7 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.Main
 
 class WandCommand(private var plugin: JavaPlugin): CommandExecutor {
-    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>?): Boolean {
+    override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
         if (sender !is Player){
             sender.sendMessage("§2§l Only players can execute this command")
             return true
