@@ -11,6 +11,7 @@ import org.bukkit.map.MapPalette
 import red.man10.display.MapPacketSender.Companion.createMapPacket
 import red.man10.display.MapPacketSender.Companion.sendMapImage
 import red.man10.display.*
+import red.man10.display.CommandType.*
 import red.man10.display.filter.*
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -33,7 +34,7 @@ abstract class Display : MapPacketSender  {
     var location: Location? = null
     var distance = DEFAULT_DISTANCE
     var port: Int = 0
-    var macro = Macro()
+    var macroEngine = MacroEngine()
     var bufferedImage: BufferedImage? = null
 
     // filter settings
@@ -643,6 +644,25 @@ abstract class Display : MapPacketSender  {
     // endregion
     // region: Macro
     fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean{
+        info("macro loading : $macroName",sender)
+
+        macroEngine.run(macroName
+        ) { macroCommand, index ->
+
+            info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
+
+            when (macroCommand.type) {
+                CLEAR -> TODO()
+                IMAGE -> TODO()
+                STRETCH_IMAGE -> TODO()
+                else -> {
+                    error("unknown macro type : ${macroCommand.type}", sender)
+                }
+            }
+        }
+
+
+        /*
         //this.macroName = macroName
         info("macro loading : $macroName",sender)
         if(!macro.load(macroName)){
@@ -678,6 +698,7 @@ abstract class Display : MapPacketSender  {
                 }
             }
         }
+        */
         return true
     }
 

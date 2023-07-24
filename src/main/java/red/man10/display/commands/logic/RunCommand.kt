@@ -13,7 +13,7 @@ class RunCommand(private var plugin: JavaPlugin) : CommandExecutor {
             val macroName = args[2]
             return Main.displayManager.runMacro(sender,displayName,macroName)
         }catch (e:Exception){
-            sender.sendMessage(Main.prefix + "§c§l{$e.message}")
+            sender.sendMessage(Main.prefix + "§c§l Macro error:{$e.message}")
             true
         }
     }
