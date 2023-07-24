@@ -36,6 +36,8 @@ class Main : JavaPlugin(), Listener {
         commandRouter = Man10DisplayCommand()
         getCommand("mdisplay")!!.setExecutor(commandRouter)
         getCommand("mdisplay")!!.tabCompleter = commandRouter
+        getCommand("md")!!.setExecutor(commandRouter)
+        getCommand("md")!!.tabCompleter = commandRouter
 
         displayManager.load()
         //額縁保護用のイベント

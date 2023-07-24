@@ -11,3 +11,5 @@ softdepend:
 commands:
   mdisplay:
     default: op
+  md:
+    default: op

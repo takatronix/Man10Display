@@ -267,6 +267,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
         if(macroName == null){
             display.macroEngine.stop()
+            display.update()
             return false
         }
         display.runMacro(macroName)

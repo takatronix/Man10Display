@@ -2,11 +2,13 @@ package red.man10.display
 
 import red.man10.display.CommandType.*
 import java.io.File
+import java.util.*
 import java.util.concurrent.Executors
 import kotlin.math.roundToLong
 import kotlin.random.Random
 
 const val MACRO_SLEEP_TIME = 1L
+
 enum class CommandType {
     LABEL,
     GOTO,
@@ -37,6 +39,7 @@ class MacroEngine {
     private var currentLineIndex = 0
     private var shouldStop = false
     private var callback: ((MacroCommand, Int) -> Unit)? = null
+
     // プロパティとしての変数代入をサポートする
     private var variableName: String? = null
     private var isPaused = false
@@ -48,24 +51,31 @@ class MacroEngine {
     }
 
     // 終了フラグのチェック
-    fun shouldStop(): Boolean {
+    private fun shouldStop(): Boolean {
         return shouldStop
     }
+
     // マクロを一時停止するメソッド
     fun pause() {
         isPaused = true
+    }
+
+    fun skip() {
+        currentLineIndex++
     }
 
     // マクロを再開するメソッド
     fun resume() {
         isPaused = false
     }
+
     // マクロの実行をリスタートする関数
     fun restart() {
         currentLineIndex = 0
         shouldStop = false
         isPaused = false
     }
+
     fun run(macroName: String, callback: (MacroCommand, Int) -> Unit) {
         val filePath = getMacroFilePath(macroName) ?: return
         val commands = parseMacroFile(filePath)
@@ -76,6 +86,7 @@ class MacroEngine {
     fun setVariable(variableName: String) {
         this.variableName = variableName
     }
+
     private fun execute(commands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
         this.commands = commands
         this.callback = callback
@@ -86,13 +97,16 @@ class MacroEngine {
 
         collectLabels(commands)
 
-        while (currentLineIndex < commands.size && !this.shouldStop && !shouldEndLoop) {
+        while (currentLineIndex < commands.size) {
             val command = commands[currentLineIndex]
 
+            if (shouldStop()) {
+                shouldStop = false
+                break
+            }
+
             while (isPaused) {
-                if (shouldStop) {
-                    return
-                }
+                if (shouldStop) return
                 Thread.sleep(MACRO_SLEEP_TIME)
             }
             info("[MACRO][$currentLineIndex] $command")
@@ -101,6 +115,7 @@ class MacroEngine {
                     val label = command.params[0]
                     currentLineIndex = labelIndices[label] ?: throw IllegalArgumentException("Label not found: $label")
                 }
+
                 SET -> {
                     val variableName = command.params[0].removePrefix("$")
                     val expressionParts = command.params.drop(1)
@@ -108,6 +123,7 @@ class MacroEngine {
                     symbolTable[variableName] = value
                     info("Set $variableName = $value")
                 }
+
                 PRINT -> {
                     val expression = command.params.joinToString(" ")
                     if (expression.startsWith("\"") && expression.endsWith("\"")) {
@@ -119,22 +135,26 @@ class MacroEngine {
                         info(value.toString())
                     }
                 }
+
                 WAIT -> {
                     val sleepTimeInSeconds = evaluateExpression(command.params[0]) as Double
                     if (!waitSeconds(sleepTimeInSeconds)) {
                         throw InterruptedException("Macro execution was stopped during a wait command.")
                     }
                 }
+
                 IF -> {
                     val conditionExpression = command.params[0]
                     val result = evaluateExpression(conditionExpression)
                     if (result is Boolean && result) {
                         val label = command.params[2]
-                        currentLineIndex = labelIndices[label] ?: throw IllegalArgumentException("Label not found: $label")
+                        currentLineIndex =
+                            labelIndices[label] ?: throw IllegalArgumentException("Label not found: $label")
                     } else {
                         currentLineIndex++
                     }
                 }
+
                 LOOP -> {
                     // ループが始まったことを記録し、ループ深さを増やす
                     loopDepth++
@@ -154,15 +174,22 @@ class MacroEngine {
                         currentLineIndex++
                     }
                 }
+
                 MACRO -> { // マクロを呼び出すコマンドの処理
                     val filePath = command.params[0]
                     val nestedCommands = parseMacroCommands(filePath)
                     execute(nestedCommands, callback)
                     currentLineIndex++
                 }
+
                 EXIT -> {
                     stop() // マクロの実行を即座に終了
                 }
+
+                LABEL -> {
+                    info("Label: ${command.params[0]}")
+                }
+
                 else -> {
                     // Handle other command types if needed
                     callback(command, currentLineIndex)
@@ -170,10 +197,12 @@ class MacroEngine {
             }
 
             // Move to the next line if the command is not GOTO or IF
-            if (command.type != GOTO && command.type != IF ) {
+            if (command.type != GOTO && command.type != IF) {
                 currentLineIndex++
             }
+
         }
+        info("Macro execution finished.")
     }
 
     private fun executeLoop(loopCount: Int, loopCommands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
@@ -188,7 +217,7 @@ class MacroEngine {
     private fun collectLabels(commands: List<MacroCommand>) {
         for (index in commands.indices) {
             val command = commands[index]
-            if (command.type == CommandType.LABEL) {
+            if (command.type == LABEL) {
                 val label = command.params[0]
                 labelIndices[label] = index
             }
@@ -212,11 +241,13 @@ class MacroEngine {
                 val value = evaluateExpression(expression)
                 symbolTable[variableName] = value
             }
+
             PRINT -> {
                 val expression = command.params[0]
                 val result = evaluateExpression(expression)
                 println(result.toString())
             }
+
             WAIT -> {
                 val sleepTimeInSeconds = evaluateExpression(command.params[0]) as Double
                 if (!waitSeconds(sleepTimeInSeconds)) {
@@ -224,6 +255,7 @@ class MacroEngine {
                     throw InterruptedException("Macro execution was stopped during a wait command.")
                 }
             }
+
             IF -> {
                 val conditionExpression = command.params[0]
                 val result = evaluateExpression(conditionExpression)
@@ -234,6 +266,7 @@ class MacroEngine {
                     currentLineIndex++ // 条件が偽の場合は次の行に進む
                 }
             }
+
             else -> {} // Do nothing for GOTO and LABEL, as these are handled in the run method
         }
     }
@@ -261,7 +294,10 @@ class MacroEngine {
     private fun random(min: Int, max: Int): Int {
         return Random.nextInt(min, max + 1)
     }
+
     private fun evaluateExpression(expression: String): Any {
+
+
         // 数値型の四則演算を評価する
         fun evaluateArithmeticExpression(expression: String): Double {
             val parts = expression.split(" ")
@@ -270,9 +306,11 @@ class MacroEngine {
             }
 
             // 入力が数値でない場合は変数として評価
-            val num1 = evaluateExpression(parts[0]) as? Double ?: throw IllegalArgumentException("Invalid number or variable: ${parts[0]}")
+            val num1 = evaluateExpression(parts[0]) as? Double
+                ?: throw IllegalArgumentException("Invalid number or variable: ${parts[0]}")
             val operator = parts[1]
-            val num2 = evaluateExpression(parts[2]) as? Double ?: throw IllegalArgumentException("Invalid number or variable: ${parts[2]}")
+            val num2 = evaluateExpression(parts[2]) as? Double
+                ?: throw IllegalArgumentException("Invalid number or variable: ${parts[2]}")
 
             return when (operator) {
                 "+" -> num1 + num2
@@ -292,10 +330,28 @@ class MacroEngine {
         fun evaluateNumber(number: String): Double {
             return number.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number: $number")
         }
+        /*
+                // 文字列内の変数を評価する
+                fun evaluateStringExpression(expression: String): String {
+                    val regex = Regex("\\{(\\$\\w+)}")
+                    return regex.replace(expression) { matchResult ->
+                        val variableName = matchResult.groups[1]!!.value.removePrefix("$")
+                        val variableValue = evaluateVariable(variableName)
+                        variableValue.toString()
+                    }
+                }
+                if (expression.startsWith("\"") && expression.endsWith("\"")) {
+                    // 文字列の式の評価: 引用符で囲まれた部分を返します。
+                    return evaluateStringExpression(expression.substring(1, expression.length - 1))
+                }
+        */
 
         if (expression.startsWith("\"") && expression.endsWith("\"")) {
             // 文字列の式の評価: 引用符で囲まれた部分を返します。
             return expression.substring(1, expression.length - 1)
+        } else if (expression.contains(" ")) {
+            // 算術式の評価
+            return evaluateArithmeticExpression(expression)
         } else if (expression == "true" || expression == "false") {
             // Boolean型の式の評価
             return expression.toBoolean()
@@ -303,12 +359,19 @@ class MacroEngine {
             // 変数の評価
             val variableName = expression.removePrefix("$")
             return evaluateVariable(variableName)
-        } else if (expression.toUpperCase() == "RANDOM") {
+        } else if (expression.uppercase(Locale.getDefault()) == "RANDOM") {
             // RANDOMの場合はランダムな整数を生成して返す
             return (0..100).random() // 0から100までのランダムな整数を返す
-        } else if (expression.contains(" ") && (expression.contains("+") || expression.contains("-") || expression.contains("*") || expression.contains("/"))) {
+        } else if (expression.contains(" ") && (expression.contains("+") || expression.contains("-") || expression.contains(
+                "*"
+            ) || expression.contains("/"))
+        ) {
             // 数値型の式の評価: 既存のロジックを使用
             return evaluateArithmeticExpression(expression)
+        } else if (expression.startsWith("$")) {
+            // 変数の評価
+            val variableName = expression.removePrefix("$")
+            return evaluateVariable(variableName)
         } else {
             // 単純な数値の評価
             return evaluateNumber(expression)
@@ -337,6 +400,7 @@ class MacroEngine {
 
     // 行を解析してMacroCommandに変換する関数
     private fun parseCommand(line: String): MacroCommand? {
+        info("Parsing line: $line")
         val trimmedLine = line.trim()
         if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
             // 空行またはコメント行の場合はnullを返す
@@ -348,15 +412,20 @@ class MacroEngine {
         val labelMatch = labelRegex.find(trimmedLine)
         if (labelMatch != null) {
             val label = labelMatch.groupValues[1]
-            return MacroCommand(CommandType.LABEL, listOf(label))
+            return MacroCommand(LABEL, listOf(label))
         }
 
-        val parts = line.trim().split(" ")
-        if (parts.isEmpty()) {
-            return null
+        val parts = line.trim().split(" ", limit = 3)
+
+        // $a = $b + $c のような式を検出
+        if (parts.size == 3 && parts[1] == "=") {
+            // 新しい構文を検出
+            val variableName = parts[0]
+            val expression = parts[2]
+            return MacroCommand(SET, listOf(variableName, expression))
         }
 
-        val type = when (parts[0].toUpperCase()) {
+        val type = when (parts[0].uppercase(Locale.getDefault())) {
             "LABEL" -> LABEL
             "GOTO" -> GOTO
             "SET" -> SET
@@ -406,7 +475,8 @@ class MacroEngine {
 
         return macroFile.absolutePath
     }
-    fun parse(macroName:String):List<MacroCommand>{
+
+    fun parse(macroName: String): List<MacroCommand> {
         val filePath = getMacroFilePath(macroName) ?: return emptyList()
         return parseMacroFile(filePath)
     }
