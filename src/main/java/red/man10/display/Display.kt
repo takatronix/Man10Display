@@ -654,7 +654,7 @@ abstract class Display : MapPacketSender  {
     fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean{
         info("macro loading : $macroName",sender)
 
-        macroEngine.run(macroName
+        macroEngine.runMacroAsync(macroName
         ) { macroCommand, index ->
 
             info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)

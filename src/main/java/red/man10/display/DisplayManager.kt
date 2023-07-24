@@ -23,6 +23,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     }
 
     fun deinit(){
+        this.stopAllMacro()
         for (display in displays) {
             if(display is StreamDisplay){
                 info("stream display ${display.name} deinit start")
@@ -275,6 +276,20 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.refreshFlag = true
         return  true
     }
+    fun stopMacro(sender: CommandSender, displayName: String): Boolean {
+        val display = getDisplay(displayName) ?: return false
+        display.macroEngine.stop()
+        display.update()
+        return true
+    }
+    fun stopAllMacro(): Boolean {
+        for (display in displays) {
+            display.macroEngine.stop()
+            display.update()
+        }
+        return true
+    }
+
     fun showMacroList(sender: CommandSender): Boolean {
         val list = Macro.macroList
         sender.sendMessage(Main.prefix + "§a§l Macro List")

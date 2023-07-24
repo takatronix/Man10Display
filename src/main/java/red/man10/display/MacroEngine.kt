@@ -1,11 +1,14 @@
 package red.man10.display
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import red.man10.display.CommandType.*
 import java.io.File
 import java.util.*
 import java.util.concurrent.Executors
 import kotlin.math.roundToLong
 import kotlin.random.Random
+import kotlinx.coroutines.*
 
 const val MACRO_SLEEP_TIME = 1L
 
@@ -42,41 +45,52 @@ class MacroEngine {
 
     // プロパティとしての変数代入をサポートする
     private var variableName: String? = null
-    private var isPaused = false
 
     // region 制御コマンド
     // 終了フラグを設定するメソッド
-    fun stop() {
-        shouldStop = true
-    }
 
     // 終了フラグのチェック
     private fun shouldStop(): Boolean {
         return shouldStop
     }
 
-    // マクロを一時停止するメソッド
-    fun pause() {
-        isPaused = true
-    }
-
     fun skip() {
         currentLineIndex++
-    }
-
-    // マクロを再開するメソッド
-    fun resume() {
-        isPaused = false
     }
 
     // マクロの実行をリスタートする関数
     fun restart() {
         currentLineIndex = 0
         shouldStop = false
-        isPaused = false
     }
 
-    fun run(macroName: String, callback: (MacroCommand, Int) -> Unit) {
+    private var currentJob: Job? = null  // Current job
+    fun stop() {
+        info("Stopping macro execution...")
+        currentJob?.cancel()
+    }
+
+    fun isRunning(): Boolean {
+        return currentJob?.isActive == true
+    }
+    @OptIn(DelicateCoroutinesApi::class)
+    fun runMacroAsync(macroName: String, callback: (MacroCommand, Int) -> Unit) {
+
+        if (isRunning()) {
+            stop()
+        }
+        // Wait for the current job to complete
+        runBlocking {
+            currentJob?.join()
+        }
+
+        // GlobalScopeを使用して、新しいトップレベルのコルーチンを起動します。
+        // このコルーチンはメインスレッドから切り離され、バックグラウンドで実行されます。
+        currentJob = GlobalScope.launch {
+            run(macroName, callback)
+        }
+    }
+    private fun run(macroName: String, callback: (MacroCommand, Int) -> Unit) {
         val filePath = getMacroFilePath(macroName) ?: return
         val commands = parseMacroFile(filePath)
         execute(commands, callback)
@@ -91,7 +105,7 @@ class MacroEngine {
         this.commands = commands
         this.callback = callback
         currentLineIndex = 0
-        shouldStop = false
+
         var shouldEndLoop = false
         var loopDepth = 0
 
@@ -100,15 +114,11 @@ class MacroEngine {
         while (currentLineIndex < commands.size) {
             val command = commands[currentLineIndex]
 
-            if (shouldStop()) {
-                shouldStop = false
+            if(currentJob?.isActive == false){
+                info("Macro execution was stopped.")
                 break
             }
 
-            while (isPaused) {
-                if (shouldStop) return
-                Thread.sleep(MACRO_SLEEP_TIME)
-            }
             info("[MACRO][$currentLineIndex] $command")
             when (command.type) {
                 GOTO -> {
@@ -128,7 +138,8 @@ class MacroEngine {
                     val expression = command.params.joinToString(" ")
                     if (expression.startsWith("\"") && expression.endsWith("\"")) {
                         // パラメータが文字列リテラルの場合は、そのまま出力します。
-                        info(expression.substring(1, expression.length - 1))
+                        val output = evaluateStringExpression(expression.substring(1, expression.length - 1))
+                        info(output)
                     } else {
                         // それ以外の場合は、expressionを評価します。
                         val value = evaluateExpression(expression)
@@ -204,6 +215,26 @@ class MacroEngine {
         }
         info("Macro execution finished.")
     }
+    // endregion
+    // region 評価関数
+    private fun evaluateStringExpression(expression: String): String {
+        val regex = Regex("\\{(\\$\\w+)}")
+        return regex.replace(expression) { matchResult ->
+            val variableName = matchResult.groups[1]!!.value.removePrefix("$")
+            val variableValue = evaluateVariable(variableName)
+            variableValue.toString()
+        }
+    }
+    // 変数を評価する
+    fun evaluateVariable(variableName: String): Any {
+        return symbolTable[variableName] ?: throw IllegalArgumentException("Variable $variableName not found.")
+    }
+
+    // 数値を評価する
+    fun evaluateNumber(number: String): Double {
+        return number.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number: $number")
+    }
+    // endregion
 
     private fun executeLoop(loopCount: Int, loopCommands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
         repeat(loopCount) {
@@ -230,45 +261,6 @@ class MacroEngine {
             throw IllegalArgumentException("Label not found: $label")
         }
         return index
-    }
-
-
-    private fun executeCommand(command: MacroCommand) {
-        when (command.type) {
-            SET -> {
-                val variableName = command.params[0].removePrefix("$")
-                val expression = command.params.drop(1).joinToString(" ")
-                val value = evaluateExpression(expression)
-                symbolTable[variableName] = value
-            }
-
-            PRINT -> {
-                val expression = command.params[0]
-                val result = evaluateExpression(expression)
-                println(result.toString())
-            }
-
-            WAIT -> {
-                val sleepTimeInSeconds = evaluateExpression(command.params[0]) as Double
-                if (!waitSeconds(sleepTimeInSeconds)) {
-                    // Stop the execution if the waiting was interrupted.
-                    throw InterruptedException("Macro execution was stopped during a wait command.")
-                }
-            }
-
-            IF -> {
-                val conditionExpression = command.params[0]
-                val result = evaluateExpression(conditionExpression)
-                if (result is Boolean && result) {
-                    val label = command.params[2]
-                    currentLineIndex = findIndexOfLabel(commands, label)
-                } else {
-                    currentLineIndex++ // 条件が偽の場合は次の行に進む
-                }
-            }
-
-            else -> {} // Do nothing for GOTO and LABEL, as these are handled in the run method
-        }
     }
 
     private fun waitSeconds(seconds: Double): Boolean {
@@ -321,15 +313,7 @@ class MacroEngine {
             }
         }
 
-        // 変数を評価する
-        fun evaluateVariable(variableName: String): Any {
-            return symbolTable[variableName] ?: throw IllegalArgumentException("Variable $variableName not found.")
-        }
 
-        // 数値を評価する
-        fun evaluateNumber(number: String): Double {
-            return number.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number: $number")
-        }
         /*
                 // 文字列内の変数を評価する
                 fun evaluateStringExpression(expression: String): String {
