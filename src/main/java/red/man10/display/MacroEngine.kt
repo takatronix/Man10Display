@@ -29,6 +29,7 @@ enum class CommandType {
     STRETCH_IMAGE,
 }
 
+
 data class MacroCommand(
     val type: CommandType,
     val params: List<String>
@@ -36,23 +37,15 @@ data class MacroCommand(
 
 class MacroEngine {
     private val symbolTable = mutableMapOf<String, Any>()
-    private val executorService = Executors.newSingleThreadExecutor()
     private val labelIndices = mutableMapOf<String, Int>()
     private var commands = listOf<MacroCommand>()
     private var currentLineIndex = 0
     private var shouldStop = false
     private var callback: ((MacroCommand, Int) -> Unit)? = null
 
-    // プロパティとしての変数代入をサポートする
-    private var variableName: String? = null
-
+    private data class Loop(val startLine: Int, var counter: Int)
+    private val loopStack = Stack<Loop>()
     // region 制御コマンド
-    // 終了フラグを設定するメソッド
-
-    // 終了フラグのチェック
-    private fun shouldStop(): Boolean {
-        return shouldStop
-    }
 
     fun skip() {
         currentLineIndex++
@@ -67,6 +60,7 @@ class MacroEngine {
     private var currentJob: Job? = null  // Current job
     fun stop() {
         info("Stopping macro execution...")
+        shouldStop = true
         currentJob?.cancel()
     }
 
@@ -79,11 +73,10 @@ class MacroEngine {
         if (isRunning()) {
             stop()
         }
-        // Wait for the current job to complete
+        // 現在のジョブが完了するまで待つ
         runBlocking {
             currentJob?.join()
         }
-
         // GlobalScopeを使用して、新しいトップレベルのコルーチンを起動します。
         // このコルーチンはメインスレッドから切り離され、バックグラウンドで実行されます。
         currentJob = GlobalScope.launch {
@@ -96,18 +89,10 @@ class MacroEngine {
         execute(commands, callback)
     }
 
-    // プロパティとしての変数代入をサポートする
-    fun setVariable(variableName: String) {
-        this.variableName = variableName
-    }
-
     private fun execute(commands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
         this.commands = commands
         this.callback = callback
         currentLineIndex = 0
-
-        var shouldEndLoop = false
-        var loopDepth = 0
 
         collectLabels(commands)
 
@@ -150,7 +135,8 @@ class MacroEngine {
                 WAIT -> {
                     val sleepTimeInSeconds = evaluateExpression(command.params[0]) as Double
                     if (!waitSeconds(sleepTimeInSeconds)) {
-                        throw InterruptedException("Macro execution was stopped during a wait command.")
+                        info("Macro execution was stopped during a wait command.")
+                   //     throw InterruptedException("Macro execution was stopped during a wait command.")
                     }
                 }
 
@@ -167,22 +153,30 @@ class MacroEngine {
                 }
 
                 LOOP -> {
-                    // ループが始まったことを記録し、ループ深さを増やす
-                    loopDepth++
-
-                    val loopCount = evaluateExpression(command.params[0]) as Int
-                    val loopCommands = commands.subList(currentLineIndex + 1, currentLineIndex + 1 + loopCount)
-                    executeLoop(loopCount, loopCommands, callback)
-
-                    // ループの終了後、次のコマンドに進む
-                    currentLineIndex += loopCommands.size + 1
+                    if (loopStack.isEmpty() || loopStack.peek().startLine != currentLineIndex - 1) {
+                        val loopCount = if (command.params.isEmpty()) {
+                            // パラメータが指定されていない場合、無限にループする
+                            Int.MAX_VALUE
+                        } else {
+                            // パラメータが指定されている場合、その回数だけループする
+                            (evaluateExpression(command.params[0]) as Double).toInt()
+                        }
+                        loopStack.push(Loop(currentLineIndex - 1, loopCount))
+                    }
                 }
                 // ENDLOOPコマンドの処理
                 ENDLOOP -> {
-                    loopDepth--
-                    if (loopDepth == 0) {
-                        shouldEndLoop = true // ループを終了するフラグを立てる
-                        currentLineIndex++
+                    if (loopStack.isNotEmpty()) {
+                        val currentLoop = loopStack.peek()
+                        currentLoop.counter--
+                        if (currentLoop.counter > 0) {
+                            // まだループを続行する必要がある場合、ループの開始位置に戻る
+                            currentLineIndex = currentLoop.startLine + 1
+                            continue
+                        } else {
+                            // ループを終了する
+                            loopStack.pop()
+                        }
                     }
                 }
 
@@ -215,6 +209,7 @@ class MacroEngine {
         }
         info("Macro execution finished.")
     }
+
     // endregion
     // region 評価関数
     private fun evaluateStringExpression(expression: String): String {
@@ -226,109 +221,39 @@ class MacroEngine {
         }
     }
     // 変数を評価する
-    fun evaluateVariable(variableName: String): Any {
+    private fun evaluateVariable(variableName: String): Any {
         return symbolTable[variableName] ?: throw IllegalArgumentException("Variable $variableName not found.")
     }
 
     // 数値を評価する
-    fun evaluateNumber(number: String): Double {
+    private fun evaluateNumber(number: String): Double {
         return number.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number: $number")
     }
-    // endregion
+    // 数値型の四則演算を評価する
+    private fun evaluateArithmeticExpression(expression: String): Double {
+        val parts = expression.split(" ")
+        if (parts.size != 3) {
+            throw IllegalArgumentException("Invalid arithmetic expression: $expression")
+        }
 
-    private fun executeLoop(loopCount: Int, loopCommands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
-        repeat(loopCount) {
-            // LOOP 内のコマンドを実行
-            execute(loopCommands, callback)
+        // 入力が数値でない場合は変数として評価
+        val num1 = evaluateExpression(parts[0]) as? Double
+            ?: throw IllegalArgumentException("Invalid number or variable: ${parts[0]}")
+        val operator = parts[1]
+        val num2 = evaluateExpression(parts[2]) as? Double
+            ?: throw IllegalArgumentException("Invalid number or variable: ${parts[2]}")
+
+        return when (operator) {
+            "+" -> num1 + num2
+            "-" -> num1 - num2
+            "*" -> num1 * num2
+            "/" -> num1 / num2
+            else -> throw IllegalArgumentException("Invalid operator: $operator")
         }
     }
-    // endregion
 
-
-    private fun collectLabels(commands: List<MacroCommand>) {
-        for (index in commands.indices) {
-            val command = commands[index]
-            if (command.type == LABEL) {
-                val label = command.params[0]
-                labelIndices[label] = index
-            }
-        }
-    }
-
-    private fun findIndexOfLabel(commands: List<MacroCommand>, label: String): Int {
-        val index = commands.indexOfFirst { it.type == LABEL && it.params[0] == label }
-        if (index == -1) {
-            throw IllegalArgumentException("Label not found: $label")
-        }
-        return index
-    }
-
-    private fun waitSeconds(seconds: Double): Boolean {
-        val sleepMillis = (seconds * 1000).roundToLong()
-        val future = executorService.submit {
-            try {
-                Thread.sleep(sleepMillis)
-            } catch (e: InterruptedException) {
-                // 終了指示が来た場合にはInterruptedExceptionが投げられる
-            }
-        }
-        while (!future.isDone) {
-            if (shouldStop()) {
-                future.cancel(true)
-                return false
-            }
-            Thread.sleep(MACRO_SLEEP_TIME)
-        }
-        return true
-    }
-
-    // ランダムな整数を生成する関数
-    private fun random(min: Int, max: Int): Int {
-        return Random.nextInt(min, max + 1)
-    }
-
+    // 式を評価する
     private fun evaluateExpression(expression: String): Any {
-
-
-        // 数値型の四則演算を評価する
-        fun evaluateArithmeticExpression(expression: String): Double {
-            val parts = expression.split(" ")
-            if (parts.size != 3) {
-                throw IllegalArgumentException("Invalid arithmetic expression: $expression")
-            }
-
-            // 入力が数値でない場合は変数として評価
-            val num1 = evaluateExpression(parts[0]) as? Double
-                ?: throw IllegalArgumentException("Invalid number or variable: ${parts[0]}")
-            val operator = parts[1]
-            val num2 = evaluateExpression(parts[2]) as? Double
-                ?: throw IllegalArgumentException("Invalid number or variable: ${parts[2]}")
-
-            return when (operator) {
-                "+" -> num1 + num2
-                "-" -> num1 - num2
-                "*" -> num1 * num2
-                "/" -> num1 / num2
-                else -> throw IllegalArgumentException("Invalid operator: $operator")
-            }
-        }
-
-
-        /*
-                // 文字列内の変数を評価する
-                fun evaluateStringExpression(expression: String): String {
-                    val regex = Regex("\\{(\\$\\w+)}")
-                    return regex.replace(expression) { matchResult ->
-                        val variableName = matchResult.groups[1]!!.value.removePrefix("$")
-                        val variableValue = evaluateVariable(variableName)
-                        variableValue.toString()
-                    }
-                }
-                if (expression.startsWith("\"") && expression.endsWith("\"")) {
-                    // 文字列の式の評価: 引用符で囲まれた部分を返します。
-                    return evaluateStringExpression(expression.substring(1, expression.length - 1))
-                }
-        */
 
         if (expression.startsWith("\"") && expression.endsWith("\"")) {
             // 文字列の式の評価: 引用符で囲まれた部分を返します。
@@ -362,10 +287,46 @@ class MacroEngine {
         }
     }
 
+    // endregion
+
+    private fun executeLoop(loopCount: Int, loopCommands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
+        repeat(loopCount) {
+            // LOOP 内のコマンドを実行
+            execute(loopCommands, callback)
+        }
+    }
+    private fun collectLabels(commands: List<MacroCommand>) {
+        for (index in commands.indices) {
+            val command = commands[index]
+            if (command.type == LABEL) {
+                val label = command.params[0]
+                labelIndices[label] = index
+            }
+        }
+    }
+
+    private fun waitSeconds(seconds: Double): Boolean {
+        val sleepTime = (seconds * 1000).roundToLong()
+        val startTime = System.currentTimeMillis()
+        info("Waiting for $seconds seconds...")
+        while (System.currentTimeMillis() - startTime < sleepTime) {
+            if (shouldStop) {
+                info("Macro execution was stopped during a wait command.")
+                return false
+            }
+            Thread.sleep(MACRO_SLEEP_TIME)
+        }
+        info("Waited for $seconds seconds.")
+        return true
+    }
+
+    // ランダムな整数を生成する関数
+    private fun random(min: Int, max: Int): Int {
+        return Random.nextInt(min, max + 1)
+    }
 
     // region parser
-    // テキストファイルをList<red.man10.display.MacroCommand>に変換する関数
-    fun parseMacroFile(filePath: String): List<MacroCommand> {
+    private fun parseMacroFile(filePath: String): List<MacroCommand> {
         val commands = mutableListOf<MacroCommand>()
 
         info("Parsing macro file: $filePath")
