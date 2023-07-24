@@ -190,15 +190,6 @@ class ItemFrameListener : Listener {
         if (isProtectedBlock(e.block.location)) e.isCancelled = true
     }
 
-
-    fun getEntityAsMap(entity: Entity): MapView? {
-        if (entity !is ItemFrame) return null
-        val meta = entity.item.itemMeta as? MapMeta ?: return null
-        val mapView = meta.mapView ?: return null
-        if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
-        return mapView
-    }
-
     private fun isProtectedBlock(location: Location): Boolean {
         val entities = location.subtract(-0.5, -0.5, -0.5).getNearbyEntities(1.5, 1.5, 1.5)
             .filter { it.type == EntityType.ITEM_FRAME || it.type == EntityType.GLOW_ITEM_FRAME }
@@ -223,5 +214,15 @@ class ItemFrameListener : Listener {
             NamespacedKey(Main.plugin, "Man10DisplayWand"),
             PersistentDataType.INTEGER
         )
+    }
+
+    companion object {
+        fun getEntityAsMap(entity: Entity): MapView? {
+            if (entity !is ItemFrame) return null
+            val meta = entity.item.itemMeta as? MapMeta ?: return null
+            val mapView = meta.mapView ?: return null
+            if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
+            return mapView
+        }
     }
 }

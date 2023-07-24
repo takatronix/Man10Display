@@ -6,6 +6,8 @@ prefix: Man10Display
 authors: [takatronix]
 description: Minecraft Display System
 website: https://man10.red
+softdepend:
+  - ItemFrameProtector
 commands:
   mdisplay:
     default: op
