@@ -195,7 +195,10 @@ class ItemFrameListener : Listener {
         if (entity !is ItemFrame) return null
         val meta = entity.item.itemMeta as? MapMeta ?: return null
         val mapView = meta.mapView ?: return null
-        if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
+      //  if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
+        // displayがprotect=falseの時は保護しない
+        if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) && it.protect }) return null
+
         return mapView
     }
 

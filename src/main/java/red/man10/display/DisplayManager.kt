@@ -45,7 +45,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     val parameterKeys:ArrayList<String>
         get() {
             return arrayListOf(
-                "fps","interval","dithering","location",
+                "fps","interval","dithering","location","protect",
                 "fast_dithering","show_status",
                 "monochrome","sepia","invert","flip",
                 "saturation_level","color_enhancer",
@@ -110,6 +110,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         p.sendMessage("§a§l location: ${display.locInfo}")
         p.sendMessage("§a§l distance: ${display.distance}")
         p.sendMessage("§a§l fps: ${display.fps}")
+        p.sendMessage("§a§l protect: ${display.protect}")
 
         // パラメータを表示
         p.sendMessage("§a§l monochrome: ${display.monochrome}")

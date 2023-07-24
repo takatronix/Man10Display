@@ -26,6 +26,9 @@ const val MC_MAP_SIZE_Y = 128
 //
 const val DEFAULT_DISTANCE = 32.0
 const val DEFAULT_FPS = 10.0
+//
+const val DEFAULT_PROTECTION = true
+
 abstract class Display : MapPacketSender  {
     var name: String = ""
     var mapIds = mutableListOf<Int>()
@@ -36,6 +39,7 @@ abstract class Display : MapPacketSender  {
     var port: Int = 0
     var macroEngine = MacroEngine()
     var bufferedImage: BufferedImage? = null
+    var protect = DEFAULT_PROTECTION
 
     // filter settings
     var testMode = false
@@ -209,6 +213,7 @@ abstract class Display : MapPacketSender  {
         config.set("$key.width", width)
         config.set("$key.height", height)
         config.set("$key.port", port)
+        config.set("$key.protect", protect)
         config.set("$key.macroName", macroName)
         config.set("$key.refreshPeriod", refreshPeriod)
         config.set("$key.testMode", testMode)
@@ -268,6 +273,7 @@ abstract class Display : MapPacketSender  {
         width = config.getInt("$key.width")
         height = config.getInt("$key.height")
         port = config.getInt("$key.port")
+        protect = config.getBoolean("$key.protect", DEFAULT_PROTECTION)
         refreshPeriod = config.getLong("$key.refreshPeriod")
         if (refreshPeriod == 0L) {
             refreshPeriod = (1000 / DEFAULT_FPS.toLong())
@@ -365,6 +371,8 @@ abstract class Display : MapPacketSender  {
                 setFps(sender, fps)
                 sender.sendMessage("§aSet fps to $fps")
             }
+            "protect" -> this.protect = value.toBoolean()
+
 
             "test_mode" -> {
                 this.testMode = value.toBoolean()
