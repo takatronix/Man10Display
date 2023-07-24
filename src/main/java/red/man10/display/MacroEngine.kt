@@ -102,10 +102,11 @@ class MacroEngine {
                     currentLineIndex = labelIndices[label] ?: throw IllegalArgumentException("Label not found: $label")
                 }
                 SET -> {
-                    val variableName = command.params[0]
+                    val variableName = command.params[0].removePrefix("$")
                     val expressionParts = command.params.drop(1)
                     val value = evaluateExpression(expressionParts.joinToString(" "))
                     symbolTable[variableName] = value
+                    info("Set $variableName = $value")
                 }
                 PRINT -> {
                     val expression = command.params.joinToString(" ")
@@ -165,7 +166,6 @@ class MacroEngine {
                 else -> {
                     // Handle other command types if needed
                     callback(command, currentLineIndex)
-                    currentLineIndex++
                 }
             }
 
@@ -207,12 +207,10 @@ class MacroEngine {
     private fun executeCommand(command: MacroCommand) {
         when (command.type) {
             SET -> {
-                // プロパティとしての変数代入をサポート
-                variableName?.let { varName ->
-                    val expression = command.params[0]
-                    symbolTable[varName] = evaluateExpression(expression)
-                    this.variableName = null // 変数代入が終わったらプロパティをリセット
-                }
+                val variableName = command.params[0].removePrefix("$")
+                val expression = command.params.drop(1).joinToString(" ")
+                val value = evaluateExpression(expression)
+                symbolTable[variableName] = value
             }
             PRINT -> {
                 val expression = command.params[0]
