@@ -295,6 +295,7 @@ class MacroEngine {
 
     // endregion
     // region 評価関数
+
     private fun evaluateStringExpression(expression: String): String {
         val regex = Regex("\\{(\\$\\w+)}")
         return regex.replace(expression) { matchResult ->
@@ -359,9 +360,22 @@ class MacroEngine {
             else -> throw IllegalArgumentException("Invalid comparison operator in expression: $expression")
         }
     }
+    // RANDOMの実装
 
     // 式を評価する
     private fun evaluateExpression(expression: String): Any {
+
+        // randomの評価
+        if (expression.uppercase(Locale.getDefault()).startsWith("RANDOM")) {
+            val randomArgs = expression.substringAfter("RANDOM").trim().split(" ")
+            if (randomArgs.size != 2) {
+                throw IllegalArgumentException("Invalid number of arguments for RANDOM function.")
+            }
+            val min = randomArgs[0].toIntOrNull() ?: throw IllegalArgumentException("Invalid minimum value for RANDOM function.")
+            val max = randomArgs[1].toIntOrNull() ?: throw IllegalArgumentException("Invalid maximum value for RANDOM function.")
+            return random(min, max)
+        }
+
         // 比較演算子が含まれる場合は、比較式の評価を行う
         val comparisonOperators = listOf(">", "<", ">=", "<=", "==")
         if (comparisonOperators.any { expression.contains(it) }) {
@@ -381,10 +395,8 @@ class MacroEngine {
             // 変数の評価
             val variableName = expression.removePrefix("$")
             return evaluateVariable(variableName)
-        } else if (expression.uppercase(Locale.getDefault()) == "RANDOM") {
-            // RANDOMの場合はランダムな整数を生成して返す
-            return (0..100).random() // 0から100までのランダムな整数を返す
-        } else if (expression.contains(" ") && (expression.contains("+") || expression.contains("-") || expression.contains(
+        }
+        else if (expression.contains(" ") && (expression.contains("+") || expression.contains("-") || expression.contains(
                 "*"
             ) || expression.contains("/"))
         ) {
@@ -401,13 +413,6 @@ class MacroEngine {
     }
 
     // endregion
-
-    private fun executeLoop(loopCount: Int, loopCommands: List<MacroCommand>, callback: (MacroCommand, Int) -> Unit) {
-        repeat(loopCount) {
-            // LOOP 内のコマンドを実行
-            execute(loopCommands, callback)
-        }
-    }
     private fun collectLabels(commands: List<MacroCommand>) {
         for (index in commands.indices) {
             val command = commands[index]
@@ -496,7 +501,11 @@ class MacroEngine {
             "IMAGE" -> IMAGE
             "EXIT" -> EXIT
             "STRETCH_IMAGE" -> STRETCH_IMAGE
-            "RANDOM" -> RANDOM
+            "RANDOM" -> {
+                // RANDOMの場合は特別に引数をまとめて取得
+                val args = line.substringAfter("RANDOM").trim()
+                return MacroCommand(RANDOM, listOf(args))
+            }
             else -> return null // 不明なコマンドは無視する
         }
         val params = if (type == IF || type == ELSE) {
