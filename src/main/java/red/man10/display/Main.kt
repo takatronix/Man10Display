@@ -54,7 +54,6 @@ class Main : JavaPlugin(), Listener {
         info("Disabled Man10 Display Plugin")
     }
 
-
     fun showConfigData(sender: CommandSender? = null) {
         //     info("broadcast:${Main.configData.broadcast}")
         //    info("switchTime:${Main.configData.switchTime}")

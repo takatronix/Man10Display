@@ -177,7 +177,6 @@ class MacroEngine {
                     val sleepTimeInSeconds = evaluateExpression(command.params[0]) as Double
                     if (!waitSeconds(sleepTimeInSeconds)) {
                         info("Macro execution was stopped during a wait command.")
-                   //     throw InterruptedException("Macro execution was stopped during a wait command.")
                     }
                 }
 
@@ -270,15 +269,10 @@ class MacroEngine {
                     this.executingMacroName = lastMacroName
                     currentLineIndex++
                 }
-
-                EXIT -> {
-                    stop() // マクロの実行を即座に終了
-                }
-
+                EXIT -> stop() // マクロの実行を即座に終了
                 LABEL -> {
                     info("Label: ${command.params[0]}")
                 }
-
                 else -> {
                     // 組み込み関数以外はコールバックで処理する
                     callback(command, currentLineIndex)
@@ -411,9 +405,8 @@ class MacroEngine {
             val variableName = expression.removePrefix("$")
             return evaluateVariable(variableName)
         }
-        else if (expression.contains(" ") && (expression.contains("+") || expression.contains("-") || expression.contains(
-                "*"
-            ) || expression.contains("/"))
+        else if (expression.contains(" ") &&
+                (expression.contains("+") || expression.contains("-") || expression.contains("*") || expression.contains("/"))
         ) {
             // 数値型の式の評価: 既存のロジックを使用
             return evaluateArithmeticExpression(expression)
@@ -561,7 +554,5 @@ class MacroEngine {
 
         return macroFile.absolutePath
     }
-
-
     // endregion
 }

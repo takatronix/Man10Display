@@ -3,7 +3,6 @@ package red.man10.display
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.entity.Player
-import kotlin.system.measureTimeMillis
 
 public interface MapPacketSender {
 
@@ -73,7 +72,6 @@ public interface MapPacketSender {
             }
         }
 
-
         fun sendMapImage(player: Player,data:ByteArray,mapIds:List<Int>){
             if(!player.isOnline)
                 return
@@ -87,8 +85,5 @@ public interface MapPacketSender {
             }
             info("send map data to ${player.name}")
         }
-
     }
-
-
 }
