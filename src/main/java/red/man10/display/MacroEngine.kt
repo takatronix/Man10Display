@@ -25,6 +25,7 @@ enum class CommandType {
     ENDLOOP,
     MACRO,
     EXIT,
+
     RANDOM,
     CLEAR,
     IMAGE,
@@ -221,7 +222,8 @@ class MacroEngine {
                 }
 
                 MACRO -> { // マクロを呼び出すコマンドの処理
-                    val filePath = command.params[0]
+                    val macroName = command.params[0]
+                    val filePath = getMacroFilePath(macroName) ?: return
                     val nestedCommands = parseMacroCommands(filePath)
                     execute(nestedCommands, callback)
                     currentLineIndex++
@@ -236,7 +238,7 @@ class MacroEngine {
                 }
 
                 else -> {
-                    // Handle other command types if needed
+                    // 組み込み関数以外はコールバックで処理する
                     callback(command, currentLineIndex)
                 }
             }
