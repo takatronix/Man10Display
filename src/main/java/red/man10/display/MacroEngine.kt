@@ -11,9 +11,11 @@ import kotlinx.coroutines.*
 
 // スレッドループの最小単位
 const val MACRO_SLEEP_TIME = 1L
+// plugins/Man10Display/macro/ にマクロファイルを保存する
 const val DEFAULT_MACRO_FOLDER = "macro"
 
 enum class CommandType {
+    // 基本制御
     LABEL,
     GOTO,
     SET,
@@ -51,6 +53,7 @@ class MacroEngine {
     private data class IfBlock(var condition: Boolean, val startLine: Int)
     private val loopStack = Stack<Loop>()
     private val ifStack = Stack<IfBlock>()
+    private var executingMacroName: String? = null
 
     companion object{
         val commands = arrayListOf("run","stop","list")
@@ -121,6 +124,7 @@ class MacroEngine {
     private fun run(macroName: String, callback: (MacroCommand, Int) -> Unit) {
         val filePath = getMacroFilePath(macroName) ?: return
         val commands = parseMacroFile(filePath)
+        executingMacroName = macroName
         execute(commands, callback)
     }
 
@@ -252,9 +256,16 @@ class MacroEngine {
 
                 CALL -> { // マクロを呼び出すコマンドの処理
                     val macroName = command.params[0]
+                    if (macroName == executingMacroName) {
+                        throw IllegalArgumentException("Recursive macro call detected: $macroName")
+                    }
+                    // 再帰呼び出し防止するために、現在実行中のマクロ名を保存しておく
+                    val lastMacroName = this.executingMacroName
+                    this.executingMacroName = macroName
                     val filePath = getMacroFilePath(macroName) ?: return
                     val nestedCommands = parseMacroCommands(filePath)
                     execute(nestedCommands, callback)
+                    this.executingMacroName = lastMacroName
                     currentLineIndex++
                 }
 
@@ -527,10 +538,6 @@ class MacroEngine {
         return macroFile.absolutePath
     }
 
-    fun parse(macroName: String): List<MacroCommand> {
-        val filePath = getMacroFilePath(macroName) ?: return emptyList()
-        return parseMacroFile(filePath)
-    }
 
     // endregion
 }
