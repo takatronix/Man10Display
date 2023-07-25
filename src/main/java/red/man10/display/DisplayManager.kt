@@ -291,7 +291,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     }
 
     fun showMacroList(sender: CommandSender): Boolean {
-        val list = Macro.macroList
+        val list = MacroEngine.macroList
         sender.sendMessage(Main.prefix + "§a§l Macro List")
         for (macro in list) {
             sender.sendMessage("§a§l $macro")

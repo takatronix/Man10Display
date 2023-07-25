@@ -4,7 +4,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.commandrouter.*
 import red.man10.display.Display
-import red.man10.display.Macro
+import red.man10.display.MacroEngine
 import red.man10.display.Main
 import red.man10.display.commands.logic.*
 
@@ -135,7 +135,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
             CommandObject()
                 .prefix("run")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
-                .argument("[macro_name]") { _ -> Macro.macroList }
+                .argument("[macro_name]") { _ -> MacroEngine.macroList }
                 .permission("red.man10.display.op")
                 .explanation("run macro")
                 .executor(RunCommand(Main.plugin))

@@ -657,7 +657,7 @@ abstract class Display : MapPacketSender  {
         macroEngine.runMacroAsync(macroName
         ) { macroCommand, index ->
 
-            info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
+          //  info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
 
             when (macroCommand.type) {
                 CLEAR -> TODO()

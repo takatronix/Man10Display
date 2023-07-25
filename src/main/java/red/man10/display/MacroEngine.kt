@@ -5,12 +5,13 @@ import kotlinx.coroutines.launch
 import red.man10.display.CommandType.*
 import java.io.File
 import java.util.*
-import java.util.concurrent.Executors
 import kotlin.math.roundToLong
 import kotlin.random.Random
 import kotlinx.coroutines.*
 
+// スレッドループの最小単位
 const val MACRO_SLEEP_TIME = 1L
+const val DEFAULT_MACRO_FOLDER = "macro"
 
 enum class CommandType {
     LABEL,
@@ -23,7 +24,7 @@ enum class CommandType {
     ENDIF,
     LOOP,
     ENDLOOP,
-    MACRO,
+    CALL,
     EXIT,
 
     RANDOM,
@@ -51,6 +52,34 @@ class MacroEngine {
     private val loopStack = Stack<Loop>()
     private val ifStack = Stack<IfBlock>()
 
+    companion object{
+        val commands = arrayListOf("run","stop","list")
+        val macroList:ArrayList<String>
+            get() {
+                val list = getMacroList()
+                return list.toTypedArray().toCollection(ArrayList())
+            }
+        private fun getMacroList(): List<String> {
+            val folder = File(Main.plugin.dataFolder, File.separator + DEFAULT_MACRO_FOLDER)
+            val files = folder.listFiles()
+            val list = mutableListOf<String>()
+            for (f in files!!) {
+                if (f.isFile) {
+                    var filename = f.name
+                    //      隠しファイルは無視
+                    if (filename.substring(0, 1).equals(".", ignoreCase = true)) {
+                        continue
+                    }
+                    val point = filename.lastIndexOf(".")
+                    if (point != -1) {
+                        filename = filename.substring(0, point)
+                    }
+                    list.add(filename)
+                }
+            }
+            return list
+        }
+    }
     // region 制御コマンド
 
     fun skip() {
@@ -221,7 +250,7 @@ class MacroEngine {
                     }
                 }
 
-                MACRO -> { // マクロを呼び出すコマンドの処理
+                CALL -> { // マクロを呼び出すコマンドの処理
                     val macroName = command.params[0]
                     val filePath = getMacroFilePath(macroName) ?: return
                     val nestedCommands = parseMacroCommands(filePath)
@@ -408,8 +437,6 @@ class MacroEngine {
             val command = parseCommand(line)
             if (command != null) {
                 commands.add(command)
-                // ログ出力
-                info(command.toString())
             }
         }
 
@@ -418,13 +445,12 @@ class MacroEngine {
 
     // 行を解析してMacroCommandに変換する関数
     private fun parseCommand(line: String): MacroCommand? {
-        info("Parsing line: $line")
+     //   info("Parsing line: $line")
         val trimmedLine = line.trim()
         if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
             // 空行またはコメント行の場合はnullを返す
             return null
         }
-
         // ラベルの書き方をチェック
         val labelRegex = Regex("^(\\w+):$")
         val labelMatch = labelRegex.find(trimmedLine)
@@ -451,7 +477,7 @@ class MacroEngine {
             "WAIT" -> WAIT
             "LOOP" -> LOOP
             "ENDLOOP" -> ENDLOOP
-            "MACRO" -> MACRO
+            "CALL" -> CALL
             "IF" -> IF
             "ELSE" -> ELSE
             "ENDIF" -> ENDIF
