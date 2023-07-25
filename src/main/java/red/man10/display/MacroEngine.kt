@@ -16,20 +16,22 @@ const val DEFAULT_MACRO_FOLDER = "macro"
 
 enum class CommandType {
     // 基本制御
-    LABEL,
-    GOTO,
-    SET,
-    PRINT,
-    WAIT,
-    IF,
-    ELSE,
-    ENDIF,
-    LOOP,
-    ENDLOOP,
-    CALL,
-    EXIT,
+    LABEL,      // ラベル
+    GOTO,       // ラベルにジャンプ
+    SET,        // 変数を設定
+    PRINT,      // ログを出力
+    WAIT,       // 指定した秒数待機
+    IF,         // 条件分岐
+    ELSE,       // 条件分岐のELSE節
+    ENDIF,      // 条件分岐のENDIF節
+    LOOP,       // ループ
+    ENDLOOP,    // ループの終了
+    CALL,       // マクロを呼び出す
+    EXIT,       // マクロの実行を終了する
+    // 組み込み関数
+    RANDOM,     // ランダムな整数を生成する
 
-    RANDOM,
+    // 外部コマンド
     CLEAR,
     IMAGE,
     STRETCH_IMAGE,
@@ -361,18 +363,31 @@ class MacroEngine {
         }
     }
     // RANDOMの実装
-
+    private fun evaluateArgumentInt(arg: String): Int {
+        return if (arg.startsWith("$")) {
+            // If the argument is a variable, get its value from the symbol table
+            val key = arg.removePrefix("$")
+            if(!symbolTable.containsKey(key)){
+                throw IllegalArgumentException("Variable $key not found.")
+            }
+            val value = symbolTable[key]
+            return  value.toString().toDouble().toInt()
+        } else {
+            // Otherwise, parse it as an integer
+            arg.toIntOrNull() ?: 0
+        }
+    }
     // 式を評価する
     private fun evaluateExpression(expression: String): Any {
 
-        // randomの評価
+        // RANDOM関数の実装
         if (expression.uppercase(Locale.getDefault()).startsWith("RANDOM")) {
             val randomArgs = expression.substringAfter("RANDOM").trim().split(" ")
             if (randomArgs.size != 2) {
                 throw IllegalArgumentException("Invalid number of arguments for RANDOM function.")
             }
-            val min = randomArgs[0].toIntOrNull() ?: throw IllegalArgumentException("Invalid minimum value for RANDOM function.")
-            val max = randomArgs[1].toIntOrNull() ?: throw IllegalArgumentException("Invalid maximum value for RANDOM function.")
+            val min = evaluateArgumentInt(randomArgs[0])
+            val max = evaluateArgumentInt(randomArgs[1])
             return random(min, max)
         }
 
