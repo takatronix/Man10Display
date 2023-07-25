@@ -19,6 +19,8 @@ enum class CommandType {
     PRINT,
     WAIT,
     IF,
+    ELSE,
+    ENDIF,
     LOOP,
     ENDLOOP,
     MACRO,
@@ -44,7 +46,10 @@ class MacroEngine {
     private var callback: ((MacroCommand, Int) -> Unit)? = null
 
     private data class Loop(val startLine: Int, var counter: Int)
+    private data class IfBlock(var condition: Boolean, val startLine: Int)
     private val loopStack = Stack<Loop>()
+    private val ifStack = Stack<IfBlock>()
+
     // region 制御コマンド
 
     fun skip() {
@@ -93,7 +98,6 @@ class MacroEngine {
         this.commands = commands
         this.callback = callback
         currentLineIndex = 0
-
         collectLabels(commands)
 
         while (currentLineIndex < commands.size) {
@@ -104,11 +108,12 @@ class MacroEngine {
                 break
             }
 
-            info("[MACRO][$currentLineIndex] $command")
+            //info("[MACRO][$currentLineIndex] $command")
             when (command.type) {
                 GOTO -> {
                     val label = command.params[0]
                     currentLineIndex = labelIndices[label] ?: throw IllegalArgumentException("Label not found: $label")
+                    continue
                 }
 
                 SET -> {
@@ -141,15 +146,50 @@ class MacroEngine {
                 }
 
                 IF -> {
-                    val conditionExpression = command.params[0]
-                    val result = evaluateExpression(conditionExpression)
-                    if (result is Boolean && result) {
-                        val label = command.params[2]
-                        currentLineIndex =
-                            labelIndices[label] ?: throw IllegalArgumentException("Label not found: $label")
-                    } else {
-                        currentLineIndex++
+                    val condition = evaluateExpression(command.params[0]) as Boolean
+                    if (!condition) {
+                        // IF文の条件がfalseの場合、対応するELSEかENDIFまでスキップする
+                        var depth = 0
+                        while (currentLineIndex < commands.size - 1) {
+                            currentLineIndex++
+                            val nextCommand = commands[currentLineIndex]
+                            if (nextCommand.type == IF) {
+                                depth++
+                            } else if (nextCommand.type == ELSE && depth == 0) {
+                                // ELSEがある場合、ELSEまでスキップする
+                                break
+                            } else if (nextCommand.type == ENDIF && depth == 0) {
+                                // IF文のENDIFに到達したら終了
+                                break
+                            } else if (nextCommand.type == ENDIF) {
+                                depth--
+                            }
+                        }
                     }
+                }
+
+                ELSE -> {
+                    // ELSEはスキップする
+                    var depth = 0
+                    while (currentLineIndex < commands.size - 1) {
+                        currentLineIndex++
+                        val nextCommand = commands[currentLineIndex]
+                        if (nextCommand.type == IF) {
+                            depth++
+                        } else if (nextCommand.type == ELSE && depth == 0) {
+                            break
+                        } else if (nextCommand.type == ENDIF) {
+                            if (depth == 0) {
+                                // ELSE節があるにもかかわらずENDIFに達した場合はエラーとする
+                                throw IllegalArgumentException("Unexpected ENDIF at line $currentLineIndex")
+                            }
+                            depth--
+                        }
+                    }
+                }
+
+                ENDIF -> {
+                    // なにもしない
                 }
 
                 LOOP -> {
@@ -201,11 +241,12 @@ class MacroEngine {
                 }
             }
 
-            // Move to the next line if the command is not GOTO or IF
-            if (command.type != GOTO && command.type != IF) {
-                currentLineIndex++
-            }
+            currentLineIndex++
+        }
 
+        // ループが終了した後、ENDIFが残っていないかチェック
+        if (ifStack.isNotEmpty()) {
+            throw IllegalArgumentException("Unclosed IF block. Missing ENDIF.")
         }
         info("Macro execution finished.")
     }
@@ -251,9 +292,39 @@ class MacroEngine {
             else -> throw IllegalArgumentException("Invalid operator: $operator")
         }
     }
+    // 比較式を評価する
+    private fun evaluateComparisonExpression(expression: String): Boolean {
+        val operators = listOf(">=", "<=", ">", "<", "==")
+        val operator = operators.find { expression.contains(it) }
+            ?: throw IllegalArgumentException("Invalid comparison expression: $expression")
+
+        val parts = expression.split(operator, limit = 2)
+        if (parts.size != 2) {
+            throw IllegalArgumentException("Invalid comparison expression: $expression")
+        }
+
+        val num1 = evaluateExpression(parts[0].trim()) as? Double
+            ?: throw IllegalArgumentException("Invalid number or variable: ${parts[0].trim()}")
+        val num2 = evaluateExpression(parts[1].trim()) as? Double
+            ?: throw IllegalArgumentException("Invalid number or variable: ${parts[1].trim()}")
+
+        return when (operator) {
+            ">=" -> num1 >= num2
+            "<=" -> num1 <= num2
+            ">" -> num1 > num2
+            "<" -> num1 < num2
+            "==" -> num1 == num2
+            else -> throw IllegalArgumentException("Invalid comparison operator in expression: $expression")
+        }
+    }
 
     // 式を評価する
     private fun evaluateExpression(expression: String): Any {
+        // 比較演算子が含まれる場合は、比較式の評価を行う
+        val comparisonOperators = listOf(">", "<", ">=", "<=", "==")
+        if (comparisonOperators.any { expression.contains(it) }) {
+            return evaluateComparisonExpression(expression)
+        }
 
         if (expression.startsWith("\"") && expression.endsWith("\"")) {
             // 文字列の式の評価: 引用符で囲まれた部分を返します。
@@ -380,6 +451,8 @@ class MacroEngine {
             "ENDLOOP" -> ENDLOOP
             "MACRO" -> MACRO
             "IF" -> IF
+            "ELSE" -> ELSE
+            "ENDIF" -> ENDIF
             "CLEAR" -> CLEAR
             "IMAGE" -> IMAGE
             "EXIT" -> EXIT
@@ -387,8 +460,13 @@ class MacroEngine {
             "RANDOM" -> RANDOM
             else -> return null // 不明なコマンドは無視する
         }
-
-        val params = parts.drop(1)
+        val params = if (type == IF || type == ELSE) {
+            // IF文やELSE文の場合、括弧を省略して式を評価する
+            val expression = line.substringAfter(" ")
+            listOf(expression)
+        } else {
+            parts.drop(1)
+        }
 
         return MacroCommand(type, params)
     }
