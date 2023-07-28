@@ -8,7 +8,7 @@ import red.man10.display.Main
 import red.man10.extention.fill
 
 
-class ClearCommand(private var plugin: JavaPlugin) : CommandExecutor {
+class TestCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         return try{
             val displayName = args[1]

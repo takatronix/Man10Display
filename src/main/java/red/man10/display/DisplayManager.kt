@@ -358,7 +358,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val display = getDisplay(name) ?: return false
         val fileName = Main.imageManager.createKey(player.name)
 
-        if(!Main.imageManager.save(fileName,display.bufferedImage!!)){
+        if(!Main.imageManager.save(fileName,display.currentImage!!)){
            player.sendMessage(Main.prefix + "§c§l Failed to save image")
            return false
         }

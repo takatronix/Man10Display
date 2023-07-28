@@ -1,6 +1,5 @@
 package red.man10.display
 
-import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -9,16 +8,20 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
 import red.man10.display.MapPacketSender.Companion.createMapPacket
-import red.man10.display.MapPacketSender.Companion.sendMapImage
-import red.man10.display.*
 import red.man10.display.CommandType.*
 import red.man10.display.filter.*
-import java.awt.Color
+import red.man10.display.macro.ImageCommand
+import red.man10.display.macro.LineCommand
+import java.awt.Rectangle
 import java.awt.image.BufferedImage
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
+import red.man10.display.*
+import red.man10.display.macro.*
+
 
 // minecraft map size
 const val MC_MAP_SIZE_X = 128
@@ -38,7 +41,6 @@ abstract class Display : MapPacketSender  {
     var distance = DEFAULT_DISTANCE
     var port: Int = 0
     var macroEngine = MacroEngine()
-    var bufferedImage: BufferedImage? = null
     var protect = DEFAULT_PROTECTION
 
     // filter settings
@@ -81,7 +83,6 @@ abstract class Display : MapPacketSender  {
     var vignette = false
     var vignetteLevel = DEFAULT_VIGNETTE_LEVEL
     var macroName:String? = ""
-
 
     var refreshPeriod: Long = (1000 / DEFAULT_FPS.toLong()) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
@@ -154,24 +155,17 @@ abstract class Display : MapPacketSender  {
     }
 
     private fun init() {
-        this.bufferedImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
-        val blankImage = BufferedImage(MC_MAP_SIZE_X, MC_MAP_SIZE_Y, BufferedImage.TYPE_INT_RGB)
-        blankMap = MapPalette.imageToBytes(blankImage)
 
-        for (i in 0 until this.mapCount) {
-            mapCache.add(null)
-            mapPackets.add(PacketContainer(PacketType.Play.Server.MAP))
-        }
-        createBlankDisplayPacket()
+        // 画像バッファイメージ
+        this.currentImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+        createPacketCache(currentImage!!,"current")
+        // ブランクイメージ
+        val blankImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+        createPacketCache(blankImage,"blank")
+        // 送信タスク開始
         startSendingPacketsTask()
     }
-    private fun createBlankDisplayPacket(){
-        for(mapId in mapIds){
-            createMapPacket(mapId,blankMap!!).let { packet ->
-                blankPackets.add(packet)
-            }
-        }
-    }
+
 
 
     open fun deinit() {
@@ -179,25 +173,7 @@ abstract class Display : MapPacketSender  {
         stopSendingPacketsTask()
     }
 
-    fun updateMapCache() {
-        bufferedImage?.let { image ->
-            lastCacheTime = measureTimeMillis {
-                var index = 0
-                for (y in 0 until image.height step MC_MAP_SIZE_Y) {
-                    for (x in 0 until image.width step MC_MAP_SIZE_X) {
-                        val tileImage = image.getSubimage(x, y, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
-                        val tileBytes = MapPalette.imageToBytes(tileImage)
-                        mapCache[index] = tileBytes
-                        index++
-                    }
-                }
-
-            }
-        }
-    }
-
     // endregion
-
     companion object{
         val displayTypes:ArrayList<String>
             get() {
@@ -583,130 +559,158 @@ abstract class Display : MapPacketSender  {
         return players
     }
 
+    // 画面更新タスクを開始する
     private fun startSendingPacketsTask() {
         info("$name stopSendingPacketsTask $refreshPeriod ms" )
         stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
         info("startSendingPacketsTask $refreshPeriod ms")
         future = executor.scheduleAtFixedRate(
             {
-                if (!this.refreshFlag)
+                // 画面更新フラグが立っていれば、画面すべてを更新する
+                if (refreshFlag){
+                    this.refreshFlag = false
+                    sendMapPacketsToPlayers()
+                    refreshCount++
                     return@scheduleAtFixedRate
-                this.refreshFlag = false
-                sendMapPacketsToPlayers()
-                refreshCount++
+                }
+                // 画面の一部を更新する
+                if(updateCacheIndexList.isNotEmpty()){
+                    sendMapCacheByIndexList(sentPlayers,updateCacheIndexList)
+                    updateCacheIndexList = mutableListOf()
+                    return@scheduleAtFixedRate
+                }
+
             }, 0, refreshPeriod, TimeUnit.MILLISECONDS
         )
     }
 
-    private fun sendMapPacketsToPlayers() {
-        val players = getTargetPlayers()
-        val sent = MapPacketSender.send(players, mapPackets)
+    // プレイヤーにパケットを送る（一番低レベル)
+    private fun sendMapPackets(players:List<Player>,packets:List<PacketContainer>){
+        val sent = MapPacketSender.send(players, packets)
         this.sentMapCount += sent
         this.sentBytes += sent * MC_MAP_SIZE_X * MC_MAP_SIZE_Y
-
+    }
+    // 作成したキャッシュを送信する
+    public fun sendMapCache(players:List<Player> ,key:String = "current"){
+        if(!packetCache.containsKey(key))
+            return
+        val packets = packetCache[key]!!
+        sendMapPackets(players,packets)
+    }
+    // 作成したキャッシュの一部を送信する(部分更新用)
+    fun sendMapCacheByIndexList(players:List<Player>,indexList:List<Int>,key:String = "current"){
+        if(!packetCache.containsKey(key))
+            return
+        val packets = packetCache[key]!!
+        val targetPackets = mutableListOf<PacketContainer>()
+        for(index in indexList){
+            targetPackets.add(packets[index])
+        }
+        sendMapPackets(players,targetPackets)
+    }
+    private fun sendMapPacketsToPlayers() {
+        val players = getTargetPlayers()
+        sendMapCache(players)
         // 前回送信して今回送信しないプレイヤーには、ブランクパケットを送ってディスプレイを消す
         for (player in sentPlayers) {
             if (players.contains(player))
                 continue
-            if(blankMap != null)
-                sendMapImage(player, blankMap!!, mapIds)
+            sendMapCache(players,"blank")
         }
-
         this.sentPlayers = players.toMutableList()
-    }
-    fun sendBlankMapPacketsToPlayers(){
-        if(blankMap == null)
-            return
-        val players = getTargetPlayers()
-        for (player in players) {
-            sendMapImage(player, blankMap!!, mapIds)
-        }
     }
     private fun stopSendingPacketsTask() {
         future?.cancel(false)
         future = null
     }
 
-    private var mapCache = mutableListOf<ByteArray?>()
-    private var mapPackets = mutableListOf<PacketContainer>()
-    private var blankPackets = mutableListOf<PacketContainer>()
-    fun mapCacheToPackets(){
-        for (i in 0 until mapCache.size) {
-            val data = mapCache[i] ?: continue
-            val packet = createMapPacket(mapIds[i], data)
-            mapPackets[i] = packet
+    // region: Cache
+
+
+    // 現在の表示バッファ
+    var currentImage: BufferedImage? = null
+
+
+    // key/value でマップの情報をキャッシュする
+    // "blank" -> ブランクマップ(オフライン時に表示する)
+    // "current" -> 現在表示用バッファ
+    var packetCache: MutableMap<String, List<PacketContainer>> = ConcurrentHashMap()
+    // 更新が必要なマップのindex
+    var updateCacheIndexList:MutableList<Int> = mutableListOf()
+
+    // imageからパケット情報を作成する
+    fun createPacketCache(image:BufferedImage,key:String = "current"){
+        val packets = mutableListOf<PacketContainer>()
+        var index = 0
+        for (y in 0 until image.height step MC_MAP_SIZE_Y) {
+            for (x in 0 until image.width step MC_MAP_SIZE_X) {
+                val tileImage = image.getSubimage(x, y, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
+                val tileBytes = MapPalette.imageToBytes(tileImage)
+                val packet = createMapPacket(mapIds[index], tileBytes)
+                packets.add(packet)
+                index++
+            }
         }
+        packetCache[key] = packets
     }
+    fun getSubImageRectByIndex(index:Int):Rectangle{
+        val x = index % width * MC_MAP_SIZE_X
+        val y = index / width * MC_MAP_SIZE_Y
+        return Rectangle(x,y,MC_MAP_SIZE_X,MC_MAP_SIZE_Y)
+    }
+    // 指定したrectがcurrentImageのサブイメージの範囲内なら更新リストに追加する
+    fun update(updateRect:Rectangle? = null,key:String = "current"){
+        // 画像のキャッシュを作成
+        createPacketCache(this.currentImage!!,key)
+        if(updateRect == null){
+            updateCacheIndexList = (0 until mapCount).toMutableList()
+            return
+        }
+
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val index = y * width + x
+                val subRect = getSubImageRectByIndex(index)
+                if(subRect.intersects(updateRect)){
+                    if(!updateCacheIndexList.contains(index)){
+                        updateCacheIndexList.add(index)
+                    }
+                }
+            }
+        }
+        // 更新リストのindexのマップを送信する
+        sendMapCacheByIndexList(sentPlayers,updateCacheIndexList,key)
+        updateCacheIndexList.clear()
+    }
+
     fun refresh(){
-        this.updateMapCache()
-        this.mapCacheToPackets()
         this.refreshFlag = true
-    }
-    fun update(){
-        this.updateMapCache()
-        this.mapCacheToPackets()
-        this.sendMapPacketsToPlayers()
-        this.refreshCount++
     }
 
     // endregion
     // region: Macro
-    fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean{
-        info("macro loading : $macroName",sender)
-
-        macroEngine.runMacroAsync(macroName
-        ) { macroCommand, index ->
-
-          //  info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
-
-            when (macroCommand.type) {
-                CLEAR -> TODO()
-                IMAGE -> TODO()
-                STRETCH_IMAGE -> TODO()
-                else -> {
-                    error("unknown macro type : ${macroCommand.type}", sender)
+    fun runMacro(macroName:String,sender:CommandSender? = null) :Boolean {
+        info("runMacro : $macroName", sender)
+        macroEngine.runMacroAsync(macroName) { macroCommand, index ->
+            //  info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
+            val players = getTargetPlayers()
+            try {
+                when (macroCommand.type) {
+                    IMAGE -> ImageCommand(macroName, macroCommand).run(this, players,sender)
+                    LINE -> LineCommand(macroName, macroCommand).run(this, players,sender)
+                    COLOR -> ColorCommand(macroName, macroCommand).run(this, players,sender)
+                    CLEAR -> ClearCommand(macroName, macroCommand).run(this, players,sender)
+                    MESSAGE -> MessageCommand(macroName, macroCommand).run(this, players,sender)
+                    STRETCH -> StretchCommand(macroName, macroCommand).run(this, players,sender)
+                    PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, players,sender)
+                    else -> {
+                        error("unknown macro type : ${macroCommand.type}", sender)
+                    }
                 }
+            } catch (e: Exception) {
+                error("macro error $macroName($index): ${e.message}", sender)
             }
         }
-
-
-        /*
-        //this.macroName = macroName
-        info("macro loading : $macroName",sender)
-        if(!macro.load(macroName)){
-            error("macro load error : $macroName",sender)
-            return false
-        }
-        info("macro loaded : $macroName",sender)
-        macro.execute { macroData, _ ->
-           info("[$macroName]macro execute : ${macroData.command}",sender)
-
-            when(macroData.command){
-
-                "image" -> {
-                    val image = ImageLoader.get(macroData.fileName)
-                    if(image == null){
-                        error("image load error : ${macroData.fileName}",sender)
-                        return@execute
-                    }
-                    this.bufferedImage?.clear()
-                    this.bufferedImage?.drawImage(image)
-                    this.bufferedImage = filterImage(this.bufferedImage!!)
-                    update()
-                }
-                "stretch" -> {
-                    val image = ImageLoader.get(macroData.fileName)
-                    if(image == null){
-                        error("image load error : ${macroData.fileName}",sender)
-                        return@execute
-                    }
-                    this.bufferedImage?.stretchImage(image)
-                    this.bufferedImage = filterImage(this.bufferedImage!!)
-                    update()
-                }
-            }
-        }
-        */
         return true
     }
 

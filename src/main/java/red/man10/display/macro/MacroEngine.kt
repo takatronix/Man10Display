@@ -8,6 +8,8 @@ import java.util.*
 import kotlin.math.roundToLong
 import kotlin.random.Random
 import kotlinx.coroutines.*
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
 
 // スレッドループの最小単位
 const val MACRO_SLEEP_TIME = 1L
@@ -33,15 +35,95 @@ enum class CommandType {
 
     // 外部コマンド
     CLEAR,
+    COLOR,
     IMAGE,
-    STRETCH_IMAGE,
+    STRETCH,
+    FILL,
+    LINE,
+    MESSAGE,
+    PLAY_SOUND,
+}
+fun getCommandType(key:String):CommandType{
+    // 文字列をCommandTypeに変換する
+    return CommandType.valueOf(key.uppercase(Locale.getDefault()))
+
+
+    /*
+    return when(key.uppercase(Locale.getDefault())){
+        "LABEL" -> LABEL
+        "GOTO" -> GOTO
+        "SET" -> SET
+        "PRINT" -> PRINT
+        "WAIT" -> WAIT
+        "LOOP" -> LOOP
+        "ENDLOOP" -> ENDLOOP
+        "CALL" -> CALL
+        "IF" -> IF
+        "ELSE" -> ELSE
+        "ENDIF" -> ENDIF
+        "CLEAR" -> CLEAR
+        "FILL" -> FILL
+        "IMAGE" -> IMAGE
+        "LINE" -> LINE
+        "EXIT" -> EXIT
+        "STRETCH_IMAGE" -> STRETCH_IMAGE
+        "RANDOM" -> RANDOM
+        else -> throw IllegalArgumentException("Invalid command type: $key")
+    }
+    */
 }
 
+// 行を解析してMacroCommandに変換
+private fun parseCommand(line: String): MacroCommand? {
+    //   info("Parsing line: $line")
+    val trimmedLine = line.trim()
+    if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
+        // 空行またはコメント行の場合はnullを返す
+        return null
+    }
+    // ラベルの書き方をチェック
+    val labelRegex = Regex("^(\\w+):$")
+    val labelMatch = labelRegex.find(trimmedLine)
+    if (labelMatch != null) {
+        val label = labelMatch.groupValues[1]
+        return MacroCommand(LABEL, listOf(label))
+    }
+
+    val parts = line.trim().split(" ", limit = 3)
+
+    // $a = $b + $c のような式を検出
+    if (parts.size == 3 && parts[1] == "=") {
+        // 新しい構文を検出
+        val variableName = parts[0]
+        val expression = parts[2]
+        return MacroCommand(SET, listOf(variableName, expression))
+    }
+
+    val type = getCommandType(parts[0].uppercase(Locale.getDefault()))
+    if(type == RANDOM){
+        // RANDOMの場合は特別に引数をまとめて取得
+        val args = line.substringAfter("RANDOM").trim()
+        return MacroCommand(RANDOM, listOf(args))
+    }
+    // IF文やELSE文の場合、括弧を省略して式を評価する
+    val params = if (type == IF || type == ELSE) {
+        val expression = line.substringAfter(" ")
+        listOf(expression)
+    } else {
+        parts.drop(1)
+    }
+    return MacroCommand(type, params)
+}
 
 data class MacroCommand(
     val type: CommandType,
     val params: List<String>
 )
+
+abstract class MacroCommandHandler {
+    abstract fun run(display:Display, players:List<Player>,sender:CommandSender? = null)
+}
+
 
 class MacroEngine {
     private val symbolTable = mutableMapOf<String, Any>()
@@ -359,7 +441,7 @@ class MacroEngine {
     // RANDOMの実装
     private fun evaluateArgumentInt(arg: String): Int {
         return if (arg.startsWith("$")) {
-            // If the argument is a variable, get its value from the symbol table
+            // If the argument is a variable, red.man10.extention.get its value from the symbol table
             val key = arg.removePrefix("$")
             if(!symbolTable.containsKey(key)){
                 throw IllegalArgumentException("Variable $key not found.")
@@ -467,65 +549,7 @@ class MacroEngine {
         return commands
     }
 
-    // 行を解析してMacroCommandに変換する関数
-    private fun parseCommand(line: String): MacroCommand? {
-     //   info("Parsing line: $line")
-        val trimmedLine = line.trim()
-        if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
-            // 空行またはコメント行の場合はnullを返す
-            return null
-        }
-        // ラベルの書き方をチェック
-        val labelRegex = Regex("^(\\w+):$")
-        val labelMatch = labelRegex.find(trimmedLine)
-        if (labelMatch != null) {
-            val label = labelMatch.groupValues[1]
-            return MacroCommand(LABEL, listOf(label))
-        }
 
-        val parts = line.trim().split(" ", limit = 3)
-
-        // $a = $b + $c のような式を検出
-        if (parts.size == 3 && parts[1] == "=") {
-            // 新しい構文を検出
-            val variableName = parts[0]
-            val expression = parts[2]
-            return MacroCommand(SET, listOf(variableName, expression))
-        }
-
-        val type = when (parts[0].uppercase(Locale.getDefault())) {
-            "LABEL" -> LABEL
-            "GOTO" -> GOTO
-            "SET" -> SET
-            "PRINT" -> PRINT
-            "WAIT" -> WAIT
-            "LOOP" -> LOOP
-            "ENDLOOP" -> ENDLOOP
-            "CALL" -> CALL
-            "IF" -> IF
-            "ELSE" -> ELSE
-            "ENDIF" -> ENDIF
-            "CLEAR" -> CLEAR
-            "IMAGE" -> IMAGE
-            "EXIT" -> EXIT
-            "STRETCH_IMAGE" -> STRETCH_IMAGE
-            "RANDOM" -> {
-                // RANDOMの場合は特別に引数をまとめて取得
-                val args = line.substringAfter("RANDOM").trim()
-                return MacroCommand(RANDOM, listOf(args))
-            }
-            else -> return null // 不明なコマンドは無視する
-        }
-        val params = if (type == IF || type == ELSE) {
-            // IF文やELSE文の場合、括弧を省略して式を評価する
-            val expression = line.substringAfter(" ")
-            listOf(expression)
-        } else {
-            parts.drop(1)
-        }
-
-        return MacroCommand(type, params)
-    }
 
     // マクロファイルをパースしてList<MacroCommand>に変換する関数
     private fun parseMacroCommands(filePath: String): List<MacroCommand> {

@@ -119,10 +119,10 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("Get wand for item frame")
                 .executor(WandCommand(Main.plugin))
         )
-        // set command
+        // red.man10.extention.set command
         addCommand(
             CommandObject()
-                .prefix("set")
+                .prefix("red.man10.extention.set")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
                 .argument("[setting keyword]") { _ -> Main.displayManager.parameterKeys }
                 .argument("value")

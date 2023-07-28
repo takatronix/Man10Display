@@ -35,7 +35,7 @@ class StreamDisplay : Display {
             this.frameReceivedBytes = videoCaptureServer?.frameReceivedBytes ?: 0
             this.frameErrorCount = videoCaptureServer?.frameErrorCount ?: 0
 
-            this.bufferedImage = filterImage(image)
+            this.currentImage = filterImage(image)
             refresh()
         })
         videoCaptureServer?.start()
