@@ -61,32 +61,6 @@ public interface MapPacketSender {
             }
             return packet
         }
-        fun sendPackets(players:List<Player>,packets:List<PacketContainer>){
-            for (player in players) {
-                if(!player.isOnline)
-                    continue
-                for (packet in packets) {
-                    try {
-                        Main.protocolManager.sendServerPacket(player, packet)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
 
-        fun sendMapImage(player: Player,data:ByteArray,mapIds:List<Int>){
-            if(!player.isOnline)
-                return
-            for (mapId in mapIds) {
-                val packet = createMapPacket(mapId, data)
-                try {
-                    Main.protocolManager.sendServerPacket(player, packet)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-            info("send map data to ${player.name}")
-        }
     }
 }

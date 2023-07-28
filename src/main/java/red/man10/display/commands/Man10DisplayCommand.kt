@@ -149,6 +149,14 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
                 .explanation("stop display")
                 .executor(StopCommand(Main.plugin))
         )
+        // stop all command
+        addCommand(
+            CommandObject()
+                .prefix("stopall")
+                .permission("red.man10.display.op")
+                .explanation("stop display")
+                .executor(StopAllCommand(Main.plugin))
+        )
         // clear command
         addCommand(
             CommandObject()

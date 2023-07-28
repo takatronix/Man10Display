@@ -255,6 +255,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val ret = display.set(sender,key,value)
         if(ret)
             save(sender)
+            display.clearCache()
         return ret
     }
     fun refresh(sender: CommandSender, displayName: String): Boolean {
@@ -263,6 +264,14 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.refreshFlag = true
         return  true
     }
+
+    fun stopAll(sender: CommandSender): Boolean {
+        for (display in displays) {
+            stopMacro(sender,display.name)
+        }
+        return true
+    }
+
     fun runMacro(sender: CommandSender, displayName: String,macroName: String? = null): Boolean {
         val display = getDisplay(displayName) ?: return false
 
@@ -279,7 +288,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     fun stopMacro(sender: CommandSender, displayName: String): Boolean {
         val display = getDisplay(displayName) ?: return false
         display.macroEngine.stop()
-        display.update()
+        display.reset()
         return true
     }
     fun stopAllMacro(): Boolean {

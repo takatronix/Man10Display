@@ -335,7 +335,7 @@ class MacroEngine {
                 }
                 EXIT -> stop() // マクロの実行を即座に終了
                 LABEL -> {
-                    info("Label: ${command.params[0]}")
+                   // info("Label: ${command.params[0]}")
                 }
                 else -> {
                     // 組み込み関数以外はコールバックで処理する
@@ -499,7 +499,7 @@ class MacroEngine {
     private fun waitSeconds(seconds: Double): Boolean {
         val sleepTime = (seconds * 1000).roundToLong()
         val startTime = System.currentTimeMillis()
-        info("${this.executingMacroName} Waiting for $seconds seconds...")
+        //info("${this.executingMacroName} Waiting for $seconds seconds...")
         while (System.currentTimeMillis() - startTime < sleepTime) {
             if (shouldStop) {
                 info("Macro execution was stopped during a wait command.")
@@ -507,7 +507,7 @@ class MacroEngine {
             }
             Thread.sleep(MACRO_SLEEP_TIME)
         }
-        info("${this.executingMacroName} Waited for $seconds seconds.")
+        //info("${this.executingMacroName} Waited for $seconds seconds.")
         return true
     }
 

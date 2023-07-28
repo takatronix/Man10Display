@@ -100,6 +100,7 @@ abstract class Display : MapPacketSender  {
     var frameReceivedBytes: Long = 0
     var frameErrorCount: Long = 0
     var refreshFlag = false
+    var forceRefresh = true
 
     fun resetStats() {
         refreshCount = 0
@@ -594,12 +595,12 @@ abstract class Display : MapPacketSender  {
     public fun sendMapCache(players:List<Player> ,key:String = "current"){
         if(!packetCache.containsKey(key))
             return
-        info("sendMapCache $key")
+        //info("sendMapCache $key")
         val packets = packetCache[key]!!
         sendMapPackets(players,packets)
     }
     // 作成したキャッシュの一部を送信する(部分更新用)
-    fun sendMapCacheByIndexList(players:List<Player>,indexList:List<Int>,key:String = "current"){
+    private fun sendMapCacheByIndexList(players:List<Player>,indexList:List<Int>,key:String = "current"){
         if(!packetCache.containsKey(key))
             return
         val packets = packetCache[key]!!
@@ -624,7 +625,7 @@ abstract class Display : MapPacketSender  {
         future?.cancel(false)
         future = null
     }
-    fun sendBlank(){
+    private fun sendBlank(){
         sendMapCache(getTargetPlayers(),"blank")
     }
 
@@ -687,10 +688,23 @@ abstract class Display : MapPacketSender  {
         sendMapCacheByIndexList(sentPlayers,updateCacheIndexList,key)
         updateCacheIndexList.clear()
     }
-
+    fun reset(){
+        this.currentImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+        createPacketCache(currentImage!!,"current")
+        this.update()
+        this.sendBlank()
+    }
+    fun clearCache(){
+        packetCache.clear()
+    }
     fun refresh(){
+        if(forceRefresh){
+            // 現在のパケットキャッシュを送信
+            sendMapCache(getTargetPlayers())
+            refreshCount++
+            return
+        }
         this.refreshFlag = true
-        info("refresh")
     }
 
     // endregion
