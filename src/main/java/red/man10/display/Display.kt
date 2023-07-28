@@ -594,6 +594,7 @@ abstract class Display : MapPacketSender  {
     public fun sendMapCache(players:List<Player> ,key:String = "current"){
         if(!packetCache.containsKey(key))
             return
+        info("sendMapCache $key")
         val packets = packetCache[key]!!
         sendMapPackets(players,packets)
     }
@@ -623,6 +624,10 @@ abstract class Display : MapPacketSender  {
         future?.cancel(false)
         future = null
     }
+    fun sendBlank(){
+        sendMapCache(getTargetPlayers(),"blank")
+    }
+
 
     // region: Cache
 
@@ -685,6 +690,7 @@ abstract class Display : MapPacketSender  {
 
     fun refresh(){
         this.refreshFlag = true
+        info("refresh")
     }
 
     // endregion
@@ -699,7 +705,9 @@ abstract class Display : MapPacketSender  {
                     IMAGE -> ImageCommand(macroName, macroCommand).run(this, players,sender)
                     LINE -> LineCommand(macroName, macroCommand).run(this, players,sender)
                     COLOR -> ColorCommand(macroName, macroCommand).run(this, players,sender)
+                    REFRESH -> RefreshCommand(macroName, macroCommand).run(this, players,sender)
                     CLEAR -> ClearCommand(macroName, macroCommand).run(this, players,sender)
+                    FILL -> FillCommand(macroName, macroCommand).run(this, players,sender)
                     MESSAGE -> MessageCommand(macroName, macroCommand).run(this, players,sender)
                     STRETCH -> StretchCommand(macroName, macroCommand).run(this, players,sender)
                     PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, players,sender)

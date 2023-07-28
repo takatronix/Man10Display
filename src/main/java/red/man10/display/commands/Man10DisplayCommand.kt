@@ -122,7 +122,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // red.man10.extention.set command
         addCommand(
             CommandObject()
-                .prefix("red.man10.extention.set")
+                .prefix("set")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
                 .argument("[setting keyword]") { _ -> Main.displayManager.parameterKeys }
                 .argument("value")

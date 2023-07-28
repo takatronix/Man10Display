@@ -6,10 +6,11 @@ import red.man10.display.Display
 import red.man10.display.ImageLoader
 import red.man10.display.MacroCommand
 import red.man10.display.MacroCommandHandler
+import red.man10.extention.drawImage
 
 class ImageCommand(private var macroName:String,private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
-        val fileName = macroCommand.params[0]
+        val fileName = macroCommand.params[0].replace("\"","")
 
         // もしx,y,x2,y2が指定されていたらそこに出力
         if(macroCommand.params.size == 5){
@@ -21,15 +22,16 @@ class ImageCommand(private var macroName:String,private var macroCommand: MacroC
             return
         }
 
-
         //　　キャッシュにすでに読み込み済みならそれを送信する
         if(display.packetCache[fileName] != null){
             display.sendMapCache(players,"current")
             return
         }
         // 画像を読み込み更新
-        display.currentImage = display.filterImage(ImageLoader.get(fileName)!!)
-        display.createPacketCache(display.currentImage!!,fileName)
+        val image = ImageLoader.get(fileName)!!
+        display.currentImage?.drawImage(image)
+        display.currentImage = display.filterImage(display.currentImage!!)
+        display.createPacketCache(display.currentImage!!,"current")
         display.refresh()
     }
 }

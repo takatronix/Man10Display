@@ -8,12 +8,14 @@ public interface MapPacketSender {
 
     companion object{
         fun send(players:List<Player>,packets:List<PacketContainer>):Int {
+            //info("send map packet")
             var sent = 0
             for (player in players) {
                 if(!player.isOnline)
                     continue
                 for (packet in packets) {
                     try {
+                        //info("send map packet ${packet.integers.read(0)} to ${player.name}")
                         Main.protocolManager.sendServerPacket(player, packet)
                         sent ++
                     } catch (e: Exception) {
@@ -27,6 +29,7 @@ public interface MapPacketSender {
             if (data == null) {
                 throw NullPointerException("data is null")
             }
+            //info("create map packet mapId:$mapId")
             val packet = PacketContainer(PacketType.Play.Server.MAP)
             val packetModifier = packet.modifier
             packetModifier.writeDefaults()

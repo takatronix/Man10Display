@@ -36,6 +36,7 @@ enum class CommandType {
     // 外部コマンド
     CLEAR,
     COLOR,
+    REFRESH,
     IMAGE,
     STRETCH,
     FILL,
@@ -43,34 +44,13 @@ enum class CommandType {
     MESSAGE,
     PLAY_SOUND,
 }
-fun getCommandType(key:String):CommandType{
+fun getCommandType(key:String):CommandType {
     // 文字列をCommandTypeに変換する
-    return CommandType.valueOf(key.uppercase(Locale.getDefault()))
-
-
-    /*
-    return when(key.uppercase(Locale.getDefault())){
-        "LABEL" -> LABEL
-        "GOTO" -> GOTO
-        "SET" -> SET
-        "PRINT" -> PRINT
-        "WAIT" -> WAIT
-        "LOOP" -> LOOP
-        "ENDLOOP" -> ENDLOOP
-        "CALL" -> CALL
-        "IF" -> IF
-        "ELSE" -> ELSE
-        "ENDIF" -> ENDIF
-        "CLEAR" -> CLEAR
-        "FILL" -> FILL
-        "IMAGE" -> IMAGE
-        "LINE" -> LINE
-        "EXIT" -> EXIT
-        "STRETCH_IMAGE" -> STRETCH_IMAGE
-        "RANDOM" -> RANDOM
-        else -> throw IllegalArgumentException("Invalid command type: $key")
+    try {
+        return CommandType.valueOf(key.uppercase(Locale.getDefault()))
+    } catch (e: Exception) {
+        throw IllegalArgumentException("Invalid command type: $key")
     }
-    */
 }
 
 // 行を解析してMacroCommandに変換
@@ -89,7 +69,7 @@ private fun parseCommand(line: String): MacroCommand? {
         return MacroCommand(LABEL, listOf(label))
     }
 
-    val parts = line.trim().split(" ", limit = 3)
+    val parts = line.trim().split(" ", limit = 3).toMutableList()
 
     // $a = $b + $c のような式を検出
     if (parts.size == 3 && parts[1] == "=") {
@@ -105,6 +85,7 @@ private fun parseCommand(line: String): MacroCommand? {
         val args = line.substringAfter("RANDOM").trim()
         return MacroCommand(RANDOM, listOf(args))
     }
+
     // IF文やELSE文の場合、括弧を省略して式を評価する
     val params = if (type == IF || type == ELSE) {
         val expression = line.substringAfter(" ")
@@ -216,12 +197,13 @@ class MacroEngine {
         this.commands = commands
         this.callback = callback
         currentLineIndex = 0
+        shouldStop = false
         collectLabels(commands)
 
         while (currentLineIndex < commands.size) {
             val command = commands[currentLineIndex]
 
-            if(currentJob?.isActive == false){
+            if(currentJob?.isActive == false || shouldStop){
                 info("Macro execution was stopped.")
                 break
             }
@@ -362,6 +344,7 @@ class MacroEngine {
             }
 
             currentLineIndex++
+            Thread.sleep(MACRO_SLEEP_TIME)
         }
 
         // ループが終了した後、ENDIFが残っていないかチェック
@@ -516,7 +499,7 @@ class MacroEngine {
     private fun waitSeconds(seconds: Double): Boolean {
         val sleepTime = (seconds * 1000).roundToLong()
         val startTime = System.currentTimeMillis()
-        info("Waiting for $seconds seconds...")
+        info("${this.executingMacroName} Waiting for $seconds seconds...")
         while (System.currentTimeMillis() - startTime < sleepTime) {
             if (shouldStop) {
                 info("Macro execution was stopped during a wait command.")
@@ -524,7 +507,7 @@ class MacroEngine {
             }
             Thread.sleep(MACRO_SLEEP_TIME)
         }
-        info("Waited for $seconds seconds.")
+        info("${this.executingMacroName} Waited for $seconds seconds.")
         return true
     }
 

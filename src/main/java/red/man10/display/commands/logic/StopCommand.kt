@@ -13,8 +13,7 @@ class StopCommand(private var plugin: JavaPlugin) : CommandExecutor {
             // マクロを停止し、ブランクマップを送信する
             Main.displayManager.runMacro(sender,displayName,null)
             val display = Main.displayManager.getDisplay(displayName)
-          //  display?.sendMapCache(getTargetPlayers())
-            // TODO 直す
+            display?.sendBlank()
             true
         }catch (e:Exception){
             sender.sendMessage(Main.prefix + "§c§l{$e.message}")

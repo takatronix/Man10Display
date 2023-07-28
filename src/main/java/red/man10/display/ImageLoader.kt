@@ -9,7 +9,7 @@ class ImageLoader(fileName: String) {
 
     companion object{
         private var imageCache: MutableMap<String, BufferedImage> = ConcurrentHashMap()
-        fun loadImage(filePath: String): BufferedImage? {
+        fun load(filePath: String): BufferedImage? {
             return try {
                 // ファイルが存在しない場合、プラグインフォルダを検索
                 if(!File(filePath).exists()){
@@ -30,7 +30,7 @@ class ImageLoader(fileName: String) {
                 return imageCache[name]
             }
             info("loading image:$name")
-            val image = loadImage(name) ?: return null
+            val image = load(name) ?: return null
             imageCache[name] = image
             return image
         }

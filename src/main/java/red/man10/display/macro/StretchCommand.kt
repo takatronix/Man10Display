@@ -10,7 +10,8 @@ import red.man10.extention.stretchImage
 
 class StretchCommand(private var macroName:String,private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
-        val fileName = macroCommand.params[0]
+        val fileName = macroCommand.params[0].replace("\"","")
+
         //　　キャッシュにすでに読み込み済みならそれを送信する
         if(display.packetCache[fileName] != null){
             display.sendMapCache(players,"current")

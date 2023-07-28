@@ -4,16 +4,16 @@ import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 
-fun BufferedImage.fill(color: Color = Color.BLACK) : Rectangle {
+fun BufferedImage.fill(colorName:String) : Rectangle {
     val graphics = this.createGraphics()
-    graphics.color = color
+    graphics.color = color(colorName)
     graphics.fillRect(0, 0, this.width, this.height)
     graphics.dispose()
     return Rectangle(0,0,this.width,this.height)
 }
 fun BufferedImage.fill() : Rectangle  {
     // 画像を塗りつぶす
-    val graphics = this.createGraphics()
+   // val graphics = this.createGraphics()
     graphics.fillRect(0, 0, this.width, this.height)
     graphics.dispose()
     return Rectangle(0,0,this.width,this.height)
@@ -24,7 +24,7 @@ fun BufferedImage.color(r: Int, g: Int, b: Int) : Rectangle {
     graphics.color = color
     return Rectangle(0,0,0,0)
 }
-fun BufferedImage.color(colorCode:String) : Rectangle {
+fun BufferedImage.color(colorCode:String) : Color {
     // #を除去
     val hex = colorCode.trimStart('#')
     // r,g,bに分割
@@ -32,9 +32,7 @@ fun BufferedImage.color(colorCode:String) : Rectangle {
     val g = hex.substring(2, 4).toInt(16)
     val b = hex.substring(4, 6).toInt(16)
     val color = Color(r, g, b)
-    val graphics = this.createGraphics()
-    graphics.color = color
-    return Rectangle(0,0,0,0)
+    return color
 }
 
 fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, r: Int, g: Int, b: Int) : Rectangle {
