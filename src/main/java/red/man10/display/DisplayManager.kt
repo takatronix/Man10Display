@@ -6,6 +6,7 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
+import org.bukkit.block.BlockFace.*
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.EntityType
@@ -492,39 +493,46 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
 
         if(face==null||rayVector==null||collisionLocation==null)return Pair(0.0,0.0)
 
-        val t=if(face== BlockFace.EAST||face== BlockFace.WEST){
+        val t=if(face== EAST ||face== WEST){
             rayVector.x
         }
-        else if(face== BlockFace.SOUTH||face== BlockFace.NORTH){
+        else if(face== SOUTH ||face== NORTH){
             rayVector.z
         }
-        else if(face== BlockFace.UP||face== BlockFace.DOWN){
+        else if(face== UP ||face== DOWN){
             rayVector.y
         }
         else{
             1.0
         }
-
         val frameCollisionLocation=collisionLocation.clone().add(rayVector.clone().multiply(abs(1.0/16.0/t)))
 
-        val height= floor(if(face== BlockFace.UP||face== BlockFace.DOWN){
+        val height= floor(if(face== UP ||face== DOWN){
             frameCollisionLocation.x.mod(1.0)
         }
         else{
             1-frameCollisionLocation.y.mod(1.0)
-        }*128)
+        }*128.0)
 
-        val width= floor(if(face== BlockFace.SOUTH){
-            frameCollisionLocation.x.mod(1.0)
-        }
-        else if(face== BlockFace.NORTH){
-            1-frameCollisionLocation.x.mod(1.0)
-        }
-        else if(face==BlockFace.WEST){
-            frameCollisionLocation.z.mod(1.0)
-        }else{
-            1-frameCollisionLocation.z.mod(1.0)
-        }*128)
+        val width= floor(
+            when (face) {
+                SOUTH -> {
+                    frameCollisionLocation.x.mod(1.0)
+                }
+                NORTH -> {
+                    1-frameCollisionLocation.x.mod(1.0)
+                }
+                EAST -> {
+                    frameCollisionLocation.z.mod(1.0)
+                }
+                WEST -> {
+                    1-frameCollisionLocation.z.mod(1.0)
+                }
+                else -> {
+                    0.0
+                }
+            }*128.0
+        )
 
         return Pair(width,height)
 
@@ -533,13 +541,13 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
         if(face==null||rayVector==null)return 0.0
 
-        val t=if(face== BlockFace.EAST||face== BlockFace.WEST){
+        val t=if(face== EAST ||face== WEST){
             rayVector.x
         }
-        else if(face== BlockFace.SOUTH||face== BlockFace.NORTH){
+        else if(face== SOUTH ||face== NORTH){
             rayVector.z
         }
-        else if(face== BlockFace.UP||face== BlockFace.DOWN){
+        else if(face== UP ||face== DOWN){
             rayVector.y
         }
         else{
