@@ -542,6 +542,8 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         val mapY = display.height % y
 
         display.currentImage?.setPixel(mapX, mapY, Color.RED)
+        display.update()
+        display.refresh()
 
         return true
     }
