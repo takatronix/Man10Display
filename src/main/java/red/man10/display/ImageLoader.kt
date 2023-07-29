@@ -11,6 +11,11 @@ class ImageLoader(fileName: String) {
         private var imageCache: MutableMap<String, BufferedImage> = ConcurrentHashMap()
         fun load(filePath: String): BufferedImage? {
             return try {
+                // httpから始まる場合は、URLから画像を取得
+                if(filePath.startsWith("http")){
+                    return ImageIO.read(java.net.URL(filePath))
+                }
+
                 // ファイルが存在しない場合、プラグインフォルダを検索
                 if(!File(filePath).exists()){
                     val pluginFile = "${Main.plugin.dataFolder}/$filePath"
