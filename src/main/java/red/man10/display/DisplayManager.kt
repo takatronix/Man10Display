@@ -461,7 +461,18 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         //額縁との衝突点
         val frameCollisionLocation=collisionLocation?.clone()?.add(rayVector?.clone()?.multiply(multiplier)?: Vector(0,0,0))
 
-        player.sendMessage("§a§l 額縁との衝突点: $frameCollisionLocation")
+        val face = rayTraceResult?.hitBlockFace
+
+        //player.sendMessage("§a§l 額縁との衝突点: $frameCollisionLocation")
+
+
+        var result = calculatePixelCoordinate(face, rayVector,collisionLocation)
+
+        player.sendMessage("result: $result")
+
+        onMapClick(player, 1045,result.first.toInt(), result.second.toInt())
+
+//        calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>
 
 
         drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),org.bukkit.Color.RED,30,2,0.1f)
@@ -578,7 +589,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         val mapX = display.width % x
         val mapY = display.height % y
 
-        display.currentImage?.setPixel(mapX, mapY, Color.RED)
+        display.currentImage?.setPixel(x, y, Color.RED)
         display.update()
         display.refresh()
 
