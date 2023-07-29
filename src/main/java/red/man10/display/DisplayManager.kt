@@ -5,6 +5,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.ItemFrame
@@ -20,9 +21,11 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.util.Vector
 import red.man10.display.filter.*
 import java.io.File
 import java.util.*
+import kotlin.math.abs
 
 
 class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
@@ -438,6 +441,14 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         // 衝突点からプレイヤーの視点へのベクトル
         val rayVector =  collisionLocation?.toVector()?.subtract(eyeLocation.toVector())
 
+        //額縁との衝突点の計算のための係数
+        val multiplier=rayTraceResult?.let { calculateFrameDiffMultiplier(it.hitBlockFace,rayVector)}?:0.0
+
+        //額縁との衝突点
+        val frameCollisionLocation=collisionLocation?.clone()?.add(rayVector?.clone()?.multiply(multiplier)?: Vector(0,0,0))
+
+
+
         drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),Color.RED,30,2,0.1f)
 /*
 
@@ -458,6 +469,27 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
             val item = itemFrame.item
             player.sendMessage("§a§l ${item.type}")
         }
+    }
+
+    private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
+
+        if(face==null||rayVector==null)return 0.0
+
+        val t=if(face== BlockFace.EAST||face== BlockFace.WEST){
+            rayVector.x
+        }
+        else if(face== BlockFace.SOUTH||face== BlockFace.NORTH){
+            rayVector.z
+        }
+        else if(face== BlockFace.UP||face== BlockFace.DOWN){
+            rayVector.y
+        }
+        else{
+            1.0
+        }
+
+        return abs(1.0/16.0/t)
+
     }
 
     @EventHandler
