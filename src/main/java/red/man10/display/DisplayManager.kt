@@ -1,8 +1,10 @@
 package red.man10.display
 
 import net.kyori.adventure.text.Component
-import org.bukkit.*
-import org.bukkit.block.BlockFace
+import org.bukkit.Bukkit
+import org.bukkit.Color
+import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.ItemFrame
@@ -18,14 +20,14 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.util.RayTraceResult
-import org.bukkit.util.Vector
 import red.man10.display.filter.*
 import java.io.File
+import java.util.*
 
 
 class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
+    private val lastInteractTime = HashMap<UUID, Long>()
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
@@ -420,7 +422,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     }
     fun onLeftButtonClick(event:PlayerInteractEvent){
         val player = event.player
-        player.sendMessage("§e§l左クリック")
+       // player.sendMessage("§e§l左クリック")
         onButtonClick(event)
     }
     fun onButtonClick(event:PlayerInteractEvent) {
@@ -436,8 +438,8 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         // 衝突点からプレイヤーの視点へのベクトル
         val rayVector =  collisionLocation?.toVector()?.subtract(eyeLocation.toVector())
 
-        drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),Color.RED,10,2)
-
+        drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),Color.RED,30,2,0.1f)
+/*
 
         player.sendMessage("eyeLocation: $eyeLocation")
         player.sendMessage("collisionLocation: $collisionLocation")
@@ -447,7 +449,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         player.sendMessage("hitBlock: ${rayTraceResult?.hitBlock} ")
         player.sendMessage("hitEntity: ${rayTraceResult?.hitEntity} ")
 
-
+*/
 
 
         if(rayTraceResult?.hitEntity is ItemFrame) {
@@ -466,7 +468,20 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         // プレイヤーが右クリック
         if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
             onRightButtonClick(event)
-        // プレイヤーが左クリック
+
+
+            val playerId = player.uniqueId
+
+            val currentTime = System.currentTimeMillis()
+
+            if (lastInteractTime.containsKey(playerId)) {
+                val previousTime = lastInteractTime[playerId]!!
+                val interval = currentTime - previousTime
+                player.sendMessage("§e§l イベント周期 $interval ms")
+            }
+
+            lastInteractTime[playerId] = currentTime
+            // プレイヤーが左クリック
         } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
             onLeftButtonClick(event)
         }
