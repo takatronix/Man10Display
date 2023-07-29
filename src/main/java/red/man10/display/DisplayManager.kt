@@ -298,6 +298,12 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
         return true
     }
+    fun image(sender: CommandSender, displayName: String,path:String): Boolean {
+        val display = getDisplay(displayName) ?: return false
+        display.image(path)
+        return true
+    }
+
 
     fun showMacroList(sender: CommandSender): Boolean {
         val list = MacroEngine.macroList

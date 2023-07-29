@@ -11,6 +11,17 @@ fun BufferedImage.fill(colorName:String) : Rectangle {
     graphics.dispose()
     return Rectangle(0,0,this.width,this.height)
 }
+
+fun BufferedImage.clear():Rectangle{
+    return this.fill(Color.BLACK)
+}
+fun BufferedImage.fill(color:Color = Color.BLACK) : Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.fillRect(0, 0, this.width, this.height)
+    graphics.dispose()
+    return Rectangle(0,0,this.width,this.height)
+}
 fun BufferedImage.fill() : Rectangle  {
     // 画像を塗りつぶす
    // val graphics = this.createGraphics()
@@ -138,6 +149,33 @@ fun BufferedImage.drawImageFully(image: BufferedImage) : Rectangle{
 
     this.graphics.drawImage(image, x, y, newWidth, newHeight, null)
     return Rectangle(x,y,newWidth,newHeight)
+}
+fun BufferedImage.drawImageNoMargin(image: BufferedImage) : Rectangle {
+    // 描画先の画像サイズ
+    val targetWidth = this.width
+    val targetHeight = this.height
+
+    // 元画像のサイズ
+    val sourceWidth = image.width
+    val sourceHeight = image.height
+
+    // アスペクト比を維持しながら全体が表示されるように調整
+    val aspect = sourceWidth.toDouble() / sourceHeight.toDouble()
+    val newWidth: Int
+    val newHeight: Int
+    if (targetWidth / aspect >= targetHeight) {
+        // 高さに合わせる場合
+        newHeight = targetHeight
+        newWidth = (newHeight * aspect).toInt()
+    } else {
+        // 幅に合わせる場合
+        newWidth = targetWidth
+        newHeight = (newWidth / aspect).toInt()
+    }
+
+    // 余白なしで描画
+    this.graphics.drawImage(image, 0, 0, newWidth, newHeight, null)
+    return Rectangle(0, 0, newWidth, newHeight)
 }
 fun BufferedImage.stretchImage(image:BufferedImage):Rectangle{
     this.graphics.drawImage(image,0,0,this.width,this.height,null)

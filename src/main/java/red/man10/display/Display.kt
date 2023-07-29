@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
 import red.man10.display.*
 import red.man10.display.macro.*
+import red.man10.extention.*
+import java.awt.Color
 
 
 // minecraft map size
@@ -48,6 +50,7 @@ abstract class Display : MapPacketSender  {
     var keepAspectRatio = false
     var aspectRatioWidth = 16.0
     var aspectRatioHeight = 9.0
+    var noMargin = false
     var dithering = false
     var fastDithering = false
     var invert = false
@@ -197,6 +200,7 @@ abstract class Display : MapPacketSender  {
         config.set("$key.keepAspectRatio", keepAspectRatio)
         config.set("$key.aspectRatioWidth", aspectRatioWidth)
         config.set("$key.aspectRatioHeight", aspectRatioHeight)
+        config.set("$key.noMargin", noMargin)
         config.set("$key.dithering", dithering)
         config.set("$key.fastDithering", fastDithering)
         config.set("$key.showStatus", showStatus)
@@ -260,6 +264,7 @@ abstract class Display : MapPacketSender  {
         keepAspectRatio = config.getBoolean("$key.keepAspectRatio", false)
         aspectRatioWidth = config.getDouble("$key.aspectRatioWidth", 16.0)
         aspectRatioHeight = config.getDouble("$key.aspectRatioHeight", 9.0)
+        noMargin = config.getBoolean("$key.noMargin", false)
         dithering = config.getBoolean("$key.dithering", false)
         fastDithering = config.getBoolean("$key.fastDithering", false)
         showStatus = config.getBoolean("$key.showStatus", false)
@@ -375,6 +380,7 @@ abstract class Display : MapPacketSender  {
             "keep_aspect_ratio" -> this.keepAspectRatio = value.toBoolean()
             "aspect_ratio_width" -> this.aspectRatioWidth = value.toDouble()
             "aspect_ratio_height" -> this.aspectRatioHeight = value.toDouble()
+            "no_margin" -> this.noMargin = value.toBoolean()
             "color_enhancer" -> this.colorEnhancer = value.toBoolean()
             "saturation_level" -> this.saturationLevel = value.toDouble()
             "noise" -> this.noise = value.toBoolean()
@@ -706,6 +712,20 @@ abstract class Display : MapPacketSender  {
         }
         this.refreshFlag = true
     }
+
+    fun drawImage(image:BufferedImage,rect:Rectangle) : Rectangle{
+        this.currentImage?.clear()
+        // アスペクトレシオを維持しない場合は、画像を拡大表示
+        if(!this.keepAspectRatio){
+            return this.currentImage?.stretchImage(image)!!
+        }
+        // 余白を表示しない場合は、余白を削って表示
+        if(!this.noMargin){
+            return this.currentImage?.drawImage(image)!!
+        }
+        return this.currentImage?.drawImageNoMargin(image)!!
+    }
+
 
     // endregion
     // region: Macro

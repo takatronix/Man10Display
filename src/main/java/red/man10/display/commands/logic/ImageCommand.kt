@@ -10,6 +10,7 @@ class ImageCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         try{
             val name = args[1]
+            var path = args[2]
             if(!Main.displayManager.delete(sender,name)){
                 sender.sendMessage(Main.prefix + "§a§l $name does not exist")
                 return false
