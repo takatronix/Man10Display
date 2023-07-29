@@ -86,6 +86,18 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         }
         return null
     }
+    private fun findKey(mapId:Int):String?{
+        for (display in displays) {
+            if(display.mapIds.contains(mapId)){
+                return display.name
+            }
+        }
+        return null
+    }
+    fun getDisplay(mapId: Int): Display? {
+        val name = findKey(mapId) ?: return null
+        return getDisplay(name)
+    }
 
     fun create(player: Player,display: Display) : Boolean{
         if(getDisplay(display.name) != null){
@@ -519,9 +531,23 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
             onLeftButtonClick(event)
         }
     }
+
+    fun OnMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
+        player.sendMessage("§a§l Clicked Map $mapId $x $y")
+
+        // mapId から key を取得
+        val key: String = findKey(mapId) ?: return false
+
+
+
+        return true
+    }
+
+
     @EventHandler
     fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent): Boolean {
         val ent: org.bukkit.entity.Entity = e.rightClicked
+
         e.player.sendMessage("§a§l Clicked Entity")
         if(ent is ItemFrame){
 
@@ -529,6 +555,9 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
             return false
         }
         e.player.sendMessage("§a§l Clicked ItemFrame")
+
+
+
 
         return true
 
