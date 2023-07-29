@@ -446,7 +446,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         onButtonClick(event)
     }
 
-    fun interactMap(player:Player){
+    private fun interactMap(player:Player){
 
         val distance = 30.0
         val rayTraceResult = player.rayTraceBlocks(distance)
@@ -460,18 +460,15 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         //額縁との衝突点の計算のための係数
         val multiplier=rayTraceResult?.let { calculateFrameDiffMultiplier(it.hitBlockFace,rayVector)}?:0.0
 
-        //額縁との衝突点
-        val frameCollisionLocation=collisionLocation?.clone()?.add(rayVector?.clone()?.multiply(multiplier)?: Vector(0,0,0))
-        val face = rayTraceResult?.hitBlockFace
+        // 額縁との衝突点
+        val frameCollisionLocation=
+            collisionLocation.clone()?.add(rayVector.clone()?.multiply(multiplier)?: Vector(0,0,0))
+        val face = rayTraceResult.hitBlockFace
         var result = calculatePixelCoordinate(face, rayVector,collisionLocation)
 
-        player.sendMessage("result: $result")
-        player.sendMessage("collisionLocation: $collisionLocation")
-        player.sendMessage("frameCollisionLocation: $frameCollisionLocation")
-        player.sendMessage("face: $face")
 
         // collisionLocationのブロックを取得
-        val block = collisionLocation?.block
+        val block = collisionLocation.block
         // collisionLocationのブロックにある額縁を取得
         val frame = block?.state as? ItemFrame
 
@@ -490,10 +487,10 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     }
 
     private fun calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>{
+        if(face==null||rayVector==null||collisionLocation==null)
+            return Pair(0.0,0.0)
 
-        if(face==null||rayVector==null||collisionLocation==null)return Pair(0.0,0.0)
-
-        val t=if(face== EAST ||face== WEST){
+        val t= if(face== EAST ||face== WEST){
             rayVector.x
         }
         else if(face== SOUTH ||face== NORTH){
@@ -516,31 +513,19 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
 
         val width= floor(
             when (face) {
-                SOUTH -> {
-                    frameCollisionLocation.x.mod(1.0)
-                }
-                NORTH -> {
-                    1-frameCollisionLocation.x.mod(1.0)
-                }
-                EAST -> {
-                    frameCollisionLocation.z.mod(1.0)
-                }
-                WEST -> {
-                    1-frameCollisionLocation.z.mod(1.0)
-                }
-                else -> {
-                    0.0
-                }
+                SOUTH -> frameCollisionLocation.x.mod(1.0)
+                NORTH -> 1-frameCollisionLocation.x.mod(1.0)
+                EAST -> 1-frameCollisionLocation.z.mod(1.0)
+                WEST -> frameCollisionLocation.z.mod(1.0)
+                else -> 0.0
             }*128.0
         )
-
         return Pair(width,height)
-
     }
 
+    // 額縁との衝突点の計算のための係数
     private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
         if(face==null||rayVector==null)return 0.0
-
         val t=if(face== EAST ||face== WEST){
             rayVector.x
         }
@@ -553,9 +538,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         else{
             1.0
         }
-
         return abs(1.0/16.0/t)
-
     }
 
     @EventHandler
@@ -567,7 +550,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
             onRightButtonClick(event)
 
-
+/*
             val playerId = player.uniqueId
 
             val currentTime = System.currentTimeMillis()
@@ -579,6 +562,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
             }
 
             lastInteractTime[playerId] = currentTime
+            */
             // プレイヤーが左クリック
         } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
             onLeftButtonClick(event)
@@ -586,7 +570,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     }
 
     fun onMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
-        player.sendMessage("§a§l Clicked Map $mapId $x $y")
+        //player.sendMessage("§a§l Clicked Map $mapId $x $y")
         val display = getDisplay(mapId) ?: return false
 
         // mapIdから地図のx,yを取得

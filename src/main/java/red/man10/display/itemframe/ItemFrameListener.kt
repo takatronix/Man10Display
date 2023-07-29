@@ -66,7 +66,8 @@ class ItemFrameListener : Listener {
         }
 
         e.isCancelled = true
-        e.player.sendMessage(Main.prefix + "§4This item frame is protected")
+        // タッチ可能性がある場合は、メッセージを表示させない
+      //  e.player.sendMessage(Main.prefix + "§4This item frame is protected")
     }
 
     @EventHandler
