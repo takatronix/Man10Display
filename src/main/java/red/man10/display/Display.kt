@@ -593,6 +593,9 @@ abstract class Display : MapPacketSender  {
 
     // プレイヤーにパケットを送る（一番低レベル)
     private fun sendMapPackets(players:List<Player>,packets:List<PacketContainer>){
+        if(packets.isEmpty())
+            return
+        info("sendMapPackets ${packets.size}")
         val sent = MapPacketSender.send(players, packets)
         this.sentMapCount += sent
         this.sentBytes += sent * MC_MAP_SIZE_X * MC_MAP_SIZE_Y
@@ -612,6 +615,7 @@ abstract class Display : MapPacketSender  {
         val packets = packetCache[key]!!
         val targetPackets = mutableListOf<PacketContainer>()
         for(index in indexList){
+            //info("sendMapCacheByIndexList $index")
             targetPackets.add(packets[index])
         }
         sendMapPackets(players,targetPackets)
@@ -686,6 +690,7 @@ abstract class Display : MapPacketSender  {
                 val index = y * width + x
                 val subRect = getSubImageRectByIndex(index)
                 if(subRect.intersects(updateRect)){
+                    //info("update $index $x $y")
                     if(!updateCacheIndexList.contains(index)){
                         updateCacheIndexList.add(index)
                     }
@@ -693,7 +698,7 @@ abstract class Display : MapPacketSender  {
             }
         }
         // 更新リストのindexのマップを送信する
-        sendMapCacheByIndexList(sentPlayers,updateCacheIndexList,key)
+        sendMapCacheByIndexList(getTargetPlayers(),updateCacheIndexList,key)
         updateCacheIndexList.clear()
     }
     fun reset(){
@@ -728,6 +733,25 @@ abstract class Display : MapPacketSender  {
         return this.currentImage?.drawImageNoMargin(image)!!
     }
 
+    // endregion
+    // region: マップ画像座標変換
+    // mapIdからmapIdsのindexを取得
+    fun getIndexByMapId(mapId:Int):Int{
+        return mapIds.indexOf(mapId)
+    }
+    fun getMapXYByMapId(mapId:Int):Pair<Int,Int>{
+        val index = getIndexByMapId(mapId)
+        val x = index % width
+        val y = index / width
+        return Pair(x,y)
+    }
+    fun getImageXY(mapId:Int, x:Int, y:Int):Pair<Int,Int>{
+        val mapXY = getMapXYByMapId(mapId)
+        val imageX = mapXY.first * MC_MAP_SIZE_X + x
+        val imageY = mapXY.second * MC_MAP_SIZE_Y + y
+        return Pair(imageX,imageY)
+    }
+    // endregion
 
 
     // endregion

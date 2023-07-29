@@ -47,9 +47,9 @@ class ItemFrameListener : Listener {
             }
         }
 
-        if (remover is Player) {
-            remover.sendMessage(Main.prefix + "§4This item frame is protected")
-        }
+        //if (remover is Player) {
+        //    remover.sendMessage(Main.prefix + "§4This item frame is protected")
+       // }
 
         e.isCancelled = true
     }
@@ -89,7 +89,8 @@ class ItemFrameListener : Listener {
                 remover.sendMessage(Main.prefix + "§bIgnored protections")
                 return
             }
-            remover.sendMessage(Main.prefix + "§4This item frame is protected")
+             // タッチ可能性がある場合は、メッセージを表示させない
+//            remover.sendMessage(Main.prefix + "§4This item frame is protected")
         }
 
         e.isCancelled = true
@@ -138,7 +139,8 @@ class ItemFrameListener : Listener {
 
             if (breakLoc == loc) {
                 e.isCancelled = true
-                e.player.sendMessage(Main.prefix + "§4This item frame is protected")
+                // タッチ可能性がある場合は、メッセージを表示させない
+//                e.player.sendMessage(Main.prefix + "§4This item frame is protected")
                 return
             }
         }

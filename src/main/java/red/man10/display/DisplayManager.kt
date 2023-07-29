@@ -1,5 +1,5 @@
 package red.man10.display
-
+import getItemFrame
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -25,13 +25,14 @@ import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Vector
 import red.man10.display.filter.*
+import red.man10.extention.fillCircle
 import red.man10.extention.setPixel
 import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
-
+import java.util.concurrent.ThreadLocalRandom
 
 class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
@@ -99,7 +100,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         }
         return null
     }
-    fun getDisplay(mapId: Int): Display? {
+    private fun getDisplay(mapId: Int): Display? {
         val name = findKey(mapId) ?: return null
         return getDisplay(name)
     }
@@ -426,6 +427,9 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
          */
     }
 
+    var penRadius = 5.0
+    var penColor = Color.RED
+
     @EventHandler
     fun onPlayerMove(event: PlayerMoveEvent) {
         val player = event.player
@@ -437,50 +441,57 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     }
     fun onRightButtonClick(event:PlayerInteractEvent){
         val player = event.player
-        player.sendMessage("§e§l右クリック")
         onButtonClick(event)
+
     }
     fun onLeftButtonClick(event:PlayerInteractEvent){
         val player = event.player
-       // player.sendMessage("§e§l左クリック")
         onButtonClick(event)
+
+        penRadius = Math.random() * 40 + 5
+        val r = Math.random() * 255
+        val g = Math.random() * 255
+        val b = Math.random() * 255
+        val col = Color(r.toInt(), g.toInt(), b.toInt())
+        penColor =col
+
     }
 
     private fun interactMap(player:Player){
-
         val distance = 30.0
         val rayTraceResult = player.rayTraceBlocks(distance)
-        // プレイヤーの視点
-        val eyeLocation = player.eyeLocation
+
         // 衝突点
         val collisionLocation = rayTraceResult?.hitPosition?.toLocation(player.world)
+
         // プレイヤーから衝突点へのベクトル
-        val rayVector =  eyeLocation.toVector().subtract(collisionLocation!!.toVector())
+        val rayVector =  player.eyeLocation.toVector().subtract(collisionLocation!!.toVector())
 
         //額縁との衝突点の計算のための係数
-        val multiplier=rayTraceResult?.let { calculateFrameDiffMultiplier(it.hitBlockFace,rayVector)}?:0.0
+        val multiplier= calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace,rayVector) ?:0.0
 
         // 額縁との衝突点
-        val frameCollisionLocation=
-            collisionLocation.clone()?.add(rayVector.clone()?.multiply(multiplier)?: Vector(0,0,0))
+        val frameCollisionLocation= collisionLocation.clone().add(rayVector.clone().multiply(multiplier) ?: Vector(0,0,0))
+
         val face = rayTraceResult.hitBlockFace
-        var result = calculatePixelCoordinate(face, rayVector,collisionLocation)
+
+        val frame = rayTraceResult.hitBlock?.getItemFrame(face!!) ?: return
+        val item = frame.item ?: return
+        if(item.type!=Material.FILLED_MAP)
+            return
+        val mapMeta = item.itemMeta as MapMeta
+        val mapView = mapMeta.mapView ?: return
+        val mapId = mapView.id
+
+        val result = calculatePixelCoordinate(face, rayVector,collisionLocation)
 
 
-        // collisionLocationのブロックを取得
-        val block = collisionLocation.block
-        // collisionLocationのブロックにある額縁を取得
-        val frame = block?.state as? ItemFrame
-
-
-
-        onMapClick(player, 1045,result.first.toInt(), result.second.toInt())
+        onMapClick(player, mapId,result.first.toInt(), result.second.toInt())
 
     }
 
 
     fun onButtonClick(event:PlayerInteractEvent) {
-
         interactMap(event.player)
 
 
@@ -549,20 +560,6 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         // プレイヤーが右クリック
         if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
             onRightButtonClick(event)
-
-/*
-            val playerId = player.uniqueId
-
-            val currentTime = System.currentTimeMillis()
-
-            if (lastInteractTime.containsKey(playerId)) {
-                val previousTime = lastInteractTime[playerId]!!
-                val interval = currentTime - previousTime
-                player.sendMessage("§e§l イベント周期 $interval ms")
-            }
-
-            lastInteractTime[playerId] = currentTime
-            */
             // プレイヤーが左クリック
         } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
             onLeftButtonClick(event)
@@ -570,134 +567,33 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     }
 
     fun onMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
-        //player.sendMessage("§a§l Clicked Map $mapId $x $y")
+       // player.sendMessage("§a§l Clicked Map $mapId $x $y")
         val display = getDisplay(mapId) ?: return false
 
-        // mapIdから地図のx,yを取得
-        val mapX = display.width % x
-        val mapY = display.height % y
 
-        if(player.name=="takatronix"){
-            display.currentImage?.setPixel(x, y, Color.RED)
-        }else{
-            display.currentImage?.setPixel(x, y, Color.BLUE)
+        val xy = display.getImageXY(mapId,x, y)
+        val imageX = xy.first
+        val imageY =  xy.second
 
+        var distance = display.location?.distance(player.location)
+        var r = 3.0
+        if(distance!=null){
+            r = distance/10
+        }
+        if(r < 5){
+            r = 5.0
         }
 
-        display.update()
-        display.refresh()
-
+        display.update(display.currentImage?.fillCircle(imageX , imageY ,penRadius.toInt() ,penColor))
+   //     display.refresh()
         return true
     }
 
 
     @EventHandler
     fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent): Boolean {
-        val ent: org.bukkit.entity.Entity = e.rightClicked
-
-     //   e.player.sendMessage("§a§l Clicked Entity")
-        if(ent is ItemFrame){
-
-        }else{
-            return false
-        }
-   //     e.player.sendMessage("§a§l Clicked ItemFrame")
-
-
         interactMap(e.player)
-
         return true
-
-            /*
-
-        if (ent is ItemFrame) {
-            //  クリックしたアイテムフレームのアイテムがマップでなければ抜け
-            val frame = ent as ItemFrame
-            val item = frame.item
-            if (item.type != Material.FILLED_MAP) {
-                return false
-            }
-            val mapId: Int = getMapId(item)
-            val key: String = findKey(mapId) ?: return false
-            val player = e.player
-
-            //      たたいたブロック面
-            val face = frame.attachedFace
-
-            //      叩いたブロック
-            val block: Block = ent.getLocation().getBlock().getRelative(frame.attachedFace)
-            //Bukkit.getLogger().info(block.toString());
-            val world = e.player.world
-
-            //      叩いたブロックのBB
-            val bb: BoundingBox = block.getBoundingBox()
-            val rayDistance = 3.0
-            val rayAccuracy = 0.01
-
-            //     視線からのベクトルを得る
-            val rayTrace = RayTrace(player.eyeLocation.toVector(), player.eyeLocation.direction)
-            //     ベクトル表示
-            if (debugMode) {
-                // rayTrace.highlight(player.getWorld(),rayDistance,rayAccuracy);
-            }
-
-            //      ディスプレイの　左上、右上をもとめる
-            val topLeft: Vector = block.getLocation().toVector()
-            val bottomRight: Vector = block.getLocation().toVector()
-            topLeft.setY(topLeft.getY() + 1)
-            if (face == BlockFace.WEST) {
-                topLeft.setZ(topLeft.getZ() + 1)
-                topLeft.setX(topLeft.getX() + 1)
-                bottomRight.setX(bottomRight.getX() + 1)
-            }
-            if (face == BlockFace.SOUTH) {
-                topLeft.setX(topLeft.getX() + 1)
-            }
-            if (face == BlockFace.EAST) {
-                bottomRight.setZ(bottomRight.getZ() + 1)
-            }
-            if (face == BlockFace.NORTH) {
-                bottomRight.setZ(bottomRight.getZ() + 1)
-                bottomRight.setX(bottomRight.getX() + 1)
-                topLeft.setZ(topLeft.getZ() + 1)
-            }
-            if (debugMode) {
-                world.playEffect(topLeft.toLocation(world), Effect.SMOKE, 0)
-                world.playEffect(bottomRight.toLocation(world), Effect.SMOKE, 0)
-            }
-
-            //      視線とブロックの交差点
-            val hit: Vector = rayTrace.positionOfIntersection(bb, rayDistance, rayAccuracy)
-            if (hit != null) {
-                //      タッチした場所を光らす
-                //  world.playEffect(hit.toLocation(world), Effect.COLOURED_DUST,0);
-                val aDis: Double = hit.distance(topLeft)
-                val left: Vector = topLeft.setY(hit.getY())
-                val xDis: Double = hit.distance(left)
-                val y: Double = sqrt(aDis * aDis - xDis * xDis)
-                val dx = 128.0 * xDis
-                val dy = 128.0 * y
-                //  dx -= 4;
-                //  dy -= 4;
-                val px = dx.toInt()
-                val py = dy.toInt()
-
-                // player.sendMessage(px+","+py);
-
-                //      タッチイベントを通知
-                val func: DisplayTouchFunction = touchFunctions.get(key)
-                if (func != null) {
-                    if (func.onDisplayTouch(key, mapId, player, px, py)) {
-                        refresh(key)
-                    }
-                }
-            }
-            //      回転イベントをキャンセル
-            e.isCancelled = true
-            return true
-        }
-        return false
-        */
     }
 
 

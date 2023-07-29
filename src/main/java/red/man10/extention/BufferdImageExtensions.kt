@@ -17,7 +17,13 @@ fun BufferedImage.setPixel(x:Int,y:Int,color:Color):Rectangle{
     this.setRGB(x,y,color.rgb)
     return Rectangle(x,y,1,1)
 }
-
+fun BufferedImage.fillCircle(x:Int,y:Int,r:Int,color:Color):Rectangle{
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.fillOval(x-r,y-r,r*2,r*2)
+    graphics.dispose()
+    return Rectangle(x-r,y-r,r*2,r*2)
+}
 fun BufferedImage.clear():Rectangle{
     return this.fill(Color.BLACK)
 }
