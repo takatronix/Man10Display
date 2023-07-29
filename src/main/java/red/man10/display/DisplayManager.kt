@@ -4,9 +4,11 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -467,13 +469,18 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         player.sendMessage("frameCollisionLocation: $frameCollisionLocation")
         player.sendMessage("face: $face")
 
-        // collisionLocationに額縁があるかチェック
+        // collisionLocationのブロックを取得
+        val block = collisionLocation?.block
+        // collisionLocationのブロックにある額縁を取得
+        val frame = block?.state as? ItemFrame
 
 
 
         onMapClick(player, 1045,result.first.toInt(), result.second.toInt())
 
     }
+
+
     fun onButtonClick(event:PlayerInteractEvent) {
 
         interactMap(event.player)
