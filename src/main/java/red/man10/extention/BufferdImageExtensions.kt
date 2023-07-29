@@ -3,6 +3,7 @@ package red.man10.extention
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
+import java.nio.Buffer
 
 fun BufferedImage.fill(colorName:String) : Rectangle {
     val graphics = this.createGraphics()
@@ -10,6 +11,11 @@ fun BufferedImage.fill(colorName:String) : Rectangle {
     graphics.fillRect(0, 0, this.width, this.height)
     graphics.dispose()
     return Rectangle(0,0,this.width,this.height)
+}
+
+fun BufferedImage.setPixel(x:Int,y:Int,color:Color):Rectangle{
+    this.setRGB(x,y,color.rgb)
+    return Rectangle(x,y,1,1)
 }
 
 fun BufferedImage.clear():Rectangle{

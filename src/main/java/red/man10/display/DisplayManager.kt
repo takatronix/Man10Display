@@ -2,7 +2,6 @@ package red.man10.display
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
-import org.bukkit.Color
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -23,6 +22,8 @@ import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Vector
 import red.man10.display.filter.*
+import red.man10.extention.setPixel
+import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.math.abs
@@ -462,7 +463,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         player.sendMessage("§a§l 額縁との衝突点: $frameCollisionLocation")
 
 
-        drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),Color.RED,30,2,0.1f)
+        drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),org.bukkit.Color.RED,30,2,0.1f)
 /*
 
         player.sendMessage("eyeLocation: $eyeLocation")
@@ -532,13 +533,15 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         }
     }
 
-    fun OnMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
+    fun onMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
         player.sendMessage("§a§l Clicked Map $mapId $x $y")
+        val display = getDisplay(mapId) ?: return false
 
-        // mapId から key を取得
-        val key: String = findKey(mapId) ?: return false
+        // mapIdから地図のx,yを取得
+        val mapX = display.width % x
+        val mapY = display.height % y
 
-
+        display.currentImage?.setPixel(mapX, mapY, Color.RED)
 
         return true
     }
