@@ -442,59 +442,43 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
        // player.sendMessage("§e§l左クリック")
         onButtonClick(event)
     }
-    fun onButtonClick(event:PlayerInteractEvent) {
 
-        val player = event.player
+    fun interactMap(player:Player){
+
         val distance = 30.0
         val rayTraceResult = player.rayTraceBlocks(distance)
-
         // プレイヤーの視点
         val eyeLocation = player.eyeLocation
         // 衝突点
         val collisionLocation = rayTraceResult?.hitPosition?.toLocation(player.world)
-        // 衝突点からプレイヤーの視点へのベクトル
-        val rayVector =  collisionLocation?.toVector()?.subtract(eyeLocation.toVector())
+        // プレイヤーから衝突点へのベクトル
+        val rayVector =  eyeLocation.toVector().subtract(collisionLocation!!.toVector())
 
         //額縁との衝突点の計算のための係数
         val multiplier=rayTraceResult?.let { calculateFrameDiffMultiplier(it.hitBlockFace,rayVector)}?:0.0
 
         //額縁との衝突点
         val frameCollisionLocation=collisionLocation?.clone()?.add(rayVector?.clone()?.multiply(multiplier)?: Vector(0,0,0))
-
         val face = rayTraceResult?.hitBlockFace
-
-        //player.sendMessage("§a§l 額縁との衝突点: $frameCollisionLocation")
-
-
         var result = calculatePixelCoordinate(face, rayVector,collisionLocation)
 
         player.sendMessage("result: $result")
+        player.sendMessage("collisionLocation: $collisionLocation")
+        player.sendMessage("frameCollisionLocation: $frameCollisionLocation")
+        player.sendMessage("face: $face")
+
+        // collisionLocationに額縁があるかチェック
+
+
 
         onMapClick(player, 1045,result.first.toInt(), result.second.toInt())
 
-//        calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>
+    }
+    fun onButtonClick(event:PlayerInteractEvent) {
+
+        interactMap(event.player)
 
 
-        drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),org.bukkit.Color.RED,30,2,0.1f)
-/*
-
-        player.sendMessage("eyeLocation: $eyeLocation")
-        player.sendMessage("collisionLocation: $collisionLocation")
-        player.sendMessage("rayVector: $rayVector")
-        player.sendMessage("hitPosition: ${rayTraceResult?.hitPosition} ")
-        player.sendMessage("hitBlockFace: ${rayTraceResult?.hitBlockFace} ")
-        player.sendMessage("hitBlock: ${rayTraceResult?.hitBlock} ")
-        player.sendMessage("hitEntity: ${rayTraceResult?.hitEntity} ")
-
-*/
-
-
-        if(rayTraceResult?.hitEntity is ItemFrame) {
-            player.sendMessage("§a§l Clicked ItemFrame")
-            val itemFrame = rayTraceResult?.hitEntity as ItemFrame
-            val item = itemFrame.item
-            player.sendMessage("§a§l ${item.type}")
-        }
     }
 
     private fun calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>{
@@ -594,7 +578,13 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         val mapX = display.width % x
         val mapY = display.height % y
 
-        display.currentImage?.setPixel(x, y, Color.RED)
+        if(player.name=="takatronix"){
+            display.currentImage?.setPixel(x, y, Color.RED)
+        }else{
+            display.currentImage?.setPixel(x, y, Color.BLUE)
+
+        }
+
         display.update()
         display.refresh()
 
@@ -606,16 +596,16 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent): Boolean {
         val ent: org.bukkit.entity.Entity = e.rightClicked
 
-        e.player.sendMessage("§a§l Clicked Entity")
+     //   e.player.sendMessage("§a§l Clicked Entity")
         if(ent is ItemFrame){
 
         }else{
             return false
         }
-        e.player.sendMessage("§a§l Clicked ItemFrame")
+   //     e.player.sendMessage("§a§l Clicked ItemFrame")
 
 
-
+        interactMap(e.player)
 
         return true
 
