@@ -520,14 +520,19 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
             frameCollisionLocation.x.mod(1.0)
         }
         else{
-            frameCollisionLocation.y.mod(1.0)
+            1-frameCollisionLocation.y.mod(1.0)
         }*128)
 
-        val width= floor(if(face== BlockFace.SOUTH||face== BlockFace.NORTH){
+        val width= floor(if(face== BlockFace.SOUTH){
             frameCollisionLocation.x.mod(1.0)
         }
-        else{
+        else if(face== BlockFace.NORTH){
+            1-frameCollisionLocation.x.mod(1.0)
+        }
+        else if(face==BlockFace.WEST){
             frameCollisionLocation.z.mod(1.0)
+        }else{
+            1-frameCollisionLocation.z.mod(1.0)
         }*128)
 
         return Pair(width,height)
