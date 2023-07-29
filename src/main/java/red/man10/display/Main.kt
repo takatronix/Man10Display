@@ -17,7 +17,7 @@ class Main : JavaPlugin(), Listener {
         var commandSender: CommandSender? = null
         val prefix = "[Man10Display] "
         lateinit var plugin: JavaPlugin
-        lateinit var displayManager: DisplayManager
+        lateinit var displayManager: DisplayManager<Any?>
         lateinit var imageManager: ImageManager
         lateinit var protocolManager: ProtocolManager
         lateinit var commandRouter: Man10DisplayCommand
@@ -58,5 +58,7 @@ class Main : JavaPlugin(), Listener {
         //     info("broadcast:${Main.configData.broadcast}")
         //    info("switchTime:${Main.configData.switchTime}")
     }
+
+
 
 }

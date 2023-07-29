@@ -208,7 +208,7 @@ class MacroEngine {
                 break
             }
 
-            //info("[MACRO][$currentLineIndex] $command")
+            info("[MACRO]$executingMacroName([$currentLineIndex]) $command")
             when (command.type) {
                 GOTO -> {
                     val label = command.params[0]
@@ -305,9 +305,11 @@ class MacroEngine {
                 }
                 // ENDLOOPコマンドの処理
                 ENDLOOP -> {
+
                     if (loopStack.isNotEmpty()) {
                         val currentLoop = loopStack.peek()
                         currentLoop.counter--
+                        info("Loop counter: ${currentLoop.counter}")
                         if (currentLoop.counter > 0) {
                             // まだループを続行する必要がある場合、ループの開始位置に戻る
                             currentLineIndex = currentLoop.startLine + 1

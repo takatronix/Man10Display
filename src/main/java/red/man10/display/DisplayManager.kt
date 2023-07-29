@@ -1,21 +1,30 @@
 package red.man10.display
 
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
-import org.bukkit.Material
+import org.bukkit.*
+import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.block.Action
+import org.bukkit.event.player.PlayerInteractEntityEvent
+import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.player.PlayerToggleSneakEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.util.RayTraceResult
+import org.bukkit.util.Vector
 import red.man10.display.filter.*
 import java.io.File
 
 
-class DisplayManager(main: JavaPlugin)   : Listener {
+class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
 
     init {
@@ -300,7 +309,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     }
     fun image(sender: CommandSender, displayName: String,path:String): Boolean {
         val display = getDisplay(displayName) ?: return false
-        display.image(path)
+       // display.image(path)
         return true
     }
 
@@ -380,4 +389,192 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
         return true
     }
+
+    @EventHandler
+    fun onPlayerToggleSneak(e: PlayerToggleSneakEvent) {
+        e.player.sendMessage("スニーク")
+        /*
+        //      プレイヤーがマップを持っていなければ抜け　
+        val player = e.player
+        val item = player.inventory.itemInMainHand
+        if (item.type != Material.FILLED_MAP) {
+            return
+        }
+
+         */
+    }
+
+    @EventHandler
+    fun onPlayerMove(event: PlayerMoveEvent) {
+        val player = event.player
+        val from: Location = event.from
+        val to: Location = event.to
+        if (from.getYaw() !== to.getYaw() || from.getPitch() !== to.getPitch()) {
+            //player.sendMessage("向きが変わった")
+        }
+    }
+    fun onRightButtonClick(event:PlayerInteractEvent){
+        val player = event.player
+        player.sendMessage("§e§l右クリック")
+        onButtonClick(event)
+    }
+    fun onLeftButtonClick(event:PlayerInteractEvent){
+        val player = event.player
+        player.sendMessage("§e§l左クリック")
+        onButtonClick(event)
+    }
+    fun onButtonClick(event:PlayerInteractEvent) {
+
+        val player = event.player
+        val distance = 30.0
+        val rayTraceResult = player.rayTraceBlocks(distance)
+
+        // プレイヤーの視点
+        val eyeLocation = player.eyeLocation
+        // 衝突点
+        val collisionLocation = rayTraceResult?.hitPosition?.toLocation(player.world)
+        // 衝突点からプレイヤーの視点へのベクトル
+        val rayVector =  collisionLocation?.toVector()?.subtract(eyeLocation.toVector())
+
+        drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),Color.RED,10,2)
+
+
+        player.sendMessage("eyeLocation: $eyeLocation")
+        player.sendMessage("collisionLocation: $collisionLocation")
+        player.sendMessage("rayVector: $rayVector")
+        player.sendMessage("hitPosition: ${rayTraceResult?.hitPosition} ")
+        player.sendMessage("hitBlockFace: ${rayTraceResult?.hitBlockFace} ")
+        player.sendMessage("hitBlock: ${rayTraceResult?.hitBlock} ")
+        player.sendMessage("hitEntity: ${rayTraceResult?.hitEntity} ")
+
+
+
+
+        if(rayTraceResult?.hitEntity is ItemFrame) {
+            player.sendMessage("§a§l Clicked ItemFrame")
+            val itemFrame = rayTraceResult?.hitEntity as ItemFrame
+            val item = itemFrame.item
+            player.sendMessage("§a§l ${item.type}")
+        }
+    }
+
+    @EventHandler
+    fun onPlayerInteract(event: PlayerInteractEvent) {
+        val player = event.player
+        val action: Action = event.action
+
+        // プレイヤーが右クリック
+        if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
+            onRightButtonClick(event)
+        // プレイヤーが左クリック
+        } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
+            onLeftButtonClick(event)
+        }
+    }
+    @EventHandler
+    fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent): Boolean {
+        val ent: org.bukkit.entity.Entity = e.rightClicked
+        e.player.sendMessage("§a§l Clicked Entity")
+        if(ent is ItemFrame){
+
+        }else{
+            return false
+        }
+        e.player.sendMessage("§a§l Clicked ItemFrame")
+
+        return true
+
+            /*
+
+        if (ent is ItemFrame) {
+            //  クリックしたアイテムフレームのアイテムがマップでなければ抜け
+            val frame = ent as ItemFrame
+            val item = frame.item
+            if (item.type != Material.FILLED_MAP) {
+                return false
+            }
+            val mapId: Int = getMapId(item)
+            val key: String = findKey(mapId) ?: return false
+            val player = e.player
+
+            //      たたいたブロック面
+            val face = frame.attachedFace
+
+            //      叩いたブロック
+            val block: Block = ent.getLocation().getBlock().getRelative(frame.attachedFace)
+            //Bukkit.getLogger().info(block.toString());
+            val world = e.player.world
+
+            //      叩いたブロックのBB
+            val bb: BoundingBox = block.getBoundingBox()
+            val rayDistance = 3.0
+            val rayAccuracy = 0.01
+
+            //     視線からのベクトルを得る
+            val rayTrace = RayTrace(player.eyeLocation.toVector(), player.eyeLocation.direction)
+            //     ベクトル表示
+            if (debugMode) {
+                // rayTrace.highlight(player.getWorld(),rayDistance,rayAccuracy);
+            }
+
+            //      ディスプレイの　左上、右上をもとめる
+            val topLeft: Vector = block.getLocation().toVector()
+            val bottomRight: Vector = block.getLocation().toVector()
+            topLeft.setY(topLeft.getY() + 1)
+            if (face == BlockFace.WEST) {
+                topLeft.setZ(topLeft.getZ() + 1)
+                topLeft.setX(topLeft.getX() + 1)
+                bottomRight.setX(bottomRight.getX() + 1)
+            }
+            if (face == BlockFace.SOUTH) {
+                topLeft.setX(topLeft.getX() + 1)
+            }
+            if (face == BlockFace.EAST) {
+                bottomRight.setZ(bottomRight.getZ() + 1)
+            }
+            if (face == BlockFace.NORTH) {
+                bottomRight.setZ(bottomRight.getZ() + 1)
+                bottomRight.setX(bottomRight.getX() + 1)
+                topLeft.setZ(topLeft.getZ() + 1)
+            }
+            if (debugMode) {
+                world.playEffect(topLeft.toLocation(world), Effect.SMOKE, 0)
+                world.playEffect(bottomRight.toLocation(world), Effect.SMOKE, 0)
+            }
+
+            //      視線とブロックの交差点
+            val hit: Vector = rayTrace.positionOfIntersection(bb, rayDistance, rayAccuracy)
+            if (hit != null) {
+                //      タッチした場所を光らす
+                //  world.playEffect(hit.toLocation(world), Effect.COLOURED_DUST,0);
+                val aDis: Double = hit.distance(topLeft)
+                val left: Vector = topLeft.setY(hit.getY())
+                val xDis: Double = hit.distance(left)
+                val y: Double = sqrt(aDis * aDis - xDis * xDis)
+                val dx = 128.0 * xDis
+                val dy = 128.0 * y
+                //  dx -= 4;
+                //  dy -= 4;
+                val px = dx.toInt()
+                val py = dy.toInt()
+
+                // player.sendMessage(px+","+py);
+
+                //      タッチイベントを通知
+                val func: DisplayTouchFunction = touchFunctions.get(key)
+                if (func != null) {
+                    if (func.onDisplayTouch(key, mapId, player, px, py)) {
+                        refresh(key)
+                    }
+                }
+            }
+            //      回転イベントをキャンセル
+            e.isCancelled = true
+            return true
+        }
+        return false
+        */
+    }
+
+
 }

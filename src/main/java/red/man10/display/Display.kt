@@ -658,8 +658,10 @@ abstract class Display : MapPacketSender  {
             for (x in 0 until image.width step MC_MAP_SIZE_X) {
                 val tileImage = image.getSubimage(x, y, MC_MAP_SIZE_X, MC_MAP_SIZE_Y)
                 val tileBytes = MapPalette.imageToBytes(tileImage)
-                val packet = createMapPacket(mapIds[index], tileBytes)
-                packets.add(packet)
+                if(mapIds.size > index){
+                    val packet = createMapPacket(mapIds[index], tileBytes)
+                    packets.add(packet)
+                }
                 index++
             }
         }
