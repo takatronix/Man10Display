@@ -27,6 +27,7 @@ import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.math.abs
+import kotlin.math.floor
 
 
 class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
@@ -485,8 +486,44 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         }
     }
 
-    private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
+    private fun calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>{
 
+        if(face==null||rayVector==null||collisionLocation==null)return Pair(0.0,0.0)
+
+        val t=if(face== BlockFace.EAST||face== BlockFace.WEST){
+            rayVector.x
+        }
+        else if(face== BlockFace.SOUTH||face== BlockFace.NORTH){
+            rayVector.z
+        }
+        else if(face== BlockFace.UP||face== BlockFace.DOWN){
+            rayVector.y
+        }
+        else{
+            1.0
+        }
+
+        val frameCollisionLocation=collisionLocation.clone().add(rayVector.clone().multiply(abs(1.0/16.0/t)))
+
+        val height= floor(if(face== BlockFace.UP||face== BlockFace.DOWN){
+            frameCollisionLocation.x.mod(1.0)
+        }
+        else{
+            frameCollisionLocation.y.mod(1.0)
+        }*128)
+
+        val width= floor(if(face== BlockFace.SOUTH||face== BlockFace.NORTH){
+            frameCollisionLocation.x.mod(1.0)
+        }
+        else{
+            frameCollisionLocation.z.mod(1.0)
+        }*128)
+
+        return Pair(width,height)
+
+    }
+
+    private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
         if(face==null||rayVector==null)return 0.0
 
         val t=if(face== BlockFace.EAST||face== BlockFace.WEST){
