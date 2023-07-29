@@ -447,6 +447,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         //額縁との衝突点
         val frameCollisionLocation=collisionLocation?.clone()?.add(rayVector?.clone()?.multiply(multiplier)?: Vector(0,0,0))
 
+        player.sendMessage("§a§l 額縁との衝突点: $frameCollisionLocation")
 
 
         drawLineParticle(player.world,eyeLocation.toVector(),collisionLocation!!.toVector(),Color.RED,30,2,0.1f)
