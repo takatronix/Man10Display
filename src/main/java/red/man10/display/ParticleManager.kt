@@ -38,14 +38,3 @@ fun drawLineParticle(world: World, start: Vector, end: Vector, color: Color, den
         }
     }, duration.toLong())
 }
-
-/*
-private fun playSleepAnimation(asleep: Player) {
-    val bedPacket: PacketContainer = manager.createPacket(PacketType.Play.Server.BED, false)
-    val loc = asleep.location
-
-    // http://wiki.vg/Protocol#Use_Bed
-    bedPacket.getEntityModifier(asleep.world).write(0, asleep)
-    bedPacket.integers.write(1, loc.blockX).write(2, loc.blockY + 1).write(3, loc.blockZ)
-    broadcastNearby(asleep, bedPacket)
-}*/

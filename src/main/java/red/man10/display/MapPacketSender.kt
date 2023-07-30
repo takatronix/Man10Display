@@ -5,7 +5,6 @@ import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.entity.Player
 
 public interface MapPacketSender {
-
     companion object{
         fun send(players:List<Player>,packets:List<PacketContainer>):Int {
             //info("send map packet")

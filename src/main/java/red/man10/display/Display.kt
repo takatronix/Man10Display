@@ -378,6 +378,56 @@ abstract class Display : MapPacketSender  {
 
         return true
     }
+
+    fun resetParams(sender: CommandSender): Boolean {
+        // reset to default
+        this.dithering = false
+        this.fastDithering = false
+        this.showStatus = false
+        this.monochrome = false
+        this.sepia = false
+        this.dithering = false
+        this.fastDithering = false
+        this.showStatus = false
+        this.flip = false
+        this.invert = false
+        this.saturationLevel = 1.0
+        this.colorEnhancer = false
+        this.keepAspectRatio = false
+        this.aspectRatioWidth = 16.0
+        this.aspectRatioHeight = 9.0
+        this.noise = false
+        this.noiseLevel = DEFAULT_NOISE_LEVEL
+        this.sobel = false
+        this.sobelLevel = DEFAULT_SOBEL_LEVEL
+        this.quantize = false
+        this.quantizeLevel = DEFAULT_QUANTIZE_LEVEL
+        this.cartoon = false
+        this.blur = false
+        this.blurRadius = DEFAULT_BLUR_RADIUS
+        this.denoise = false
+        this.denoiseRadius = DEFAULT_DENOISE_RADIUS
+        this.contrast = false
+        this.contrastLevel = DEFAULT_CONTRAST_LEVEL
+        this.scanline = false
+        this.scanlineHeight = DEFAULT_SCANLINE_HEIGHT
+        this.sharpen = false
+        this.sharpenLevel = DEFAULT_SHARPEN_LEVEL
+        this.brightness = false
+        this.brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
+        this.distance = DEFAULT_DISTANCE
+        this.parallelDithering = false
+        this.parallelism = DEFAULT_PARALLELISM
+        this.rasterNoise = false
+        this.rasterNoiseLevel = DEFAULT_RASTER_NOISE_LEVEL
+        this.vignette = false
+        this.vignetteLevel = DEFAULT_VIGNETTE_LEVEL
+        this.testMode = false
+        // update&save
+        this.refreshFlag = true
+        return true
+    }
+
     private fun setInterval(sender: CommandSender, intervalSeconds: Double) {
         resetStats()
         refreshPeriod = (intervalSeconds * 1000).toLong()
@@ -389,7 +439,7 @@ abstract class Display : MapPacketSender  {
         }
     }
 
-    fun setFps(sender: CommandSender, fps: Double) {
+    private fun setFps(sender: CommandSender, fps: Double) {
         val intervalSeconds = 1.0 / fps
         setInterval(sender, intervalSeconds)
     }

@@ -1,5 +1,4 @@
 package red.man10.display
-import red.man10.extention.getItemFrame
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -21,9 +20,9 @@ import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Vector
-import red.man10.display.filter.*
 import red.man10.display.macro.MacroEngine
 import red.man10.extention.fillCircle
+import red.man10.extention.getItemFrame
 import java.awt.Color
 import java.io.File
 import java.util.*
@@ -291,54 +290,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
 
     fun reset(sender: CommandSender, displayName: String): Boolean {
         val display = getDisplay(displayName) ?: return false
-
-        // reset to default
-        display.dithering = false
-        display.fastDithering = false
-        display.showStatus = false
-        display.monochrome = false
-        display.sepia = false
-        display.dithering = false
-        display.fastDithering = false
-        display.showStatus = false
-        display.flip = false
-        display.invert = false
-        display.saturationLevel = 1.0
-        display.colorEnhancer = false
-        display.keepAspectRatio = false
-        display.aspectRatioWidth = 16.0
-        display.aspectRatioHeight = 9.0
-        display.noise = false
-        display.noiseLevel = DEFAULT_NOISE_LEVEL
-        display.sobel = false
-        display.sobelLevel = DEFAULT_SOBEL_LEVEL
-        display.quantize = false
-        display.quantizeLevel = DEFAULT_QUANTIZE_LEVEL
-        display.cartoon = false
-        display.blur = false
-        display.blurRadius = DEFAULT_BLUR_RADIUS
-        display.denoise = false
-        display.denoiseRadius = DEFAULT_DENOISE_RADIUS
-        display.contrast = false
-        display.contrastLevel = DEFAULT_CONTRAST_LEVEL
-        display.scanline = false
-        display.scanlineHeight = DEFAULT_SCANLINE_HEIGHT
-        display.sharpen = false
-        display.sharpenLevel = DEFAULT_SHARPEN_LEVEL
-        display.brightness = false
-        display.brightnessLevel = DEFAULT_BRIGHTNESS_LEVEL
-        display.distance = DEFAULT_DISTANCE
-        display.parallelDithering = false
-        display.parallelism = DEFAULT_PARALLELISM
-        display.rasterNoise = false
-        display.rasterNoiseLevel = DEFAULT_RASTER_NOISE_LEVEL
-        display.vignette = false
-        display.vignetteLevel = DEFAULT_VIGNETTE_LEVEL
-
-        display.testMode = false
-
-        // update&save
-        display.refreshFlag = true
+        display.resetParams(sender)
         save(sender)
         return true
     }

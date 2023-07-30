@@ -2,12 +2,9 @@ package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.sqrt
 
 open class DitheringFilter : ImageFilter() {
-//    private val distanceCache = ConcurrentHashMap<Pair<Color, Color>, Double>()
-//private val distanceCache = HashMap<Pair<Color, Color>, Double>()
 
     override fun apply(image: BufferedImage): BufferedImage {
         val ditheredImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_RGB)
@@ -30,32 +27,12 @@ open class DitheringFilter : ImageFilter() {
         return ditheredImage
     }
 
-
-
-    private fun calculateColorDistance_x(color1: Color, color2: Color): Double {
-        val redDiff = color1.red - color2.red
-        val greenDiff = color1.green - color2.green
-        val blueDiff = color1.blue - color2.blue
-        return sqrt(redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff.toDouble())
-    }
     private fun calculateColorDistance(color1: Color, color2: Color): Double {
         val redDiff = color1.red - color2.red
         val greenDiff = color1.green - color2.green
         val blueDiff = color1.blue - color2.blue
         return redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff.toDouble()
     }
-    /*
-    private fun calculateColorDistanceFromCache(color1: Color, color2: Color): Double {
-        val key = Pair(color1, color2)
-        if (!distanceCache.containsKey(key)) {
-            val redDiff = color1.red - color2.red
-            val greenDiff = color1.green - color2.green
-            val blueDiff = color1.blue - color2.blue
-            distanceCache[key] = redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff.toDouble()
-        }
-        return distanceCache[key]!!
-    }
-*/
 
     fun mapToPalette(color: Color): Color {
         var minDistance = Double.MAX_VALUE
@@ -71,36 +48,6 @@ open class DitheringFilter : ImageFilter() {
         }
 
         return closestColor
-    }
-
-    /*
-    private fun calculateColorDistance_cache(color1: Color, color2: Color): Double {　
-        val key = Pair(color1, color2)
-        if (!distanceCache.containsKey(key)) {
-            val redDiff = color1.red - color2.red
-            val greenDiff = color1.green - color2.greensd
-            val blueDiff = color1.blue - color2.blue
-            distanceCache[key] = redDiff * redDiff + greenDiff * greenDiff + blueDiff * blueDiff.toDouble()
-        }
-        return distanceCache[key]!!
-    }*/
-
-    open fun propagateError_x(image: BufferedImage, x: Int, y: Int, error: Color) {
-        if (x + 1 < image.width) {
-            modifyPixel(image, x + 1, y, error, 7.0 / 16)
-        }
-
-        if (x - 1 >= 0 && y + 1 < image.height) {
-            modifyPixel(image, x - 1, y + 1, error, 3.0 / 16)
-        }
-
-        if (y + 1 < image.height) {
-            modifyPixel(image, x, y + 1, error, 5.0 / 16)
-        }
-
-        if (x + 1 < image.width && y + 1 < image.height) {
-            modifyPixel(image, x + 1, y + 1, error, 1.0 / 16)
-        }
     }
 
     open fun propagateError(image: BufferedImage, x: Int, y: Int, error: Color) {
@@ -121,7 +68,6 @@ open class DitheringFilter : ImageFilter() {
         }
     }
 
-
     private fun modifyPixel(image: BufferedImage, x: Int, y: Int, error: Color, weight: Double) {
         val pixelRgb = image.getRGB(x, y)
         val pixelColor = Color(pixelRgb)
@@ -132,7 +78,4 @@ open class DitheringFilter : ImageFilter() {
         )
         image.setRGB(x, y, modifiedColor.rgb)
     }
-
-
-
 }

@@ -28,11 +28,7 @@ class ParallelDitheringFilter(private val parallelism: Int = DEFAULT_PARALLELISM
                 }
             }
         }
-
         jobs.joinAll()
-
         return@runBlocking ditheredImage
     }
-
-
 }
