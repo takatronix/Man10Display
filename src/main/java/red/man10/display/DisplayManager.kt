@@ -313,7 +313,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
             collisionLocation.clone().add(rayVector.clone().multiply(multiplier))
         // 衝突したブロックの面
         val face = rayTraceResult.hitBlockFace
-        //　対象の額縁
+        //　対象の額縁があるかどうか
         val frame = rayTraceResult.hitBlock?.getItemFrame(face!!) ?: return
         // 額縁に入っているアイテム
         val item = frame.item
