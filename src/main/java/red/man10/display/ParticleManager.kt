@@ -1,15 +1,11 @@
 package red.man10.display
 
-import com.comphenix.protocol.ProtocolLibrary
-import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Particle
 import org.bukkit.World
-import org.bukkit.entity.Player
 import org.bukkit.util.Vector
 import red.man10.display.Main.Companion.plugin
-
 
 
 /**

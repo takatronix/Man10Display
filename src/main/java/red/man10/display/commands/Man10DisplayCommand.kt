@@ -2,11 +2,13 @@ package red.man10.display.commands
 
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import red.man10.commandrouter.*
+import red.man10.commandrouter.CommandData
+import red.man10.commandrouter.CommandObject
+import red.man10.commandrouter.CommandRouter
 import red.man10.display.Display
-import red.man10.display.MacroEngine
 import red.man10.display.Main
 import red.man10.display.commands.logic.*
+import red.man10.display.macro.MacroEngine
 
 class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
 {

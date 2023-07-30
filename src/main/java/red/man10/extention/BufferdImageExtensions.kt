@@ -3,7 +3,6 @@ package red.man10.extention
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
-import java.nio.Buffer
 
 fun BufferedImage.fill(colorName:String) : Rectangle {
     val graphics = this.createGraphics()

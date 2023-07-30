@@ -7,22 +7,31 @@ import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
+import red.man10.display.macro.CommandType.*
 import red.man10.display.MapPacketSender.Companion.createMapPacket
-import red.man10.display.CommandType.*
 import red.man10.display.filter.*
-import red.man10.display.macro.ImageCommand
-import red.man10.display.macro.LineCommand
+import red.man10.display.macro.*
+import red.man10.extention.clear
+import red.man10.extention.drawImage
+import red.man10.extention.drawImageNoMargin
+import red.man10.extention.stretchImage
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.MutableList
+import kotlin.collections.MutableMap
+import kotlin.collections.arrayListOf
+import kotlin.collections.indices
+import kotlin.collections.isNotEmpty
+import kotlin.collections.mutableListOf
+import kotlin.collections.set
+import kotlin.collections.toMutableList
 import kotlin.system.measureTimeMillis
-import red.man10.display.*
-import red.man10.display.macro.*
-import red.man10.extention.*
-import java.awt.Color
 
 
 // minecraft map size
@@ -315,7 +324,60 @@ abstract class Display : MapPacketSender  {
         }
 
     }
+    fun showInfo(p: CommandSender): Boolean {
 
+        p.sendMessage(Main.prefix + "§a§l Display Info")
+        p.sendMessage("§a§l name: ${this.name}")
+        p.sendMessage("§a§l width: ${this.width}")
+        p.sendMessage("§a§l height: ${this.height}")
+        p.sendMessage("§a§l location: ${this.locInfo}")
+        p.sendMessage("§a§l distance: ${this.distance}")
+        p.sendMessage("§a§l fps: ${this.fps}")
+        p.sendMessage("§a§l protect: ${this.protect}")
+
+        // パラメータを表示
+        p.sendMessage("§a§l monochrome: ${this.monochrome}")
+        p.sendMessage("§a§l sepia: ${this.sepia}")
+        p.sendMessage("§a§l dithering: ${this.dithering}")
+        p.sendMessage("§a§l fast_dithering: ${this.fastDithering}")
+        p.sendMessage("§a§l show_status: ${this.showStatus}")
+        p.sendMessage("§a§l flip: ${this.flip}")
+        p.sendMessage("§a§l invert: ${this.invert}")
+        p.sendMessage("§a§l saturation_factor: ${this.saturationLevel}")
+        p.sendMessage("§a§l color_enhancer: ${this.colorEnhancer}")
+        p.sendMessage("§a§l keep_aspect_ratio: ${this.keepAspectRatio}")
+        p.sendMessage("§a§l aspect_ratio_width: ${this.aspectRatioWidth}")
+        p.sendMessage("§a§l aspect_ratio_height: ${this.aspectRatioHeight}")
+        p.sendMessage("§a§l noise: ${this.noise}")
+        p.sendMessage("§a§l noise_level: ${this.noiseLevel}")
+        p.sendMessage("§a§l quantize: ${this.quantize}")
+        p.sendMessage("§a§l quantize_level: ${this.quantizeLevel}")
+        p.sendMessage("§a§l sobel: ${this.sobel}")
+        p.sendMessage("§a§l sobel_level: ${this.sobelLevel}")
+        p.sendMessage("§a§l cartoon: ${this.cartoon}")
+        p.sendMessage("§a§l blur: ${this.blur}")
+        p.sendMessage("§a§l blur_radius: ${this.blurRadius}")
+        p.sendMessage("§a§l denoise: ${this.denoise}")
+        p.sendMessage("§a§l denoise_radius: ${this.denoiseRadius}")
+        p.sendMessage("§a§l contrast: ${this.contrast}")
+        p.sendMessage("§a§l contrast_level: ${this.contrastLevel}")
+        p.sendMessage("§a§l sharpen: ${this.sharpen}")
+        p.sendMessage("§a§l sharpen_level: ${this.sharpenLevel}")
+        p.sendMessage("§a§l scanline: ${this.scanline}")
+        p.sendMessage("§a§l scanline_width: ${this.scanlineHeight}")
+        p.sendMessage("§a§l brightness: ${this.brightness}")
+        p.sendMessage("§a§l brightnessLevel: ${this.brightnessLevel}")
+        p.sendMessage("§a§l distance: ${this.distance}")
+        p.sendMessage("§a§l parallelDithering: ${this.parallelDithering}")
+        p.sendMessage("§a§l parallelism: ${this.parallelism}")
+        p.sendMessage("§a§l rasterNoise: ${this.rasterNoise}")
+        p.sendMessage("§a§l rasterNoiseLevel: ${this.rasterNoiseLevel}")
+        p.sendMessage("§a§l vignette: ${this.vignette}")
+        p.sendMessage("§a§l vignetteLevel: ${this.vignetteLevel}")
+        p.sendMessage("§a§l test_mode: ${this.testMode}")
+
+        return true
+    }
     private fun setInterval(sender: CommandSender, intervalSeconds: Double) {
         resetStats()
         refreshPeriod = (intervalSeconds * 1000).toLong()

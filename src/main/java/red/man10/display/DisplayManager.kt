@@ -1,16 +1,13 @@
 package red.man10.display
-import getItemFrame
+import red.man10.extention.getItemFrame
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.BlockFace.*
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -25,14 +22,13 @@ import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Vector
 import red.man10.display.filter.*
+import red.man10.display.macro.MacroEngine
 import red.man10.extention.fillCircle
-import red.man10.extention.setPixel
 import java.awt.Color
 import java.io.File
 import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
-import java.util.concurrent.ThreadLocalRandom
 
 class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
@@ -134,61 +130,7 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         }
         return true
     }
-    fun showInfo(p: CommandSender, name: String): Boolean {
-        val display = getDisplay(name) ?: return false
-        p.sendMessage(Main.prefix + "§a§l Display Info")
-        p.sendMessage("§a§l name: ${display.name}")
-        p.sendMessage("§a§l width: ${display.width}")
-        p.sendMessage("§a§l height: ${display.height}")
-        p.sendMessage("§a§l location: ${display.locInfo}")
-        p.sendMessage("§a§l distance: ${display.distance}")
-        p.sendMessage("§a§l fps: ${display.fps}")
-        p.sendMessage("§a§l protect: ${display.protect}")
 
-        // パラメータを表示
-        p.sendMessage("§a§l monochrome: ${display.monochrome}")
-        p.sendMessage("§a§l sepia: ${display.sepia}")
-        p.sendMessage("§a§l dithering: ${display.dithering}")
-        p.sendMessage("§a§l fast_dithering: ${display.fastDithering}")
-        p.sendMessage("§a§l show_status: ${display.showStatus}")
-        p.sendMessage("§a§l flip: ${display.flip}")
-        p.sendMessage("§a§l invert: ${display.invert}")
-        p.sendMessage("§a§l saturation_factor: ${display.saturationLevel}")
-        p.sendMessage("§a§l color_enhancer: ${display.colorEnhancer}")
-        p.sendMessage("§a§l keep_aspect_ratio: ${display.keepAspectRatio}")
-        p.sendMessage("§a§l aspect_ratio_width: ${display.aspectRatioWidth}")
-        p.sendMessage("§a§l aspect_ratio_height: ${display.aspectRatioHeight}")
-        p.sendMessage("§a§l noise: ${display.noise}")
-        p.sendMessage("§a§l noise_level: ${display.noiseLevel}")
-        p.sendMessage("§a§l quantize: ${display.quantize}")
-        p.sendMessage("§a§l quantize_level: ${display.quantizeLevel}")
-        p.sendMessage("§a§l sobel: ${display.sobel}")
-        p.sendMessage("§a§l sobel_level: ${display.sobelLevel}")
-        p.sendMessage("§a§l cartoon: ${display.cartoon}")
-        p.sendMessage("§a§l blur: ${display.blur}")
-        p.sendMessage("§a§l blur_radius: ${display.blurRadius}")
-        p.sendMessage("§a§l denoise: ${display.denoise}")
-        p.sendMessage("§a§l denoise_radius: ${display.denoiseRadius}")
-        p.sendMessage("§a§l contrast: ${display.contrast}")
-        p.sendMessage("§a§l contrast_level: ${display.contrastLevel}")
-        p.sendMessage("§a§l sharpen: ${display.sharpen}")
-        p.sendMessage("§a§l sharpen_level: ${display.sharpenLevel}")
-        p.sendMessage("§a§l scanline: ${display.scanline}")
-        p.sendMessage("§a§l scanline_width: ${display.scanlineHeight}")
-        p.sendMessage("§a§l brightness: ${display.brightness}")
-        p.sendMessage("§a§l brightnessLevel: ${display.brightnessLevel}")
-        p.sendMessage("§a§l distance: ${display.distance}")
-        p.sendMessage("§a§l parallelDithering: ${display.parallelDithering}")
-        p.sendMessage("§a§l parallelism: ${display.parallelism}")
-        p.sendMessage("§a§l rasterNoise: ${display.rasterNoise}")
-        p.sendMessage("§a§l rasterNoiseLevel: ${display.rasterNoiseLevel}")
-        p.sendMessage("§a§l vignette: ${display.vignette}")
-        p.sendMessage("§a§l vignetteLevel: ${display.vignetteLevel}")
-
-        p.sendMessage("§a§l test_mode: ${display.testMode}")
-
-        return true
-    }
     fun showStats(sender: CommandSender, name: String): Boolean {
         sender.sendMessage(Main.prefix + "§a§l Display Stats")
         val display = getDisplay(name) ?: return false
@@ -413,6 +355,8 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         return true
     }
 
+    // region event handlers
+
     @EventHandler
     fun onPlayerToggleSneak(e: PlayerToggleSneakEvent) {
         e.player.sendMessage("スニーク")
@@ -439,6 +383,10 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
             //player.sendMessage("向きが変わった")
         }
     }
+
+    // endregion
+
+
     fun onRightButtonClick(event:PlayerInteractEvent){
         val player = event.player
         onButtonClick(event)
@@ -552,24 +500,10 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
         return abs(1.0/16.0/t)
     }
 
-    @EventHandler
-    fun onPlayerInteract(event: PlayerInteractEvent) {
-        val player = event.player
-        val action: Action = event.action
-
-        // プレイヤーが右クリック
-        if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
-            onRightButtonClick(event)
-            // プレイヤーが左クリック
-        } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
-            onLeftButtonClick(event)
-        }
-    }
 
     fun onMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
        // player.sendMessage("§a§l Clicked Map $mapId $x $y")
         val display = getDisplay(mapId) ?: return false
-
 
         val xy = display.getImageXY(mapId,x, y)
         val imageX = xy.first
@@ -588,12 +522,30 @@ class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
    //     display.refresh()
         return true
     }
+    @EventHandler
+    fun onPlayerInteract(event: PlayerInteractEvent) {
+        val player = event.player
+        val action: Action = event.action
+
+        // プレイヤーが右クリック
+        if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
+            onRightButtonClick(event)
+            // プレイヤーが左クリック
+        } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
+            onLeftButtonClick(event)
+        }
+    }
 
 
     @EventHandler
     fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent): Boolean {
         interactMap(e.player)
         return true
+    }
+
+    fun showInfo(sender:CommandSender,name:String): Boolean {
+        val display = getDisplay(name) ?: return false
+        return display.showInfo(sender)
     }
 
 

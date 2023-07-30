@@ -1,15 +1,16 @@
-package red.man10.display
+package red.man10.display.macro
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import red.man10.display.CommandType.*
+import kotlinx.coroutines.*
+import org.bukkit.command.CommandSender
+import org.bukkit.entity.Player
+import red.man10.display.Display
+import red.man10.display.Main
+import red.man10.display.info
+import red.man10.display.macro.CommandType.*
 import java.io.File
 import java.util.*
 import kotlin.math.roundToLong
 import kotlin.random.Random
-import kotlinx.coroutines.*
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 
 // スレッドループの最小単位
 const val MACRO_SLEEP_TIME = 1L
@@ -44,7 +45,7 @@ enum class CommandType {
     MESSAGE,
     PLAY_SOUND,
 }
-fun getCommandType(key:String):CommandType {
+fun getCommandType(key:String): CommandType {
     // 文字列をCommandTypeに変換する
     try {
         return CommandType.valueOf(key.uppercase(Locale.getDefault()))
@@ -102,7 +103,7 @@ data class MacroCommand(
 )
 
 abstract class MacroCommandHandler {
-    abstract fun run(display:Display, players:List<Player>,sender:CommandSender? = null)
+    abstract fun run(display: Display, players:List<Player>, sender:CommandSender? = null)
 }
 
 

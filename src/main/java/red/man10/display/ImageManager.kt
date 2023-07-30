@@ -1,13 +1,9 @@
 package red.man10.display
 
-import java.awt.Color
-import java.awt.Graphics2D
-import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 
 class ImageManager(imagePath:String) {

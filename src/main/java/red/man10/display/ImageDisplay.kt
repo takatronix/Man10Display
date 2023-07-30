@@ -1,7 +1,6 @@
 package red.man10.display
 
 import org.bukkit.configuration.file.YamlConfiguration
-import java.util.function.Consumer
 
 class ImageDisplay : Display {
     init{

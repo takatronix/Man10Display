@@ -1,6 +1,7 @@
+package red.man10.extention
+
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemFrame
 
 fun Block.getItemFrame(face: BlockFace): ItemFrame? {
