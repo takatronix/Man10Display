@@ -290,23 +290,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
 
 
-    fun onRightButtonClick(event:PlayerInteractEvent){
-        val player = event.player
-        onButtonClick(event)
-
-    }
-    fun onLeftButtonClick(event:PlayerInteractEvent){
-        val player = event.player
-        onButtonClick(event)
-
-        penRadius = Math.random() * 40 + 5
-        val r = Math.random() * 255
-        val g = Math.random() * 255
-        val b = Math.random() * 255
-        val col = Color(r.toInt(), g.toInt(), b.toInt())
-        penColor =col
-
-    }
 
     private fun interactMap(player:Player){
         val distance = 30.0
@@ -344,8 +327,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     fun onButtonClick(event:PlayerInteractEvent) {
         interactMap(event.player)
-
-
     }
 
     private fun calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>{
@@ -416,7 +397,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val imageX = xy.first
         val imageY = xy.second
 
-        var distance = display.location?.distance(player.location)
+        val distance = display.location?.distance(player.location)
         var r = 3.0
         if (distance != null) {
             r = distance / 10
@@ -488,5 +469,21 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
     // endregion
+    fun onRightButtonClick(event:PlayerInteractEvent){
+        val player = event.player
+        onButtonClick(event)
+    }
+    fun onLeftButtonClick(event:PlayerInteractEvent){
+        val player = event.player
+        onButtonClick(event)
+
+        penRadius = Math.random() * 40 + 5
+        val r = Math.random() * 255
+        val g = Math.random() * 255
+        val b = Math.random() * 255
+        val col = Color(r.toInt(), g.toInt(), b.toInt())
+        penColor =col
+
+    }
 
 }
