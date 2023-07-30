@@ -9,6 +9,7 @@ import red.man10.display.Display
 import red.man10.display.Main
 import red.man10.display.commands.logic.*
 import red.man10.display.macro.MacroEngine
+import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy
 
 class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
 {
@@ -125,7 +126,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
             CommandObject()
                 .prefix("set")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
-                .argument("[setting keyword]") { _ -> Main.displayManager.parameterKeys }
+                .argument("[setting keyword]") { _ -> Display.parameterKeys }
                 .argument("value")
                 .permission("red.man10.display.op")
                 .explanation("Set parameter")

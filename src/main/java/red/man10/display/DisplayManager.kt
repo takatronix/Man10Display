@@ -26,12 +26,18 @@ import red.man10.extention.getItemFrame
 import java.awt.Color
 import java.io.File
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 import kotlin.math.floor
 
+class UserData{
+    var lastLocation:Location? = null
+    var rightButtonPressed = false
+}
+
 class DisplayManager(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
-    private val userData = HashMap<UUID, Long>()
+    private val userData = ConcurrentHashMap<UUID, UserData>()
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
@@ -58,29 +64,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
             }
             return nameList
         }
-    val parameterKeys:ArrayList<String>
-        get() {
-            return arrayListOf(
-                "fps","interval","dithering","location","protect",
-                "fast_dithering","show_status",
-                "monochrome","sepia","invert","flip",
-                "saturation_level","color_enhancer",
-                "keep_aspect_ratio","aspect_ratio_width", "aspect_ratio_height",
-                "noise_level","noise",
-                "raster_noise","raster_noise_level",
-                "vignette","vignette_level",
-                "quantize_level","quantize",
-                "sobel_level","sobel",
-                "cartoon",
-                "blur","blur_radius",
-                "denoise","denoise_radius",
-                "contrast","contrast_level","brightness","brightness_level",
-                "sharpen","sharpen_level",
-                "scanline","scanline_height",
-                "distance",
-                "parallel_dithering","parallelism",
-                "test_mode")
-        }
+
     fun getDisplay(name: String): Display? {
         displays.find { it.name == name }?.let {
             return it
