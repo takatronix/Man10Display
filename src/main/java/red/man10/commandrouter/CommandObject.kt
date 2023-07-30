@@ -11,11 +11,11 @@ import java.util.function.Function
 
 class CommandObject {
     var arguments = ArrayList<CommandArgument?>()
-    var executors = ArrayList<CommandExecutor>()
-    var inlineExecutors = ArrayList<Consumer<CommandData>>()
-    var isInfinity = false
+    private var executors = ArrayList<CommandExecutor>()
+    private var inlineExecutors = ArrayList<Consumer<CommandData>>()
+    private var isInfinity = false
     var permission: String? = null
-    var explanation = ArrayList<String>()
+    private var explanation = ArrayList<String>()
     fun infinity(): CommandObject {
         isInfinity = true
         return this
