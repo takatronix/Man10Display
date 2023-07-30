@@ -89,21 +89,6 @@ fun BufferedImage.drawRect(x: Int, y: Int, width: Int, height: Int, r: Int, g: I
     return Rectangle(x, y, width, height)
 }
 
-/*
-fun BufferedImage.fill(colorString: String) : Rectangle{
-    // 先頭の#を除去
-    val hex = colorString.trimStart('#')
-
-    // 16進数からRGB値を取得
-    val r = hex.substring(0, 2).toInt(16)
-    val g = hex.substring(2, 4).toInt(16)
-    val b = hex.substring(4, 6).toInt(16)
-
-    fill(r, g, b)
-
-    return Rectangle(0,0,this.width,this.height)
-}
-*/
 fun BufferedImage.drawImage(image: BufferedImage): Rectangle {
     // 描画先の画像サイズ
     val targetWidth = this.width
