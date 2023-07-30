@@ -16,7 +16,7 @@ class Main : JavaPlugin(), Listener {
         var commandSender: CommandSender? = null
         val prefix = "[Man10Display] "
         lateinit var plugin: JavaPlugin
-        lateinit var displayManager: DisplayManager<Any?>
+        lateinit var displayManager: DisplayManager
         lateinit var imageManager: ImageManager
         lateinit var protocolManager: ProtocolManager
         lateinit var commandRouter: Man10DisplayCommand
@@ -52,12 +52,4 @@ class Main : JavaPlugin(), Listener {
         displayManager.deinit()
         info("Disabled Man10 Display Plugin")
     }
-
-    fun showConfigData(sender: CommandSender? = null) {
-        //     info("broadcast:${Main.configData.broadcast}")
-        //    info("switchTime:${Main.configData.switchTime}")
-    }
-
-
-
 }

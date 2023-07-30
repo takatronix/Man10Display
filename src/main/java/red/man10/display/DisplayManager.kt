@@ -29,7 +29,7 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.floor
 
-class DisplayManager<Entity>(main: JavaPlugin)   : Listener {
+class DisplayManager(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
     private val lastInteractTime = HashMap<UUID, Long>()
 

@@ -6,10 +6,9 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 
 class ImageLoader(fileName: String) {
-
     companion object{
         private var imageCache: MutableMap<String, BufferedImage> = ConcurrentHashMap()
-        fun load(filePath: String): BufferedImage? {
+        private fun load(filePath: String): BufferedImage? {
             return try {
                 // httpから始まる場合は、URLから画像を取得
                 if(filePath.startsWith("http")){

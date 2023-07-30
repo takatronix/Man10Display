@@ -17,7 +17,6 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         registerEvents()
         pluginPrefix = Main.prefix
     }
-
     private fun getTargetBlockCoordinatesArgument(commandSender: CommandSender, range: Int): ArrayList<String>{
         val player = commandSender as Player
         val block = player.getTargetBlock(range) ?: return arrayListOf("None", "None", "None")

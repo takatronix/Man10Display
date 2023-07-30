@@ -8,10 +8,6 @@ import javax.imageio.ImageIO
 
 class ImageManager(imagePath:String) {
     private var imagePath: String? = imagePath
-
-    companion object{
-    }
-
     fun save(name:String,image:BufferedImage):Boolean{
         try{
             // ディレクトリを作成
