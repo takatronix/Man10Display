@@ -29,6 +29,8 @@ class PlayerData {
     var lastLocation: Location? = null
     var rightButtonPressed = false
     var isSneaking = false
+
+    var lastRightClickTime : Long = 0
 }
 
 class DisplayManager(main: JavaPlugin) : Listener {
@@ -296,13 +298,14 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
 
     private fun interactMap(player: Player) {
-        val distance = 30.0
+        val distance = 32.0
         val rayTraceResult = player.rayTraceBlocks(distance)
+        val hitPosition = rayTraceResult?.hitPosition ?: return
 
         //  視線の衝突点
-        val collisionLocation = rayTraceResult?.hitPosition?.toLocation(player.world)
+        val collisionLocation = hitPosition.toLocation(player.world)
         // プレイヤーから衝突点へのベクトル
-        val rayVector = player.eyeLocation.toVector().subtract(collisionLocation!!.toVector())
+        val rayVector = player.eyeLocation.toVector().subtract(collisionLocation.toVector())
         // 額縁との衝突点の計算のための係数
         val multiplier = ItemFrameCoordinate.calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace, rayVector)
         // 額縁との衝突点
