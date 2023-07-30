@@ -11,10 +11,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
-import org.bukkit.event.player.PlayerInteractEntityEvent
-import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.event.player.PlayerMoveEvent
-import org.bukkit.event.player.PlayerToggleSneakEvent
+import org.bukkit.event.player.*
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
@@ -30,14 +27,15 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 import kotlin.math.floor
 
-class UserData{
+class PlayerData{
     var lastLocation:Location? = null
     var rightButtonPressed = false
+    var isSneaking = false
 }
 
 class DisplayManager(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
-    private val userData = ConcurrentHashMap<UUID, UserData>()
+    private val playerData = ConcurrentHashMap<UUID, PlayerData>()
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
@@ -271,7 +269,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-
     fun reset(sender: CommandSender, displayName: String): Boolean {
         val display = getDisplay(displayName) ?: return false
         display.resetParams(sender)
@@ -291,27 +288,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    // region event handlers
-
-    @EventHandler
-    fun onPlayerToggleSneak(e: PlayerToggleSneakEvent) {
-        e.player.sendMessage("スニーク ${e.isSneaking}")
-    }
-
-    var penRadius = 5.0
-    var penColor = Color.RED
-
-    @EventHandler
-    fun onPlayerMove(event: PlayerMoveEvent) {
-        val player = event.player
-        val from: Location = event.from
-        val to: Location = event.to
-        if (from.getYaw() !== to.getYaw() || from.getPitch() !== to.getPitch()) {
-            //player.sendMessage("向きが変わった")
-        }
-    }
-
-    // endregion
 
 
     fun onRightButtonClick(event:PlayerInteractEvent){
@@ -336,33 +312,33 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val distance = 30.0
         val rayTraceResult = player.rayTraceBlocks(distance)
 
-        // 衝突点
+        //  視線の衝突点
         val collisionLocation = rayTraceResult?.hitPosition?.toLocation(player.world)
-
         // プレイヤーから衝突点へのベクトル
         val rayVector =  player.eyeLocation.toVector().subtract(collisionLocation!!.toVector())
-
-        //額縁との衝突点の計算のための係数
+        // 額縁との衝突点の計算のための係数
         val multiplier= calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace,rayVector) ?:0.0
-
         // 額縁との衝突点
         val frameCollisionLocation= collisionLocation.clone().add(rayVector.clone().multiply(multiplier) ?: Vector(0,0,0))
-
+        // 衝突したブロックの面
         val face = rayTraceResult.hitBlockFace
-
+        //　対象の額縁
         val frame = rayTraceResult.hitBlock?.getItemFrame(face!!) ?: return
+        // 額縁に入っているアイテム
         val item = frame.item ?: return
+
+
         if(item.type!=Material.FILLED_MAP)
             return
+
         val mapMeta = item.itemMeta as MapMeta
         val mapView = mapMeta.mapView ?: return
         val mapId = mapView.id
 
+        // result.first = x座標 result.second = y座標
         val result = calculatePixelCoordinate(face, rayVector,collisionLocation)
 
-
         onMapClick(player, mapId,result.first.toInt(), result.second.toInt())
-
     }
 
 
@@ -376,17 +352,19 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         if(face==null||rayVector==null||collisionLocation==null)
             return Pair(0.0,0.0)
 
-        val t= if(face== EAST ||face== WEST){
-            rayVector.x
-        }
-        else if(face== SOUTH ||face== NORTH){
-            rayVector.z
-        }
-        else if(face== UP ||face== DOWN){
-            rayVector.y
-        }
-        else{
-            1.0
+        val t= when (face) {
+            EAST, WEST -> {
+                rayVector.x
+            }
+            SOUTH, NORTH -> {
+                rayVector.z
+            }
+            UP, DOWN -> {
+                rayVector.y
+            }
+            else -> {
+                1.0
+            }
         }
         val frameCollisionLocation=collisionLocation.clone().add(rayVector.clone().multiply(abs(1.0/16.0/t)))
 
@@ -411,43 +389,83 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     // 額縁との衝突点の計算のための係数
     private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
-        if(face==null||rayVector==null)return 0.0
-        val t=if(face== EAST ||face== WEST){
-            rayVector.x
-        }
-        else if(face== SOUTH ||face== NORTH){
-            rayVector.z
-        }
-        else if(face== UP ||face== DOWN){
-            rayVector.y
-        }
-        else{
-            1.0
+        if(face==null||rayVector==null)
+            return 0.0
+        val t= when (face) {
+            EAST, WEST -> {
+                rayVector.x
+            }
+            SOUTH, NORTH -> {
+                rayVector.z
+            }
+            UP, DOWN -> {
+                rayVector.y
+            }
+            else -> {
+                1.0
+            }
         }
         return abs(1.0/16.0/t)
     }
 
-
-    fun onMapClick(player:Player,mapId:Int,x:Int,y:Int):Boolean{
-       // player.sendMessage("§a§l Clicked Map $mapId $x $y")
+    private fun onMapClick(player:Player, mapId:Int, x:Int, y:Int):Boolean {
+        // player.sendMessage("§a§l Clicked Map $mapId $x $y")
         val display = getDisplay(mapId) ?: return false
 
-        val xy = display.getImageXY(mapId,x, y)
+        val xy = display.getImageXY(mapId, x, y)
         val imageX = xy.first
-        val imageY =  xy.second
+        val imageY = xy.second
 
         var distance = display.location?.distance(player.location)
         var r = 3.0
-        if(distance!=null){
-            r = distance/10
+        if (distance != null) {
+            r = distance / 10
         }
-        if(r < 5){
+        if (r < 5) {
             r = 5.0
         }
 
-        display.update(display.currentImage?.fillCircle(imageX , imageY ,penRadius.toInt() ,penColor))
-   //     display.refresh()
+        display.update(display.currentImage?.fillCircle(imageX, imageY, penRadius.toInt(), penColor))
+        //     display.refresh()
         return true
+    }
+
+    fun showInfo(sender:CommandSender,name:String): Boolean {
+        val display = getDisplay(name) ?: return false
+        return display.showInfo(sender)
+    }
+    // region event handlers
+
+    // ログインイベント
+    @EventHandler
+    fun onPlayerJoin(e: PlayerJoinEvent) {
+        val player = e.player
+        //プレイヤーデータを初期化
+        playerData[player.uniqueId] = PlayerData()
+    }
+    @EventHandler
+    fun onPlayerQuit(e: PlayerQuitEvent) {
+        val player = e.player
+        // プレイヤーデータを削除
+        playerData.remove(player.uniqueId)
+    }
+
+    @EventHandler
+    fun onPlayerToggleSneak(e: PlayerToggleSneakEvent) {
+        playerData[e.player.uniqueId]?.isSneaking = e.isSneaking
+    }
+
+    var penRadius = 5.0
+    var penColor = Color.RED
+
+    @EventHandler
+    fun onPlayerMove(event: PlayerMoveEvent) {
+        val player = event.player
+        val from: Location = event.from
+        val to: Location = event.to
+        if (from.getYaw() !== to.getYaw() || from.getPitch() !== to.getPitch()) {
+            //player.sendMessage("向きが変わった")
+        }
     }
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
@@ -469,11 +487,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         interactMap(e.player)
         return true
     }
-
-    fun showInfo(sender:CommandSender,name:String): Boolean {
-        val display = getDisplay(name) ?: return false
-        return display.showInfo(sender)
-    }
-
+    // endregion
 
 }
