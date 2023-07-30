@@ -8,14 +8,14 @@ import red.man10.display.Main
 
 class RefreshCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        try{
+        try {
             val displayName = args[1]
 
-            if(!Main.displayManager.refresh(sender,displayName)){
+            if (!Main.displayManager.refresh(sender, displayName)) {
                 sender.sendMessage(Main.prefix + "§a§l $displayName does not exist")
                 return false
             }
-        }catch (e:Exception){
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l{e.message}")
             return true
         }

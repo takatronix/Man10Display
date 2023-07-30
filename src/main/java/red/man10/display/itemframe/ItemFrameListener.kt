@@ -49,7 +49,7 @@ class ItemFrameListener : Listener {
 
         //if (remover is Player) {
         //    remover.sendMessage(Main.prefix + "§4This item frame is protected")
-       // }
+        // }
 
         e.isCancelled = true
     }
@@ -67,7 +67,7 @@ class ItemFrameListener : Listener {
 
         e.isCancelled = true
         // タッチ可能性がある場合は、メッセージを表示させない
-      //  e.player.sendMessage(Main.prefix + "§4This item frame is protected")
+        //  e.player.sendMessage(Main.prefix + "§4This item frame is protected")
     }
 
     @EventHandler
@@ -89,7 +89,7 @@ class ItemFrameListener : Listener {
                 remover.sendMessage(Main.prefix + "§bIgnored protections")
                 return
             }
-             // タッチ可能性がある場合は、メッセージを表示させない
+            // タッチ可能性がある場合は、メッセージを表示させない
 //            remover.sendMessage(Main.prefix + "§4This item frame is protected")
         }
 
@@ -198,7 +198,7 @@ class ItemFrameListener : Listener {
         if (entity !is ItemFrame) return null
         val meta = entity.item.itemMeta as? MapMeta ?: return null
         val mapView = meta.mapView ?: return null
-      //  if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
+        //  if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
         // displayがprotect=falseの時は保護しない
         if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) && it.protect }) return null
 

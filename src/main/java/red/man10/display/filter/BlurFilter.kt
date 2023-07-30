@@ -3,6 +3,7 @@ package red.man10.display.filter
 import java.awt.image.BufferedImage
 
 const val DEFAULT_BLUR_RADIUS = 3
+
 class BlurFilter(private val radius: Int = DEFAULT_BLUR_RADIUS) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
@@ -29,7 +30,12 @@ class BlurFilter(private val radius: Int = DEFAULT_BLUR_RADIUS) : ImageFilter() 
         return verticalBlurred
     }
 
-    private fun applyConvolution(source: BufferedImage, destination: BufferedImage, weights: FloatArray, kernelSize: Int): BufferedImage {
+    private fun applyConvolution(
+        source: BufferedImage,
+        destination: BufferedImage,
+        weights: FloatArray,
+        kernelSize: Int
+    ): BufferedImage {
         val width = source.width
         val height = source.height
 

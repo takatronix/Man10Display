@@ -1,10 +1,9 @@
 package red.man10.display
+
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.block.BlockFace
-import org.bukkit.block.BlockFace.*
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
@@ -25,16 +24,14 @@ import java.awt.Color
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.math.abs
-import kotlin.math.floor
 
-class PlayerData{
-    var lastLocation:Location? = null
+class PlayerData {
+    var lastLocation: Location? = null
     var rightButtonPressed = false
     var isSneaking = false
 }
 
-class DisplayManager(main: JavaPlugin)   : Listener {
+class DisplayManager(main: JavaPlugin) : Listener {
     val displays = mutableListOf<Display>()
     private val playerData = ConcurrentHashMap<UUID, PlayerData>()
 
@@ -42,10 +39,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
     }
 
-    fun deinit(){
+    fun deinit() {
         this.stopAllMacro()
         for (display in displays) {
-            if(display is StreamDisplay){
+            if (display is StreamDisplay) {
                 info("stream display ${display.name} deinit start")
                 display.deinit()
                 info("stream display ${display.name} deinited")
@@ -55,7 +52,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         info("displays cleared")
     }
 
-    val names:ArrayList<String>
+    val names: ArrayList<String>
         get() {
             val nameList = arrayListOf<String>()
             for (display in displays) {
@@ -70,41 +67,46 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
         return null
     }
-    private fun findKey(mapId:Int):String?{
+
+    private fun findKey(mapId: Int): String? {
         for (display in displays) {
-            if(display.mapIds.contains(mapId)){
+            if (display.mapIds.contains(mapId)) {
                 return display.name
             }
         }
         return null
     }
+
     private fun getDisplay(mapId: Int): Display? {
         val name = findKey(mapId) ?: return null
         return getDisplay(name)
     }
 
-    fun create(player: Player,display: Display) : Boolean{
-        if(getDisplay(display.name) != null){
+    fun create(player: Player, display: Display): Boolean {
+        if (getDisplay(display.name) != null) {
             player.sendMessage(Main.prefix + "§a§l ${display.name} already exists")
             return false
         }
-        if(!createMaps(display,player,display.width,display.height)){
+        if (!createMaps(display, player, display.width, display.height)) {
             return false
         }
         display.location = player.location
         displays.add(display)
         return true
     }
+
     fun delete(p: CommandSender, name: String): Boolean {
         val display = getDisplay(name) ?: return false
         display.deinit()
         displays.remove(display)
         return true
     }
+
     fun getMaps(player: Player, name: String): Boolean {
         val display = getDisplay(name) ?: return false
-        return getMaps(display,player)
+        return getMaps(display, player)
     }
+
     fun showList(p: CommandSender): Boolean {
         p.sendMessage(Main.prefix + "§a§l Display List")
         for (display in displays) {
@@ -117,15 +119,16 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         sender.sendMessage(Main.prefix + "§a§l Display Stats")
         val display = getDisplay(name) ?: return false
         val stats = display.getStatistics()
-        for(v in stats){
+        for (v in stats) {
             sender.sendMessage("§a§l $v")
         }
 
         return true
     }
-    private fun createMaps(display:Display, player: Player, xSize:Int, ySize:Int): Boolean {
-        for(y in 0 until ySize){
-            for(x in 0 until xSize){
+
+    private fun createMaps(display: Display, player: Player, xSize: Int, ySize: Int): Boolean {
+        for (y in 0 until ySize) {
+            for (x in 0 until xSize) {
                 val mapView = Bukkit.getServer().createMap(player.world)
                 mapView.scale = MapView.Scale.CLOSEST
                 mapView.isUnlimitedTracking = true
@@ -134,11 +137,11 @@ class DisplayManager(main: JavaPlugin)   : Listener {
                 val mapMeta = itemStack.itemMeta as MapMeta
                 mapMeta.mapView = mapView
 
-                val name = "${x+1}-${y+1}"
+                val name = "${x + 1}-${y + 1}"
                 mapMeta.displayName(Component.text(name))
                 itemStack.itemMeta = mapMeta
 
-                player.world.dropItem(player.location,itemStack)
+                player.world.dropItem(player.location, itemStack)
                 display.mapIds.add(mapView.id)
                 player.sendMessage("$name created")
             }
@@ -146,23 +149,23 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    private fun getMaps(display:Display, player: Player): Boolean {
+    private fun getMaps(display: Display, player: Player): Boolean {
         val items = getMaps(display)
-        for(item in items){
-            player.world.dropItem(player.location,item)
+        for (item in items) {
+            player.world.dropItem(player.location, item)
         }
         return true
     }
 
     fun getMaps(display: Display): ArrayList<ItemStack> {
         val items = arrayListOf<ItemStack>()
-        for(y in 0 until display.height){
-            for(x in 0 until display.width){
+        for (y in 0 until display.height) {
+            for (x in 0 until display.width) {
                 val itemStack = ItemStack(Material.FILLED_MAP)
                 val mapMeta = itemStack.itemMeta as MapMeta
                 mapMeta.mapView = Bukkit.getMap(display.mapIds[y * display.width + x])
 
-                val name = "${x+1}-${y+1}"
+                val name = "${x + 1}-${y + 1}"
                 mapMeta.displayName(Component.text(name))
                 itemStack.itemMeta = mapMeta
                 items.add(itemStack)
@@ -174,31 +177,31 @@ class DisplayManager(main: JavaPlugin)   : Listener {
     fun save(p: CommandSender): Boolean {
         val file = File(Main.plugin.dataFolder, File.separator + "displays.yml")
         val config = YamlConfiguration.loadConfiguration(file)
-        try{
-            for(display in displays){
-                display.save(config,display.name)
+        try {
+            for (display in displays) {
+                display.save(config, display.name)
             }
             config.save(file)
-        }catch (e:Exception){
-            error(e.message!!,p)
+        } catch (e: Exception) {
+            error(e.message!!, p)
             return false
         }
         return true
     }
 
-    fun load(p: CommandSender? = null ): Boolean {
+    fun load(p: CommandSender? = null): Boolean {
         val file = File(Main.plugin.dataFolder, File.separator + "displays.yml")
         val config = YamlConfiguration.loadConfiguration(file)
         deinit()
         for (key in config.getKeys(false)) {
             val className = config.getString("$key.class")
-            if(className == StreamDisplay::class.simpleName){
-                val display = StreamDisplay(config,key)
+            if (className == StreamDisplay::class.simpleName) {
+                val display = StreamDisplay(config, key)
                 displays.add(display)
                 continue
             }
-            if(className == ImageDisplay::class.simpleName){
-                val display = ImageDisplay(config,key)
+            if (className == ImageDisplay::class.simpleName) {
+                val display = ImageDisplay(config, key)
                 displays.add(display)
                 continue
             }
@@ -208,30 +211,31 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     fun set(sender: CommandSender, displayName: String, key: String, value: String): Boolean {
         val display = getDisplay(displayName) ?: return false
-        val ret = display.set(sender,key,value)
-        if(ret)
+        val ret = display.set(sender, key, value)
+        if (ret)
             save(sender)
-            display.clearCache()
+        display.clearCache()
         return ret
     }
+
     fun refresh(sender: CommandSender, displayName: String): Boolean {
         val display = getDisplay(displayName) ?: return false
         display.resetStats()
         display.refreshFlag = true
-        return  true
+        return true
     }
 
     fun stopAll(sender: CommandSender): Boolean {
         for (display in displays) {
-            stopMacro(sender,display.name)
+            stopMacro(sender, display.name)
         }
         return true
     }
 
-    fun runMacro(sender: CommandSender, displayName: String,macroName: String? = null): Boolean {
+    fun runMacro(sender: CommandSender, displayName: String, macroName: String? = null): Boolean {
         val display = getDisplay(displayName) ?: return false
 
-        if(macroName == null){
+        if (macroName == null) {
             display.macroEngine.stop()
             display.update()
             return false
@@ -239,14 +243,16 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         display.runMacro(macroName)
         display.resetStats()
         display.refreshFlag = true
-        return  true
+        return true
     }
+
     fun stopMacro(sender: CommandSender, displayName: String): Boolean {
         val display = getDisplay(displayName) ?: return false
         display.macroEngine.stop()
         display.reset()
         return true
     }
+
     fun stopAllMacro(): Boolean {
         for (display in displays) {
             display.macroEngine.stop()
@@ -254,9 +260,10 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         }
         return true
     }
-    fun image(sender: CommandSender, displayName: String,path:String): Boolean {
+
+    fun image(sender: CommandSender, displayName: String, path: String): Boolean {
         val display = getDisplay(displayName) ?: return false
-       // display.image(path)
+        // display.image(path)
         return true
     }
 
@@ -276,38 +283,39 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    fun saveImage(player:Player,name:String): Boolean{
+    fun saveImage(player: Player, name: String): Boolean {
         val display = getDisplay(name) ?: return false
         val fileName = Main.imageManager.createKey(player.name)
 
-        if(!Main.imageManager.save(fileName,display.currentImage!!)){
-           player.sendMessage(Main.prefix + "§c§l Failed to save image")
-           return false
+        if (!Main.imageManager.save(fileName, display.currentImage!!)) {
+            player.sendMessage(Main.prefix + "§c§l Failed to save image")
+            return false
         }
 
         return true
     }
 
-    private fun interactMap(player:Player){
+    private fun interactMap(player: Player) {
         val distance = 30.0
         val rayTraceResult = player.rayTraceBlocks(distance)
 
         //  視線の衝突点
         val collisionLocation = rayTraceResult?.hitPosition?.toLocation(player.world)
         // プレイヤーから衝突点へのベクトル
-        val rayVector =  player.eyeLocation.toVector().subtract(collisionLocation!!.toVector())
+        val rayVector = player.eyeLocation.toVector().subtract(collisionLocation!!.toVector())
         // 額縁との衝突点の計算のための係数
-        val multiplier= ItemFrameCoordinate.calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace,rayVector) ?:0.0
+        val multiplier = ItemFrameCoordinate.calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace, rayVector)
         // 額縁との衝突点
-        val frameCollisionLocation= collisionLocation.clone().add(rayVector.clone().multiply(multiplier) ?: Vector(0,0,0))
+        val frameCollisionLocation =
+            collisionLocation.clone().add(rayVector.clone().multiply(multiplier))
         // 衝突したブロックの面
         val face = rayTraceResult.hitBlockFace
         //　対象の額縁
         val frame = rayTraceResult.hitBlock?.getItemFrame(face!!) ?: return
         // 額縁に入っているアイテム
-        val item = frame.item ?: return
+        val item = frame.item
 
-        if(item.type!=Material.FILLED_MAP)
+        if (item.type != Material.FILLED_MAP)
             return
 
         val mapMeta = item.itemMeta as MapMeta
@@ -315,18 +323,18 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val mapId = mapView.id
 
         // result.first = x座標 result.second = y座標
-        val result = ItemFrameCoordinate.calculatePixelCoordinate(face, rayVector,collisionLocation)
+        val result = ItemFrameCoordinate.calculatePixelCoordinate(face, rayVector, collisionLocation)
 
-        onMapClick(player, mapId,result.first.toInt(), result.second.toInt())
+        onMapClick(player, mapId, result.first.toInt(), result.second.toInt())
     }
 
 
-    fun onButtonClick(event:PlayerInteractEvent) {
+    fun onButtonClick(event: PlayerInteractEvent) {
         interactMap(event.player)
     }
 
 
-    private fun onMapClick(player:Player, mapId:Int, x:Int, y:Int):Boolean {
+    private fun onMapClick(player: Player, mapId: Int, x: Int, y: Int): Boolean {
         // player.sendMessage("§a§l Clicked Map $mapId $x $y")
         val display = getDisplay(mapId) ?: return false
 
@@ -348,7 +356,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-    fun showInfo(sender:CommandSender,name:String): Boolean {
+    fun showInfo(sender: CommandSender, name: String): Boolean {
         val display = getDisplay(name) ?: return false
         return display.showInfo(sender)
     }
@@ -361,6 +369,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         //プレイヤーデータを初期化
         playerData[player.uniqueId] = PlayerData()
     }
+
     @EventHandler
     fun onPlayerQuit(e: PlayerQuitEvent) {
         val player = e.player
@@ -381,10 +390,11 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val player = event.player
         val from: Location = event.from
         val to: Location = event.to
-        if (from.getYaw() !== to.getYaw() || from.getPitch() !== to.getPitch()) {
+        if (from.yaw !== to.yaw || from.pitch !== to.pitch) {
             //player.sendMessage("向きが変わった")
         }
     }
+
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
@@ -405,12 +415,14 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         interactMap(e.player)
         return true
     }
+
     // endregion
-    fun onRightButtonClick(event:PlayerInteractEvent){
+    fun onRightButtonClick(event: PlayerInteractEvent) {
         val player = event.player
         onButtonClick(event)
     }
-    fun onLeftButtonClick(event:PlayerInteractEvent){
+
+    fun onLeftButtonClick(event: PlayerInteractEvent) {
         val player = event.player
         onButtonClick(event)
 
@@ -419,7 +431,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val g = Math.random() * 255
         val b = Math.random() * 255
         val col = Color(r.toInt(), g.toInt(), b.toInt())
-        penColor =col
+        penColor = col
 
     }
 

@@ -11,7 +11,7 @@ class ReloadConfigCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         plugin.reloadConfig()
         ImageLoader.clearCache()
-        Main.settings.load(plugin,plugin.config)
+        Main.settings.load(plugin, plugin.config)
         Main.displayManager.deinit()
         Main.displayManager.load()
         sender.sendMessage(Main.prefix + "§a§l reloaded")

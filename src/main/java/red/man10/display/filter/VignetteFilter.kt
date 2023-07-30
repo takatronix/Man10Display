@@ -6,6 +6,7 @@ import kotlin.math.pow
 
 
 const val DEFAULT_VIGNETTE_LEVEL = 1.0
+
 /*
 strength = 0.5: 標準的な効果。周辺光量がわずかに暗くなりますが、比較的自然な印象を与えます。
 strength = 1.0: 強い効果。周辺光量がかなり暗くなり、中心の主題が強調されます。

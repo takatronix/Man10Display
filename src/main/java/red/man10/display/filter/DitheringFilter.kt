@@ -2,7 +2,6 @@ package red.man10.display.filter
 
 import java.awt.Color
 import java.awt.image.BufferedImage
-import kotlin.math.sqrt
 
 open class DitheringFilter : ImageFilter() {
 

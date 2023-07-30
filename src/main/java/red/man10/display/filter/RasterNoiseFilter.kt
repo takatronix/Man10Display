@@ -9,6 +9,7 @@ amplitude = 5 〜 10: 中程度のノイズ効果を得たい場合。横方向�
 amplitude = 20 以上: 強いノイズ効果を得たい場合。横方向に大きくゆがんだラスタノイズを加えます。
  */
 const val DEFAULT_RASTER_NOISE_LEVEL = 3
+
 class RasterNoiseFilter(private val amplitude: Int = DEFAULT_RASTER_NOISE_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width

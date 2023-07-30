@@ -9,13 +9,13 @@ import red.man10.display.Main
 
 class StatsCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        try{
+        try {
             val name = args[1]
-            if(!Main.displayManager.showStats(sender as Player,name)){
+            if (!Main.displayManager.showStats(sender as Player, name)) {
                 sender.sendMessage(Main.prefix + "§a§l $name does not exist")
                 return false
             }
-        }catch (e:Exception){
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l{e.message}")
             return true
         }

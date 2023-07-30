@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 const val DEFAULT_BRIGHTNESS_LEVEL = 1.5
+
 class BrightnessFilter(private val brightness: Double = DEFAULT_BRIGHTNESS_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width

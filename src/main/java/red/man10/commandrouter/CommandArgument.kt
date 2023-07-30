@@ -17,6 +17,7 @@ class CommandArgument {
         explanations.addAll(listOf(*text))
         return this
     }
+
     fun allowedString(vararg string: String?): CommandArgument {
         allowedStrings.addAll(listOf(*string))
         return this

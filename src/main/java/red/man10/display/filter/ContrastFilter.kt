@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 const val DEFAULT_CONTRAST_LEVEL = 1.3
+
 class ContrastFilter(private val factor: Double = DEFAULT_CONTRAST_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width

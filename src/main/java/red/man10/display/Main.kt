@@ -20,14 +20,14 @@ class Main : JavaPlugin(), Listener {
         lateinit var imageManager: ImageManager
         lateinit var protocolManager: ProtocolManager
         lateinit var commandRouter: Man10DisplayCommand
-        lateinit var settings : ConfigData
+        lateinit var settings: ConfigData
     }
 
     override fun onEnable() {
         plugin = this
         saveDefaultConfig()
         settings = ConfigData()
-        settings.load(this,config)
+        settings.load(this, config)
         imageManager = ImageManager(settings.imagePath)
         protocolManager = ProtocolLibrary.getProtocolManager()
         displayManager = DisplayManager(this)
@@ -41,7 +41,7 @@ class Main : JavaPlugin(), Listener {
         displayManager.load()
         //額縁保護用のイベント
         server.pluginManager.registerEvents(ItemFrameListener(), this)
-        if (server.pluginManager.getPlugin("ItemFrameProtector") != null){
+        if (server.pluginManager.getPlugin("ItemFrameProtector") != null) {
             server.pluginManager.registerEvents(IFPListener(), this)
         }
 

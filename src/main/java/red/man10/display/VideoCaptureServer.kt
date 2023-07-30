@@ -1,4 +1,5 @@
 package red.man10.display
+
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -9,8 +10,9 @@ import java.net.InetSocketAddress
 import java.util.function.Consumer
 import javax.imageio.ImageIO
 
-open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
-    @Volatile var running = true
+open class VideoCaptureServer(port: Int) : Thread(), AutoCloseable {
+    @Volatile
+    var running = true
     private var socket: DatagramSocket? = null
     private var frameConsumer: Consumer<BufferedImage>? = null
     private var portNo = port
@@ -22,30 +24,34 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
         frameReceivedBytes = 0
         frameErrorCount = 0
     }
+
     override fun close() {
         info("closing VideoCaptureServer port:$portNo")
         running = false
-        try{
-            if(socket != null){
-                if(socket?.isConnected == true){
+        try {
+            if (socket != null) {
+                if (socket?.isConnected == true) {
                     socket?.disconnect()
                 }
                 socket?.close()
                 socket = null
             }
-        }catch (e:Exception) {
+        } catch (e: Exception) {
             e.printStackTrace()
         }
         frameConsumer = null
         join()
     }
+
     fun onFrame(consumer: Consumer<BufferedImage>) {
         frameConsumer = consumer
     }
+
     fun deinit() {
         close()
     }
-     override fun run() {
+
+    override fun run() {
         try {
             val buffer = ByteArray(1000 * 1000)
             socket = DatagramSocket(null)
@@ -69,6 +75,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
                             if (soi % 2 == 0) soi++ // find next byte
                             if (eoi == 0) eoi++
                         }
+
                         0xD8.toByte() -> {
                             if (soi % 2 == 1) {
                                 soi++               // first SOI found
@@ -100,7 +107,7 @@ open class VideoCaptureServer(port:Int) : Thread() , AutoCloseable {
                             }
                             frameReceivedCount++
                         } catch (e: IOException) {
-                          //  e.printStackTrace()
+                            //  e.printStackTrace()
                             frameErrorCount++
                         }
 

@@ -8,11 +8,11 @@ import red.man10.display.Main
 
 class ListCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        try{
-            if(!Main.displayManager.showList(sender)){
+        try {
+            if (!Main.displayManager.showList(sender)) {
                 return false
             }
-        }catch (e:Exception){
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l{e.message}")
             return true
         }

@@ -29,6 +29,7 @@ abstract class CommandRouter(plugin: JavaPlugin, private val commandName: String
         if (commands[commandName]!!.contains(command)) return
         commands[commandName]!!.add(command)
     }
+
     open fun setNoCommandFoundEvent(event: Consumer<CommandData>) {
         onNoCommandFoundEvent = event
     }
@@ -58,7 +59,12 @@ abstract class CommandRouter(plugin: JavaPlugin, private val commandName: String
         return false
     }
 
-    override fun onTabComplete(sender: CommandSender, command: Command, alias: String, args: Array<String>): List<String>? {
+    override fun onTabComplete(
+        sender: CommandSender,
+        command: Command,
+        alias: String,
+        args: Array<String>
+    ): List<String>? {
         val result: MutableList<String> = ArrayList()
         for (commandObject in commands[commandName]!!) {
             if (commandObject!!.permission != null) {

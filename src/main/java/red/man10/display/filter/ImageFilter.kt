@@ -36,9 +36,11 @@ abstract class ImageFilter {
             }
             return emptyArray()
         }
+
         fun clamp(value: Int): Int {
             return value.coerceIn(0, 255)
         }
+
         fun colorDistance(color1: Color, color2: Color): Double {
             val rDiff = color1.red - color2.red
             val gDiff = color1.green - color2.green
@@ -52,6 +54,7 @@ abstract class ImageFilter {
             val bDiff = Math.abs(color1.blue - color2.blue)
             return rDiff + gDiff + bDiff
         }
+
         // 画像をリサイズするメソッド
         fun resizeImage(image: BufferedImage, newWidth: Int, newHeight: Int): BufferedImage {
             val resizedImage = BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB)

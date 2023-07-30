@@ -4,7 +4,10 @@ import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import java.util.function.Function
 
-enum class CommandArgumentType(allowedString: Function<CommandSender, ArrayList<String>>, argumentParser: Function<String, Boolean>?) {
+enum class CommandArgumentType(
+    allowedString: Function<CommandSender, ArrayList<String>>,
+    argumentParser: Function<String, Boolean>?
+) {
     ONLINE_PLAYER(Function { _: CommandSender? ->
         val result = ArrayList<String>()
         for (p in Bukkit.getOnlinePlayers()) {

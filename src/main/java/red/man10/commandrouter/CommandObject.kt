@@ -25,6 +25,7 @@ class CommandObject {
         this.permission = permission
         return this
     }
+
     fun explanation(text: String): CommandObject {
         explanation.add(text)
         return this
@@ -62,13 +63,17 @@ class CommandObject {
 
     fun argument(alias: String?, function: Function<CommandSender, ArrayList<String>>, strict: Boolean): CommandObject {
         if (strict) {
-            arguments.add(CommandArgument()
+            arguments.add(
+                CommandArgument()
                     .alias(alias)
-                    .allowedStringsFunction(function))
+                    .allowedStringsFunction(function)
+            )
         } else {
-            arguments.add(CommandArgument()
+            arguments.add(
+                CommandArgument()
                     .alias(alias)
-                    .aliasStringsFunction(function))
+                    .aliasStringsFunction(function)
+            )
         }
         return this
     }

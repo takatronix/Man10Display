@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 const val DEFAULT_DENOISE_RADIUS = 2
+
 class DenoiseFilter(private val radius: Int = DEFAULT_DENOISE_RADIUS) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
@@ -35,7 +36,12 @@ class DenoiseFilter(private val radius: Int = DEFAULT_DENOISE_RADIUS) : ImageFil
         return resultImage
     }
 
-    private fun applyConvolution(source: BufferedImage, destination: BufferedImage, weights: FloatArray, kernelSize: Int) {
+    private fun applyConvolution(
+        source: BufferedImage,
+        destination: BufferedImage,
+        weights: FloatArray,
+        kernelSize: Int
+    ) {
         val width = source.width
         val height = source.height
 

@@ -8,14 +8,14 @@ import red.man10.display.Main
 
 class StopCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        return try{
+        return try {
             val displayName = args[1]
             // マクロを停止し、ブランクマップを送信する
-            Main.displayManager.runMacro(sender,displayName,null)
+            Main.displayManager.runMacro(sender, displayName, null)
             val display = Main.displayManager.getDisplay(displayName)
             display?.reset()
             true
-        }catch (e:Exception){
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l{$e.message}")
             true
         }

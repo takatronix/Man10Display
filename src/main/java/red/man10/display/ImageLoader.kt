@@ -6,19 +6,19 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 
 class ImageLoader(fileName: String) {
-    companion object{
+    companion object {
         private var imageCache: MutableMap<String, BufferedImage> = ConcurrentHashMap()
         private fun load(filePath: String): BufferedImage? {
             return try {
                 // httpから始まる場合は、URLから画像を取得
-                if(filePath.startsWith("http")){
+                if (filePath.startsWith("http")) {
                     return ImageIO.read(java.net.URL(filePath))
                 }
 
                 // ファイルが存在しない場合、プラグインフォルダを検索
-                if(!File(filePath).exists()){
+                if (!File(filePath).exists()) {
                     val pluginFile = "${Main.plugin.dataFolder}/$filePath"
-                    if(File(pluginFile).exists()){
+                    if (File(pluginFile).exists()) {
                         return ImageIO.read(File(pluginFile).absoluteFile)
                     }
                 }
@@ -29,8 +29,9 @@ class ImageLoader(fileName: String) {
                 null
             }
         }
-        fun get(name:String):BufferedImage?{
-            if(imageCache.containsKey(name)){
+
+        fun get(name: String): BufferedImage? {
+            if (imageCache.containsKey(name)) {
                 return imageCache[name]
             }
             info("loading image:$name")
@@ -38,7 +39,8 @@ class ImageLoader(fileName: String) {
             imageCache[name] = image
             return image
         }
-        fun clearCache(){
+
+        fun clearCache() {
             imageCache.clear()
         }
     }

@@ -8,11 +8,11 @@ import red.man10.display.Main
 
 class RunCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        return try{
+        return try {
             val displayName = args[1]
             val macroName = args[2]
-            return Main.displayManager.runMacro(sender,displayName,macroName)
-        }catch (e:Exception){
+            return Main.displayManager.runMacro(sender, displayName, macroName)
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l Macro error:{$e.message}")
             true
         }

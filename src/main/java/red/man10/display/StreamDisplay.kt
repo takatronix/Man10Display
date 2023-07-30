@@ -7,18 +7,21 @@ import java.util.function.Consumer
 class StreamDisplay : Display {
     private var videoCaptureServer: VideoCaptureServer? = null
 
-    init{
-        if(port != 0)
+    init {
+        if (port != 0)
             videoCaptureServer = VideoCaptureServer(port)
     }
-    override fun deinit(){
+
+    override fun deinit() {
         super.deinit()
         videoCaptureServer?.deinit()
         videoCaptureServer = null
     }
+
     fun resetVideoStats() {
         videoCaptureServer?.resetStats()
     }
+
     constructor(name: String, width: Int, height: Int, port: Int) : super(name, width, height) {
         this.port = port
         startServer()

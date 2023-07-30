@@ -9,16 +9,15 @@ import red.man10.display.Display
 import red.man10.display.Main
 import red.man10.display.commands.logic.*
 import red.man10.display.macro.MacroEngine
-import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy
 
-class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
-{
+class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
     init {
         registerCommands()
         registerEvents()
         pluginPrefix = Main.prefix
     }
-    private fun getTargetBlockCoordinatesArgument(commandSender: CommandSender, range: Int): ArrayList<String>{
+
+    private fun getTargetBlockCoordinatesArgument(commandSender: CommandSender, range: Int): ArrayList<String> {
         val player = commandSender as Player
         val block = player.getTargetBlock(range) ?: return arrayListOf("None", "None", "None")
         var x = block.location.blockX
@@ -38,6 +37,7 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         setNoPermissionEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lYou don't have permission") }
         setNoCommandFoundEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lThat command does not exist") }
     }
+
     private fun registerCommands() {
 
         // reload command
@@ -54,7 +54,8 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
             CommandObject()
                 .prefix("create")
                 .argument("display_type") { _ -> Display.displayTypes }
-                .argument("[new_display_name]").argument("[x_size(1-24)]").argument("[y_size(1-24)]").argument("port(0-65535)")
+                .argument("[new_display_name]").argument("[x_size(1-24)]").argument("[y_size(1-24)]")
+                .argument("port(0-65535)")
                 .permission("red.man10.display.create")
                 .explanation("Create a display")
                 .executor(CreateCommand(Main.plugin))
@@ -190,18 +191,18 @@ class Man10DisplayCommand : CommandRouter( Main.plugin,"mdisplay")
         // place item frames command
         addCommand(
             CommandObject()
-                    .prefix("place")
-                    .argument("[display_name]") { _ -> Main.displayManager.names }
-                    .argument("x1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0])}, false)
-                    .argument("y1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1])}, false)
-                    .argument("z1", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2])}, false)
-                    .argument("x2", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0])}, false)
-                    .argument("y2", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1])}, false)
-                    .argument("z2", {c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2])}, false)
-                    .argument("direction", "positive", "negative")
-                    .permission("red.man10.display.op")
-                    .explanation("Place item frames")
-                    .executor(PlaceCommand(Main.plugin))
+                .prefix("place")
+                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("x1", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0]) }, false)
+                .argument("y1", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1]) }, false)
+                .argument("z1", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2]) }, false)
+                .argument("x2", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0]) }, false)
+                .argument("y2", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1]) }, false)
+                .argument("z2", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2]) }, false)
+                .argument("direction", "positive", "negative")
+                .permission("red.man10.display.op")
+                .explanation("Place item frames")
+                .executor(PlaceCommand(Main.plugin))
         )
 
     }

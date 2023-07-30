@@ -5,6 +5,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 const val DEFAULT_PARALLELISM = 4
+
 class ParallelDitheringFilter(private val parallelism: Int = DEFAULT_PARALLELISM) : DitheringFilter() {
     @OptIn(ObsoleteCoroutinesApi::class)
     private val context = newFixedThreadPoolContext(parallelism, "bgPool")

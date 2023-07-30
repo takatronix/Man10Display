@@ -10,6 +10,7 @@ threshold: しきい値
  */
 
 const val DEFAULT_SOBEL_LEVEL = 100
+
 class SobelFilter(private val threshold: Int = DEFAULT_SOBEL_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width

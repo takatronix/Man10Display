@@ -1,6 +1,7 @@
 package red.man10.display.filter
 
 import java.awt.image.BufferedImage
+
 class InvertFilter : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width

@@ -14,6 +14,7 @@ import kotlin.random.Random
 
 // スレッドループの最小単位
 const val MACRO_SLEEP_TIME = 1L
+
 // plugins/Man10Display/macro/ にマクロファイルを保存する
 const val DEFAULT_MACRO_FOLDER = "macro"
 
@@ -31,6 +32,7 @@ enum class CommandType {
     ENDLOOP,    // ループの終了
     CALL,       // マクロを呼び出す
     EXIT,       // マクロの実行を終了する
+
     // 組み込み関数
     RANDOM,     // ランダムな整数を生成する
 
@@ -45,7 +47,8 @@ enum class CommandType {
     MESSAGE,
     PLAY_SOUND,
 }
-fun getCommandType(key:String): CommandType {
+
+fun getCommandType(key: String): CommandType {
     // 文字列をCommandTypeに変換する
     try {
         return CommandType.valueOf(key.uppercase(Locale.getDefault()))
@@ -81,7 +84,7 @@ private fun parseCommand(line: String): MacroCommand? {
     }
 
     val type = getCommandType(parts[0].uppercase(Locale.getDefault()))
-    if(type == RANDOM){
+    if (type == RANDOM) {
         // RANDOMの場合は特別に引数をまとめて取得
         val args = line.substringAfter("RANDOM").trim()
         return MacroCommand(RANDOM, listOf(args))
@@ -103,7 +106,7 @@ data class MacroCommand(
 )
 
 abstract class MacroCommandHandler {
-    abstract fun run(display: Display, players:List<Player>, sender:CommandSender? = null)
+    abstract fun run(display: Display, players: List<Player>, sender: CommandSender? = null)
 }
 
 
@@ -117,17 +120,19 @@ class MacroEngine {
 
     private data class Loop(val startLine: Int, var counter: Int)
     private data class IfBlock(var condition: Boolean, val startLine: Int)
+
     private val loopStack = Stack<Loop>()
     private val ifStack = Stack<IfBlock>()
     private var executingMacroName: String? = null
 
-    companion object{
-        val commands = arrayListOf("run","stop","list")
-        val macroList:ArrayList<String>
+    companion object {
+        val commands = arrayListOf("run", "stop", "list")
+        val macroList: ArrayList<String>
             get() {
                 val list = getMacroList()
                 return list.toTypedArray().toCollection(ArrayList())
             }
+
         private fun getMacroList(): List<String> {
             val folder = File(Main.plugin.dataFolder, File.separator + DEFAULT_MACRO_FOLDER)
             val files = folder.listFiles()
@@ -171,6 +176,7 @@ class MacroEngine {
     fun isRunning(): Boolean {
         return currentJob?.isActive == true
     }
+
     @OptIn(DelicateCoroutinesApi::class)
     fun runMacroAsync(macroName: String, callback: (MacroCommand, Int) -> Unit) {
 
@@ -187,6 +193,7 @@ class MacroEngine {
             run(macroName, callback)
         }
     }
+
     private fun run(macroName: String, callback: (MacroCommand, Int) -> Unit) {
         val filePath = getMacroFilePath(macroName) ?: return
         val commands = parseMacroFile(filePath)
@@ -204,7 +211,7 @@ class MacroEngine {
         while (currentLineIndex < commands.size) {
             val command = commands[currentLineIndex]
 
-            if(currentJob?.isActive == false || shouldStop){
+            if (currentJob?.isActive == false || shouldStop) {
                 info("Macro execution was stopped.")
                 break
             }
@@ -336,10 +343,12 @@ class MacroEngine {
                     this.executingMacroName = lastMacroName
                     currentLineIndex++
                 }
+
                 EXIT -> stop() // マクロの実行を即座に終了
                 LABEL -> {
-                   // info("Label: ${command.params[0]}")
+                    // info("Label: ${command.params[0]}")
                 }
+
                 else -> {
                     // 組み込み関数以外はコールバックで処理する
                     callback(command, currentLineIndex)
@@ -368,6 +377,7 @@ class MacroEngine {
             variableValue.toString()
         }
     }
+
     // 変数を評価する
     private fun evaluateVariable(variableName: String): Any {
         return symbolTable[variableName] ?: throw IllegalArgumentException("Variable $variableName not found.")
@@ -377,6 +387,7 @@ class MacroEngine {
     private fun evaluateNumber(number: String): Double {
         return number.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number: $number")
     }
+
     // 数値型の四則演算を評価する
     private fun evaluateArithmeticExpression(expression: String): Double {
         val parts = expression.split(" ")
@@ -399,6 +410,7 @@ class MacroEngine {
             else -> throw IllegalArgumentException("Invalid operator: $operator")
         }
     }
+
     // 比較式を評価する
     private fun evaluateComparisonExpression(expression: String): Boolean {
         val operators = listOf(">=", "<=", ">", "<", "==")
@@ -424,21 +436,23 @@ class MacroEngine {
             else -> throw IllegalArgumentException("Invalid comparison operator in expression: $expression")
         }
     }
+
     // RANDOMの実装
     private fun evaluateArgumentInt(arg: String): Int {
         return if (arg.startsWith("$")) {
             // If the argument is a variable, red.man10.extention.get its value from the symbol table
             val key = arg.removePrefix("$")
-            if(!symbolTable.containsKey(key)){
+            if (!symbolTable.containsKey(key)) {
                 throw IllegalArgumentException("Variable $key not found.")
             }
             val value = symbolTable[key]
-            return  value.toString().toDouble().toInt()
+            return value.toString().toDouble().toInt()
         } else {
             // Otherwise, parse it as an integer
             arg.toIntOrNull() ?: 0
         }
     }
+
     // 式を評価する
     private fun evaluateExpression(expression: String): Any {
 
@@ -472,9 +486,8 @@ class MacroEngine {
             // 変数の評価
             val variableName = expression.removePrefix("$")
             return evaluateVariable(variableName)
-        }
-        else if (expression.contains(" ") &&
-                (expression.contains("+") || expression.contains("-") || expression.contains("*") || expression.contains("/"))
+        } else if (expression.contains(" ") &&
+            (expression.contains("+") || expression.contains("-") || expression.contains("*") || expression.contains("/"))
         ) {
             // 数値型の式の評価: 既存のロジックを使用
             return evaluateArithmeticExpression(expression)
@@ -534,7 +547,6 @@ class MacroEngine {
 
         return commands
     }
-
 
 
     // マクロファイルをパースしてList<MacroCommand>に変換する関数

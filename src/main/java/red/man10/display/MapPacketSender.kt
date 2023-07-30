@@ -4,19 +4,19 @@ import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.entity.Player
 
-public interface MapPacketSender {
-    companion object{
-        fun send(players:List<Player>,packets:List<PacketContainer>):Int {
+interface MapPacketSender {
+    companion object {
+        fun send(players: List<Player>, packets: List<PacketContainer>): Int {
             //info("send map packet")
             var sent = 0
             for (player in players) {
-                if(!player.isOnline)
+                if (!player.isOnline)
                     continue
                 for (packet in packets) {
                     try {
                         //info("send map packet ${packet.integers.read(0)} to ${player.name}")
                         Main.protocolManager.sendServerPacket(player, packet)
-                        sent ++
+                        sent++
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -24,6 +24,7 @@ public interface MapPacketSender {
             }
             return sent
         }
+
         fun createMapPacket(mapId: Int, data: ByteArray?): PacketContainer {
             if (data == null) {
                 throw NullPointerException("data is null")

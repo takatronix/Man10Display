@@ -10,13 +10,13 @@ import red.man10.extention.fill
 
 class TestCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
-        return try{
+        return try {
             val displayName = args[1]
             val display = Main.displayManager.getDisplay(displayName)
             display?.currentImage?.fill()
             display?.update()
             true
-        }catch (e:Exception){
+        } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l{$e.message}")
             true
         }

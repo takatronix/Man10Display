@@ -16,13 +16,14 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 
 // 通常ログ
-fun info(message:String,sender:CommandSender? = null){
-    Bukkit.getLogger().info(Main.prefix +message)
+fun info(message: String, sender: CommandSender? = null) {
+    Bukkit.getLogger().info(Main.prefix + message)
     sender?.sendMessage(message)
 }
+
 // エラーログ
-fun error(message:String,sender:CommandSender? = null) {
-    Bukkit.getLogger().severe(Main.prefix +message)
+fun error(message: String, sender: CommandSender? = null) {
+    Bukkit.getLogger().severe(Main.prefix + message)
     sender?.sendMessage(message)
 }
 
@@ -50,56 +51,67 @@ fun formatNumberWithCommas(value: Long): String {
     val integerPartWithCommas = parts[0].chunked(3).joinToString(",")
     return if (parts.size > 1) "$integerPartWithCommas.${parts[1]}" else integerPartWithCommas
 }
-fun showModeTitle(player:Player, title:String, subtitle:String="", fadeIn:Int = 10, stay:Int=100, fadeOut:Int = 10){
-    player.sendTitle(title,subtitle,fadeIn,stay,fadeOut)
+
+fun showModeTitle(
+    player: Player,
+    title: String,
+    subtitle: String = "",
+    fadeIn: Int = 10,
+    stay: Int = 100,
+    fadeOut: Int = 10
+) {
+    player.sendTitle(title, subtitle, fadeIn, stay, fadeOut)
 }
-fun showModeTitle(player:Player, title:String, subtitle:String="", keepSec:Double){
+
+fun showModeTitle(player: Player, title: String, subtitle: String = "", keepSec: Double) {
     val time = keepSec * 20.0
-    player.sendTitle(title,subtitle,10,time.toInt(),10)
+    player.sendTitle(title, subtitle, 10, time.toInt(), 10)
 }
 
 
-fun sendActionText(player:Player?,message:String?){
-    if(message.isNullOrEmpty())
+fun sendActionText(player: Player?, message: String?) {
+    if (message.isNullOrEmpty())
         return
-    if(player ==null)
+    if (player == null)
         return
-    if(!player.isOnline)
+    if (!player.isOnline)
         return
     val component = TextComponent.fromLegacyText(message)
     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component[0])
 }
 
 // オフラインのプレイヤーを返す
-fun getOfflinePlayer(sender: CommandSender, name:String?): Player?{
-    if(name == null){
-        error("名前が指定されていません",sender)
+fun getOfflinePlayer(sender: CommandSender, name: String?): Player? {
+    if (name == null) {
+        error("名前が指定されていません", sender)
         return null
     }
     val player = Bukkit.getOfflinePlayerIfCached(name)
-    if(player == null){
-        error("プレイヤーが存在しません",sender)
+    if (player == null) {
+        error("プレイヤーが存在しません", sender)
         return null
     }
     return player.player
 }
+
 // オンラインのプレイヤーを返す
-fun getOnlinePlayer(sender: CommandSender, name:String?): Player?{
-    if(name == null){
-        error("名前が指定されていません",sender)
+fun getOnlinePlayer(sender: CommandSender, name: String?): Player? {
+    if (name == null) {
+        error("名前が指定されていません", sender)
         return null
     }
     val player = Bukkit.getPlayer(name)
-    if(player == null){
-        error("プレイヤーが見つかりません",sender)
+    if (player == null) {
+        error("プレイヤーが見つかりません", sender)
         return null
     }
-    if(!player.isOnline){
-        error("プレイヤーがオンラインではありません",sender)
+    if (!player.isOnline) {
+        error("プレイヤーがオンラインではありません", sender)
         return null
     }
     return player
 }
+
 fun toRadian(angle: Double): Double {
     return angle * Math.PI / 180f
 }
@@ -110,6 +122,7 @@ fun sendClickableMessage(player: Player, message: String, command: String) {
     textComponent.clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, command)
     player.spigot().sendMessage(textComponent)
 }
+
 class Utility {
 
     // 角度->ラジアン
@@ -158,6 +171,7 @@ class Utility {
             throw IOException("Unable to decode class type.", e)
         }
     }
+
     @Throws(IllegalStateException::class)
     fun itemStackArrayToBase64(items: Array<ItemStack?>): String? {
         return try {

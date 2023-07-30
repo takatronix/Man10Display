@@ -4,6 +4,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 
 const val DEFAULT_SATURATION_LEVEL = 1.2
+
 class ColorEnhancerFilter(private val saturationLevel: Double = DEFAULT_SATURATION_LEVEL) : ImageFilter() {
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
