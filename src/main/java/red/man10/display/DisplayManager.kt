@@ -31,7 +31,7 @@ import kotlin.math.floor
 
 class DisplayManager(main: JavaPlugin)   : Listener {
     val displays = mutableListOf<Display>()
-    private val lastInteractTime = HashMap<UUID, Long>()
+    private val userData = HashMap<UUID, Long>()
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
