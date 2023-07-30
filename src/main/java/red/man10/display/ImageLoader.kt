@@ -5,7 +5,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.imageio.ImageIO
 
-class ImageLoader(fileName: String) {
+class ImageLoader {
     companion object {
         private var imageCache: MutableMap<String, BufferedImage> = ConcurrentHashMap()
         private fun load(filePath: String): BufferedImage? {
