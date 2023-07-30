@@ -321,6 +321,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         if (item.type != Material.FILLED_MAP)
             return
 
+        // mapIdを取得
         val mapMeta = item.itemMeta as MapMeta
         val mapView = mapMeta.mapView ?: return
         val mapId = mapView.id
