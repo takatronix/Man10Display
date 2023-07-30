@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Vector
+import red.man10.display.itemframe.ItemFrameCoordinate
 import red.man10.display.macro.MacroEngine
 import red.man10.extention.fillCircle
 import red.man10.extention.getItemFrame
@@ -259,7 +260,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-
     fun showMacroList(sender: CommandSender): Boolean {
         val list = MacroEngine.macroList
         sender.sendMessage(Main.prefix + "§a§l Macro List")
@@ -288,9 +288,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         return true
     }
 
-
-
-
     private fun interactMap(player:Player){
         val distance = 30.0
         val rayTraceResult = player.rayTraceBlocks(distance)
@@ -300,7 +297,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         // プレイヤーから衝突点へのベクトル
         val rayVector =  player.eyeLocation.toVector().subtract(collisionLocation!!.toVector())
         // 額縁との衝突点の計算のための係数
-        val multiplier= calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace,rayVector) ?:0.0
+        val multiplier= ItemFrameCoordinate.calculateFrameDiffMultiplier(rayTraceResult.hitBlockFace,rayVector) ?:0.0
         // 額縁との衝突点
         val frameCollisionLocation= collisionLocation.clone().add(rayVector.clone().multiply(multiplier) ?: Vector(0,0,0))
         // 衝突したブロックの面
@@ -310,7 +307,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         // 額縁に入っているアイテム
         val item = frame.item ?: return
 
-
         if(item.type!=Material.FILLED_MAP)
             return
 
@@ -319,7 +315,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         val mapId = mapView.id
 
         // result.first = x座標 result.second = y座標
-        val result = calculatePixelCoordinate(face, rayVector,collisionLocation)
+        val result = ItemFrameCoordinate.calculatePixelCoordinate(face, rayVector,collisionLocation)
 
         onMapClick(player, mapId,result.first.toInt(), result.second.toInt())
     }
@@ -329,65 +325,6 @@ class DisplayManager(main: JavaPlugin)   : Listener {
         interactMap(event.player)
     }
 
-    private fun calculatePixelCoordinate(face: BlockFace?, rayVector: Vector?,collisionLocation:Location?):Pair<Double,Double>{
-        if(face==null||rayVector==null||collisionLocation==null)
-            return Pair(0.0,0.0)
-
-        val t= when (face) {
-            EAST, WEST -> {
-                rayVector.x
-            }
-            SOUTH, NORTH -> {
-                rayVector.z
-            }
-            UP, DOWN -> {
-                rayVector.y
-            }
-            else -> {
-                1.0
-            }
-        }
-        val frameCollisionLocation=collisionLocation.clone().add(rayVector.clone().multiply(abs(1.0/16.0/t)))
-
-        val height= floor(if(face== UP ||face== DOWN){
-            frameCollisionLocation.x.mod(1.0)
-        }
-        else{
-            1-frameCollisionLocation.y.mod(1.0)
-        }*128.0)
-
-        val width= floor(
-            when (face) {
-                SOUTH -> frameCollisionLocation.x.mod(1.0)
-                NORTH -> 1-frameCollisionLocation.x.mod(1.0)
-                EAST -> 1-frameCollisionLocation.z.mod(1.0)
-                WEST -> frameCollisionLocation.z.mod(1.0)
-                else -> 0.0
-            }*128.0
-        )
-        return Pair(width,height)
-    }
-
-    // 額縁との衝突点の計算のための係数
-    private fun calculateFrameDiffMultiplier(face: BlockFace?, rayVector: Vector?):Double{
-        if(face==null||rayVector==null)
-            return 0.0
-        val t= when (face) {
-            EAST, WEST -> {
-                rayVector.x
-            }
-            SOUTH, NORTH -> {
-                rayVector.z
-            }
-            UP, DOWN -> {
-                rayVector.y
-            }
-            else -> {
-                1.0
-            }
-        }
-        return abs(1.0/16.0/t)
-    }
 
     private fun onMapClick(player:Player, mapId:Int, x:Int, y:Int):Boolean {
         // player.sendMessage("§a§l Clicked Map $mapId $x $y")
