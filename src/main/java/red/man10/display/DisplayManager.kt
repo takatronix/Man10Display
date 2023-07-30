@@ -295,16 +295,7 @@ class DisplayManager(main: JavaPlugin)   : Listener {
 
     @EventHandler
     fun onPlayerToggleSneak(e: PlayerToggleSneakEvent) {
-        e.player.sendMessage("スニーク")
-        /*
-        //      プレイヤーがマップを持っていなければ抜け　
-        val player = e.player
-        val item = player.inventory.itemInMainHand
-        if (item.type != Material.FILLED_MAP) {
-            return
-        }
-
-         */
+        e.player.sendMessage("スニーク ${e.isSneaking}")
     }
 
     var penRadius = 5.0
