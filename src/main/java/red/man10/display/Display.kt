@@ -11,10 +11,7 @@ import red.man10.display.MapPacketSender.Companion.createMapPacket
 import red.man10.display.filter.*
 import red.man10.display.macro.*
 import red.man10.display.macro.CommandType.*
-import red.man10.extention.clear
-import red.man10.extention.drawImage
-import red.man10.extention.drawImageNoMargin
-import red.man10.extention.stretchImage
+import red.man10.extention.*
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
 import java.util.concurrent.ConcurrentHashMap
@@ -87,8 +84,9 @@ abstract class Display : MapPacketSender {
     var parallelism = DEFAULT_PARALLELISM
     var vignette = false
     var vignetteLevel = DEFAULT_VIGNETTE_LEVEL
-    var macroName: String? = ""
 
+
+    var macroName: String? = ""
     var refreshPeriod: Long = (1000 / DEFAULT_FPS.toLong()) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
     // statistics
@@ -444,6 +442,7 @@ abstract class Display : MapPacketSender {
         this.vignette = false
         this.vignetteLevel = DEFAULT_VIGNETTE_LEVEL
         this.testMode = false
+
         // update&save
         this.refreshFlag = true
         return true
@@ -666,13 +665,13 @@ abstract class Display : MapPacketSender {
         val curFps = String.format("%.1f", currentFPS).toDouble()
         val fps = String.format("%.1f", this.fps).toDouble()
         val mps = String.format("%.1f", this.mps)
-        val bps = formatNumberWithCommas(this.bps)
-        val totalSent = formatNumberWithCommas(sentBytes)
+        val bps = String().formatNumberWithCommas(this.bps)
+        val totalSent = String().formatNumberWithCommas(sentBytes)
 
-        val receivedBps = formatNumberWithCommas(frameReceivedBytes / (System.currentTimeMillis() - startTime) * 1000)
+        val receivedBps = String().formatNumberWithCommas(frameReceivedBytes / (System.currentTimeMillis() - startTime) * 1000)
         val receivedFps =
             String.format("%.1f", frameReceivedCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000)
-        val receivedTotal = formatNumberWithCommas(frameReceivedBytes)
+        val receivedTotal = String().formatNumberWithCommas(frameReceivedBytes)
 
         return arrayOf(
             "$name($width,$height)",
