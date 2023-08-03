@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
+import red.man10.extention.clear
 import red.man10.extention.stretchImage
 
 class StretchCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
@@ -16,6 +17,7 @@ class StretchCommand(private var macroName: String, private var macroCommand: Ma
             return
         }
         // 画像を読み込み全画面更新
+        display.currentImage?.clear()
         display.currentImage?.stretchImage(display.filterImage(ImageLoader.get(fileName)!!))
         display.createPacketCache(display.currentImage!!, fileName)
         display.refresh()

@@ -8,6 +8,20 @@ import javax.imageio.ImageIO
 class ImageLoader {
     companion object {
         private var imageCache: MutableMap<String, BufferedImage> = ConcurrentHashMap()
+        fun cacheSize(key: String): Int {
+            val image = imageCache[key] ?: return 0
+            val bytesPerPixel = 3 // RGB形式の画像では1ピクセルあたり3バイト
+            return image.width * image.height * bytesPerPixel
+        }
+        fun totalCacheSize(): Int {
+            var total = 0
+            for (key in imageCache.keys) {
+                total += cacheSize(key)
+            }
+            return total
+        }
+
+
         private fun load(filePath: String): BufferedImage? {
             return try {
                 // httpから始まる場合は、URLから画像を取得

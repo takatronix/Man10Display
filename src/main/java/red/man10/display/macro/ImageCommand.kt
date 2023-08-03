@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
+import red.man10.extention.clear
 import red.man10.extention.drawImage
 
 class ImageCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
@@ -27,6 +28,7 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
         }
         // 画像を読み込み更新
         val image = ImageLoader.get(fileName)!!
+        display.currentImage?.clear()
         display.currentImage?.drawImage(image)
         display.currentImage = display.filterImage(display.currentImage!!)
         display.createPacketCache(display.currentImage!!, "current")

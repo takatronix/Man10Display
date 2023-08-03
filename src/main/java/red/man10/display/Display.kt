@@ -686,6 +686,15 @@ abstract class Display : MapPacketSender {
             String.format("%.1f", frameReceivedCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000)
         val receivedTotal = String().formatNumberWithCommas(frameReceivedBytes)
 
+        val packetCacheSize = String().formatNumber(packetCacheSizeTotal().toLong())
+        val imageCacheSize = String().formatNumber(ImageLoader.totalCacheSize().toLong())
+
+
+
+        val lastCacheTime = String().formatNumberWithCommas(this.lastCacheTime)
+        val lastFilterTime = String().formatNumberWithCommas(this.lastFilterTime)
+
+
         return arrayOf(
             "$name($width,$height)",
             "fps:$curFps/$fps",
@@ -696,6 +705,8 @@ abstract class Display : MapPacketSender {
             "lastFilterTime: $lastFilterTime(ms)",
             "receivedFps:$receivedFps",
             "receivedBps:$receivedBps total:$receivedTotal(bytes)",
+            "packetCacheSize:$packetCacheSize bytes",
+            "imageCacheSize:$imageCacheSize bytes",
         )
     }
 
@@ -807,6 +818,18 @@ abstract class Display : MapPacketSender {
     // "blank" -> ブランクマップ(オフライン時に表示する)
     // "current" -> 現在表示用バッファ
     var packetCache: MutableMap<String, List<PacketContainer>> = ConcurrentHashMap()
+    fun packetCacheSize(key: String): Int {
+        val packetNum = packetCache[key]?.size ?: 0
+        return packetNum * MC_MAP_SIZE_X * MC_MAP_SIZE_Y
+    }
+    fun packetCacheSizeTotal(): Int {
+        var size = 0
+        for (key in packetCache.keys) {
+            size += packetCacheSize(key)
+        }
+        return size
+    }
+
 
     // 更新が必要なマップのindex
     var updateCacheIndexList: MutableList<Int> = mutableListOf()
