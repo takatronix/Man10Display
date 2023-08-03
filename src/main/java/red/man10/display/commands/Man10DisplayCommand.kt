@@ -133,6 +133,15 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                 .explanation("Set parameter")
                 .executor(SetCommand(Main.plugin))
         )
+        // red.man10.extention.teleport command
+        addCommand(
+            CommandObject()
+                .prefix("tp")
+                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.teleport")
+                .explanation("Teleport to display")
+                .executor(TeleportCommand(Main.plugin))
+        )
         // run command
         addCommand(
             CommandObject()

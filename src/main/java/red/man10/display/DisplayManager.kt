@@ -10,20 +10,27 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.inventory.*
 import org.bukkit.event.player.*
+import org.bukkit.event.server.MapInitializeEvent
+import org.bukkit.inventory.Inventory
+import org.bukkit.inventory.InventoryView
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.util.Vector
 import red.man10.display.itemframe.ItemFrameCoordinate
 import red.man10.display.macro.MacroEngine
 import red.man10.extention.fillCircle
 import red.man10.extention.getItemFrame
+import red.man10.extention.sendClickableMessage
 import java.awt.Color
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+
+
+var INVENTORY_CHECK_INTERVAL = (3 * 20).toLong()
 
 class PlayerData {
     var lastLocation: Location? = null
@@ -39,6 +46,11 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
+
+        // 3秒毎のタスクを起動
+        Bukkit.getScheduler().runTaskTimer(main, Runnable {
+        //    inventoryCheckTask()
+        }, 0, INVENTORY_CHECK_INTERVAL)
     }
 
     fun deinit() {
@@ -110,9 +122,20 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
 
     fun showList(p: CommandSender): Boolean {
-        p.sendMessage(Main.prefix + "§a§l Display List")
+        p.sendMessage(Main.prefix + "§§l Display List")
         for (display in displays) {
-            p.sendMessage("§a§l ${display.name} ${display.className} ${display.width}x${display.height} ${display.locInfo}")
+
+            var macroInfo = ""
+            var color = "§7"
+            if(display.macroEngine.isRunning()){
+                color = "§a§l"
+                val currentMacro = display.macroEngine.macroName
+                macroInfo = "§c§l[Running] {§b§n${currentMacro}:/md stats ${display.name}}"
+            }
+
+            val locInfo = "{§b§n${display.locInfo}:/md tp ${display.name}}"
+
+            p.sendClickableMessage("${color}${display.name} ${display.width}x${display.height} ${locInfo} ${macroInfo}")
         }
         return true
     }
@@ -245,6 +268,8 @@ class DisplayManager(main: JavaPlugin) : Listener {
         display.runMacro(macroName)
         display.resetStats()
         display.refreshFlag = true
+        display.macroName = macroName
+        save(sender)
         return true
     }
 
@@ -398,7 +423,14 @@ class DisplayManager(main: JavaPlugin) : Listener {
             //player.sendMessage("向きが変わった")
         }
     }
-
+    @EventHandler
+    fun onMapInitialize(event: MapInitializeEvent) {
+        val mapView: MapView = event.map
+        info("onMapInitialize ${mapView.id}")
+        for (renderer in mapView.renderers) {
+            mapView.removeRenderer(renderer)
+        }
+    }
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
@@ -420,7 +452,42 @@ class DisplayManager(main: JavaPlugin) : Listener {
         return true
     }
 
+    @EventHandler
+    fun onInventoryOpen(e: InventoryOpenEvent){
+        info("onInventoryOpen")
+    }
+    @EventHandler
+    fun onItemHeld(e: PlayerItemHeldEvent){
+        info("onItemHeld")
+    }
+    @EventHandler
+    fun onInventoryClick(e: InventoryClickEvent) {
+        info("onInventoryClick")
+    }
+    @EventHandler
+    fun onInventoryDrag(e: InventoryDragEvent) {
+        info("onInventoryDrag")
+    }
+    @EventHandler
+    fun onInventoryClose(e: InventoryCloseEvent) {
+  //      info("onInventoryClose",e.player)
+    }
+    @EventHandler
+    fun onInventoryMoveItem(e: InventoryMoveItemEvent) {
+        info("onInventoryMoveItem")
+    }
+    @EventHandler
+    fun onInventoryPickupItem(e: InventoryPickupItemEvent) {
+//        info("onInventoryPickupItem",e.inventory.viewers.)
+    }
+    @EventHandler
+    fun onInventory(e: InventoryEvent) {
+       // info("onInventory",e.view.player)
+    }
+
+
     // endregion
+
     fun onRightButtonClick(event: PlayerInteractEvent) {
         val player = event.player
         onButtonClick(event)
@@ -438,5 +505,22 @@ class DisplayManager(main: JavaPlugin) : Listener {
         penColor = col
 
     }
+
+    private fun inventoryCheckTask(){
+        val ip = Bukkit.getServer().ip
+        val port = Bukkit.getServer().port
+        val serverName = Bukkit.getServer().motd
+        var key = "$ip:$port:$serverName"
+        // オンラインプレイヤーのinventoryをチェック
+        for (player in Bukkit.getOnlinePlayers()) {
+            val inventory = player.inventory
+            val itemStack = inventory.itemInMainHand
+            val itemMeta = itemStack.itemMeta
+            val displayName = itemMeta.displayName
+
+        }
+
+    }
+
 
 }

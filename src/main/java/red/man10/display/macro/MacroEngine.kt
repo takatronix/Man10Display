@@ -124,7 +124,8 @@ class MacroEngine {
     private val loopStack = Stack<Loop>()
     private val ifStack = Stack<IfBlock>()
     private var executingMacroName: String? = null
-
+    val macroName: String?
+        get() = executingMacroName
     companion object {
         val commands = arrayListOf("run", "stop", "list")
         val macroList: ArrayList<String>

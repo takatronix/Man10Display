@@ -5,6 +5,7 @@ import net.md_5.bungee.api.ChatMessageType
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.Sound
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 
@@ -31,12 +32,7 @@ fun Player.setActionText(message: String) {
     this.spigot().sendMessage(ChatMessageType.ACTION_BAR, component[0])
 }
 
-fun Player.sendClickableMessage(message: String, command: String) {
-    val textComponent = TextComponent(message)
-    textComponent.color = ChatColor.GOLD
-    textComponent.clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, command)
-    spigot().sendMessage(textComponent)
-}
+
 fun Player.showModeTitle(title: String, subtitle: String = "", keepSec: Double) {
     val time = keepSec * 20.0
     sendTitle(title, subtitle, 10, time.toInt(), 10)

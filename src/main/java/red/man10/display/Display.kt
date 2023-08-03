@@ -87,6 +87,7 @@ abstract class Display : MapPacketSender {
 
 
     var macroName: String? = ""
+    var autoRun = false
     var refreshPeriod: Long = (1000 / DEFAULT_FPS.toLong()) //画面更新サイクル(ms) 20 ticks per second(50ms)
 
     // statistics
@@ -171,6 +172,12 @@ abstract class Display : MapPacketSender {
         createPacketCache(blankImage, "blank")
         // 送信タスク開始
         startSendingPacketsTask()
+
+        // 自動実行が有効ならそのマクロを起動する
+        if (autoRun && macroName != null) {
+            info("Auto run macro: $macroName")
+            runMacro(macroName!!)
+        }
     }
 
 
@@ -208,7 +215,7 @@ abstract class Display : MapPacketSender {
                     "scanline", "scanline_height",
                     "distance",
                     "parallel_dithering", "parallelism",
-                    "test_mode"
+                    "test_mode","auto_run"
                 )
             }
     }
@@ -222,6 +229,7 @@ abstract class Display : MapPacketSender {
         config.set("$key.port", port)
         config.set("$key.protect", protect)
         config.set("$key.macroName", macroName)
+        config.set("$key.autoRun", autoRun)
         config.set("$key.refreshPeriod", refreshPeriod)
         config.set("$key.testMode", testMode)
         config.set("$key.keepAspectRatio", keepAspectRatio)
@@ -288,6 +296,7 @@ abstract class Display : MapPacketSender {
         }
         testMode = config.getBoolean("$key.testMode", false)
         macroName = config.getString("$key.macroName", "")
+        autoRun = config.getBoolean("$key.autoRun", false)
         keepAspectRatio = config.getBoolean("$key.keepAspectRatio", false)
         aspectRatioWidth = config.getDouble("$key.aspectRatioWidth", 16.0)
         aspectRatioHeight = config.getDouble("$key.aspectRatioHeight", 9.0)
@@ -353,6 +362,7 @@ abstract class Display : MapPacketSender {
         p.sendMessage("§a§l distance: ${this.distance}")
         p.sendMessage("§a§l fps: ${this.fps}")
         p.sendMessage("§a§l protect: ${this.protect}")
+        p.sendMessage("§a§l macro: ${this.macroName}")
 
         // パラメータを表示
         p.sendMessage("§a§l monochrome: ${this.monochrome}")
@@ -400,6 +410,7 @@ abstract class Display : MapPacketSender {
 
     fun resetParams(sender: CommandSender): Boolean {
         // reset to default
+        this.macroName = ""
         this.dithering = false
         this.fastDithering = false
         this.showStatus = false
@@ -556,6 +567,8 @@ abstract class Display : MapPacketSender {
                 this.location = loc
                 sender.sendMessage("§aSet location to ${loc.world?.name}(${loc.x.toInt()},${loc.y.toInt()},${loc.z.toInt()})")
             }
+            "auto_run" -> this.autoRun = value.toBoolean()
+
 
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
