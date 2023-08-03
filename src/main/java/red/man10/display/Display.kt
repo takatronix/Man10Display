@@ -757,7 +757,7 @@ abstract class Display : MapPacketSender {
     private fun sendMapPackets(players: List<Player>, packets: List<PacketContainer>) {
         if (packets.isEmpty())
             return
-        info("sendMapPackets ${packets.size}")
+        //info("sendMapPackets ${packets.size}")
         val sent = MapPacketSender.send(players, packets)
         this.sentMapCount += sent
         this.sentBytes += sent * MC_MAP_SIZE_X * MC_MAP_SIZE_Y
@@ -916,6 +916,9 @@ abstract class Display : MapPacketSender {
             return this.currentImage?.drawImage(image)!!
         }
         return this.currentImage?.drawImageNoMargin(image)!!
+    }
+    fun show(player: Player) {
+        sendMapCache(listOf(player))
     }
 
     // endregion

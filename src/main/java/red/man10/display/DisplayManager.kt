@@ -401,9 +401,19 @@ class DisplayManager(main: JavaPlugin) : Listener {
     // ログインイベント
     @EventHandler
     fun onPlayerJoin(e: PlayerJoinEvent) {
+        info("Player Join ${e.player.name}")
         val player = e.player
         //プレイヤーデータを初期化
         playerData[player.uniqueId] = PlayerData()
+
+
+        // 3秒後にディスプレイを表示
+        val delay = 3 * 20L
+        Bukkit.getScheduler().runTaskLater(Main.plugin, Runnable {
+            // プレイヤーにディスプレイ表示
+            displays.forEach { it.show(player) }
+        }, delay)
+
     }
 
     @EventHandler
