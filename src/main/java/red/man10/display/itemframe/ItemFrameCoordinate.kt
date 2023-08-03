@@ -45,10 +45,10 @@ class ItemFrameCoordinate {
 
             val width = floor(
                 when (face) {
-                    BlockFace.SOUTH -> frameCollisionLocation.x.mod(1.0)
-                    BlockFace.NORTH -> 1 - frameCollisionLocation.x.mod(1.0)
-                    BlockFace.EAST -> 1 - frameCollisionLocation.z.mod(1.0)
-                    BlockFace.WEST -> frameCollisionLocation.z.mod(1.0)
+                    BlockFace.SOUTH -> frameCollisionLocation.x-collisionLocation.blockX
+                    BlockFace.NORTH -> 1 - (frameCollisionLocation.x-collisionLocation.blockX)
+                    BlockFace.EAST -> 1 - (frameCollisionLocation.z-collisionLocation.blockZ)
+                    BlockFace.WEST -> frameCollisionLocation.z-collisionLocation.blockZ
                     else -> 0.0
                 } * 128.0
             )
