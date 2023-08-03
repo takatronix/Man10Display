@@ -354,6 +354,14 @@ class DisplayManager(main: JavaPlugin) : Listener {
         // result.first = x座標 result.second = y座標
         val result = ItemFrameCoordinate.calculatePixelCoordinate(face, rayVector, collisionLocation)
 
+        player.sendMessage("§a§l Clicked Map $mapId $result")
+
+
+        if(result.first < 0 || result.first > 127)
+            return
+        if(result.second < 0 || result.second > 127)
+            return
+
         onMapClick(player, mapId, result.first.toInt(), result.second.toInt())
     }
 

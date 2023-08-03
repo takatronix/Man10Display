@@ -37,9 +37,9 @@ class ItemFrameCoordinate {
 
             val height = floor(
                 if (face == BlockFace.UP || face == BlockFace.DOWN) {
-                    frameCollisionLocation.x.mod(1.0)
+                    frameCollisionLocation.x-collisionLocation.blockX
                 } else {
-                    1 - frameCollisionLocation.y.mod(1.0)
+                    1 - (frameCollisionLocation.y-collisionLocation.blockY)
                 } * 128.0
             )
 
