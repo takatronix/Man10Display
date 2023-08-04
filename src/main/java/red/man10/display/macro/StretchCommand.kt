@@ -5,6 +5,7 @@ import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
 import red.man10.extention.clear
+import red.man10.extention.drawImage
 import red.man10.extention.stretchImage
 
 class StretchCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
@@ -20,6 +21,6 @@ class StretchCommand(private var macroName: String, private var macroCommand: Ma
         display.currentImage?.clear()
         display.currentImage?.stretchImage(display.filterImage(ImageLoader.get(fileName)!!))
         display.createPacketCache(display.currentImage!!, fileName)
-        display.refresh()
+        display.refresh(fileName)
     }
 }

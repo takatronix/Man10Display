@@ -23,7 +23,7 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
 
         //　　キャッシュにすでに読み込み済みならそれを送信する
         if (display.packetCache[fileName] != null) {
-            display.sendMapCache(players, "current")
+            display.sendMapCache(players, fileName)
             return
         }
         // 画像を読み込み更新
@@ -31,7 +31,7 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
         display.currentImage?.clear()
         display.currentImage?.drawImage(image)
         display.currentImage = display.filterImage(display.currentImage!!)
-        display.createPacketCache(display.currentImage!!, "current")
-        display.refresh()
+        display.createPacketCache(display.currentImage!!, fileName)
+        display.refresh(fileName)
     }
 }

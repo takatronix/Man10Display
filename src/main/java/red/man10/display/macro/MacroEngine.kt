@@ -110,14 +110,14 @@ abstract class MacroCommandHandler {
 }
 
 
-class MacroEngine {
+class MacroEngine() {
     private val symbolTable = mutableMapOf<String, Any>()
     private val labelIndices = mutableMapOf<String, Int>()
     private var commands = listOf<MacroCommand>()
     private var currentLineIndex = 0
     private var shouldStop = false
     private var callback: ((MacroCommand, Int) -> Unit)? = null
-
+    var display :Display? = null
     private data class Loop(val startLine: Int, var counter: Int)
     private data class IfBlock(var condition: Boolean, val startLine: Int)
 
@@ -179,7 +179,7 @@ class MacroEngine {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun runMacroAsync(macroName: String, callback: (MacroCommand, Int) -> Unit) {
+    fun runMacroAsync(display:Display,macroName: String, callback: (MacroCommand, Int) -> Unit) {
 
         if (isRunning()) {
             stop()
@@ -188,6 +188,7 @@ class MacroEngine {
         runBlocking {
             currentJob?.join()
         }
+        this.display = display
         // GlobalScopeを使用して、新しいトップレベルのコルーチンを起動します。
         // このコルーチンはメインスレッドから切り離され、バックグラウンドで実行されます。
         currentJob = GlobalScope.launch {
@@ -243,6 +244,18 @@ class MacroEngine {
                         // それ以外の場合は、expressionを評価します。
                         val value = evaluateExpression(expression)
                         info(value.toString())
+                    }
+                }
+                MESSAGE -> {
+                    val expression = command.params.joinToString(" ")
+                    if (expression.startsWith("\"") && expression.endsWith("\"")) {
+                        // パラメータが文字列リテラルの場合は、そのまま出力します。
+                        val output = evaluateStringExpression(expression.substring(1, expression.length - 1))
+                        display?.sendMessage(output)
+                    } else {
+                        // それ以外の場合は、expressionを評価します。
+                        val value = evaluateExpression(expression)
+                        display?.sendMessage(value.toString())
                     }
                 }
 

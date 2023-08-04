@@ -669,7 +669,9 @@ abstract class Display : MapPacketSender {
         }
         return result
     }
-
+    fun sendMessage(message: String) {
+        getTargetPlayers().forEach { p: Player -> p.sendMessage(message) }
+    }
     private fun showStatus(image: BufferedImage): BufferedImage {
         val info = getStatistics()
         val graphics = image.graphics
@@ -723,7 +725,7 @@ abstract class Display : MapPacketSender {
         )
     }
 
-    private fun getTargetPlayers(): List<Player> {
+    fun getTargetPlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
         for (player in Bukkit.getOnlinePlayers()) {
@@ -908,10 +910,10 @@ abstract class Display : MapPacketSender {
         packetCache.clear()
     }
 
-    fun refresh() {
+    fun refresh(key:String ="current") {
         if (forceRefresh) {
             // 現在のパケットキャッシュを送信
-            sendMapCache(getTargetPlayers())
+            sendMapCache(getTargetPlayers(),key)
             refreshCount++
             return
         }
@@ -961,7 +963,7 @@ abstract class Display : MapPacketSender {
     // region: Macro
     fun runMacro(macroName: String, sender: CommandSender? = null): Boolean {
         info("runMacro : $macroName", sender)
-        macroEngine.runMacroAsync(macroName) { macroCommand, index ->
+        macroEngine.runMacroAsync(this,macroName) { macroCommand, index ->
             //  info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
             val players = getTargetPlayers()
             try {
@@ -972,7 +974,6 @@ abstract class Display : MapPacketSender {
                     REFRESH -> RefreshCommand(macroName, macroCommand).run(this, players, sender)
                     CLEAR -> ClearCommand(macroName, macroCommand).run(this, players, sender)
                     FILL -> FillCommand(macroName, macroCommand).run(this, players, sender)
-                    MESSAGE -> MessageCommand(macroName, macroCommand).run(this, players, sender)
                     STRETCH -> StretchCommand(macroName, macroCommand).run(this, players, sender)
                     PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, players, sender)
                     else -> {
