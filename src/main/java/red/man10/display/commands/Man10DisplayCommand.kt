@@ -202,18 +202,11 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
             CommandObject()
                 .prefix("place")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
-                .argument("x1", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0]) }, false)
-                .argument("y1", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1]) }, false)
-                .argument("z1", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2]) }, false)
-                .argument("x2", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[0]) }, false)
-                .argument("y2", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[1]) }, false)
-                .argument("z2", { c -> arrayListOf(getTargetBlockCoordinatesArgument(c, 30)[2]) }, false)
-                .argument("direction", "positive", "negative")
-                .permission("red.man10.display.op")
-                .explanation("Place item frames")
+                .argument("[item_frame_type]") { _ -> arrayListOf("item_frame", "grow_item_frame") }
+                .permission("red.man10.display.place")
+                .explanation("Create a display where you are looking at")
                 .executor(PlaceCommand(Main.plugin))
         )
-
     }
 
 }

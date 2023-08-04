@@ -17,7 +17,7 @@ class SaveCommand(private var plugin: JavaPlugin) : CommandExecutor {
             }
             sender.sendMessage(Main.prefix + "§a§l $name deleted")
         } catch (e: Exception) {
-            sender.sendMessage(Main.prefix + "§c§l{e.message}")
+            sender.sendMessage(Main.prefix + "§c§l${e.message}")
             return true
         }
         return true

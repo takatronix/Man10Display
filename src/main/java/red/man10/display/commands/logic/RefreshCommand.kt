@@ -16,7 +16,7 @@ class RefreshCommand(private var plugin: JavaPlugin) : CommandExecutor {
                 return false
             }
         } catch (e: Exception) {
-            sender.sendMessage(Main.prefix + "§c§l{e.message}")
+            sender.sendMessage(Main.prefix + "§c§l${e.message}")
             return true
         }
         return true

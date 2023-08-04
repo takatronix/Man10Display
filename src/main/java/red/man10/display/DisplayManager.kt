@@ -4,8 +4,13 @@ import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.block.Block
+import org.bukkit.util.Vector
+import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -13,8 +18,6 @@ import org.bukkit.event.block.Action
 import org.bukkit.event.inventory.*
 import org.bukkit.event.player.*
 import org.bukkit.event.server.MapInitializeEvent
-import org.bukkit.inventory.Inventory
-import org.bukkit.inventory.InventoryView
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
@@ -31,29 +34,45 @@ import java.util.concurrent.ConcurrentHashMap
 
 
 var INVENTORY_CHECK_INTERVAL = (3 * 20).toLong()
+var PLAYER_DATA_THREAD_INTERVAL = 10L
+var RIGHT_BUTTON_UP_DETECTION_INTERVAL = 300L
 
 class PlayerData {
     var lastLocation: Location? = null
     var rightButtonPressed = false
     var isSneaking = false
 
+   // var leftClick
+    var rightClickDown = false
     var lastRightClickTime : Long = 0
+    var lastLeftClickTime : Long = 0
 }
 
 class DisplayManager(main: JavaPlugin) : Listener {
     val displays = mutableListOf<Display>()
     private val playerData = ConcurrentHashMap<UUID, PlayerData>()
+    private var playerDataThread: Thread? = null
+    var installingPlayer: Player? = null
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
 
-        // 3秒毎のタスクを起動
-        Bukkit.getScheduler().runTaskTimer(main, Runnable {
-        //    inventoryCheckTask()
-        }, 0, INVENTORY_CHECK_INTERVAL)
+
+        playerDataThread = Thread {
+            while (!Thread.currentThread().isInterrupted) {
+                try {
+                    playerDataTask()
+                    Thread.sleep(PLAYER_DATA_THREAD_INTERVAL)
+                } catch (e: InterruptedException) {
+                    error(e.localizedMessage)
+                    //Thread.currentThread().interrupt()
+                }
+            }
+        }.apply(Thread::start)
     }
 
     fun deinit() {
+        playerDataThread?.interrupt()
         this.stopAllMacro()
         for (display in displays) {
             if (display is StreamDisplay) {
@@ -127,7 +146,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
             var macroInfo = ""
             var color = "§7"
-            if(display.macroEngine.isRunning()){
+            if (display.macroEngine.isRunning()) {
                 color = "§a§l"
                 val currentMacro = display.macroEngine.macroName
                 macroInfo = "§c§l[Running] {§b§n${currentMacro}:/md stats ${display.name}}"
@@ -356,17 +375,12 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
         //player.sendMessage("§a§l Clicked Map $mapId $result")
 
-        if(result.first < 0 || result.first > 127)
+        if (result.first < 0 || result.first > 127)
             return
-        if(result.second < 0 || result.second > 127)
+        if (result.second < 0 || result.second > 127)
             return
 
         onMapClick(player, mapId, result.first.toInt(), result.second.toInt())
-    }
-
-
-    fun onButtonClick(event: PlayerInteractEvent) {
-        interactMap(event.player)
     }
 
 
@@ -421,6 +435,10 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val player = e.player
         // プレイヤーデータを削除
         playerData.remove(player.uniqueId)
+
+        if (player == installingPlayer) {
+            installingPlayer = null
+        }
     }
 
     @EventHandler
@@ -439,15 +457,23 @@ class DisplayManager(main: JavaPlugin) : Listener {
         if (from.yaw !== to.yaw || from.pitch !== to.pitch) {
             //player.sendMessage("向きが変わった")
         }
+        //    interactMap(player)
+
     }
+
     @EventHandler
     fun onMapInitialize(event: MapInitializeEvent) {
         val mapView: MapView = event.map
         info("onMapInitialize ${mapView.id}")
+
+        var display = getDisplay(mapView.id) ?: return
+
+
         for (renderer in mapView.renderers) {
             mapView.removeRenderer(renderer)
         }
     }
+
     @EventHandler
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
@@ -455,64 +481,92 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
         // プレイヤーが右クリック
         if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
-            onRightButtonClick(event)
+            onRightButtonEvent(player)
             // プレイヤーが左クリック
         } else if (action === Action.LEFT_CLICK_AIR || action === Action.LEFT_CLICK_BLOCK) {
-            onLeftButtonClick(event)
+            onLeftButtonEvent(player)
         }
     }
 
 
+    // 近くで右クリックしたとき
     @EventHandler
-    fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent): Boolean {
+    fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent) {
         interactMap(e.player)
-        return true
     }
 
     @EventHandler
-    fun onInventoryOpen(e: InventoryOpenEvent){
+    fun onInventoryOpen(e: InventoryOpenEvent) {
         info("onInventoryOpen")
     }
+
     @EventHandler
-    fun onItemHeld(e: PlayerItemHeldEvent){
+    fun onItemHeld(e: PlayerItemHeldEvent) {
         info("onItemHeld")
     }
+
     @EventHandler
     fun onInventoryClick(e: InventoryClickEvent) {
         info("onInventoryClick")
     }
+
     @EventHandler
     fun onInventoryDrag(e: InventoryDragEvent) {
         info("onInventoryDrag")
     }
+
     @EventHandler
     fun onInventoryClose(e: InventoryCloseEvent) {
-  //      info("onInventoryClose",e.player)
+        info("onInventoryClose")
     }
+
     @EventHandler
     fun onInventoryMoveItem(e: InventoryMoveItemEvent) {
         info("onInventoryMoveItem")
     }
+
     @EventHandler
     fun onInventoryPickupItem(e: InventoryPickupItemEvent) {
-//        info("onInventoryPickupItem",e.inventory.viewers.)
+        info("onInventoryPickupItem")
     }
+
     @EventHandler
     fun onInventory(e: InventoryEvent) {
-       // info("onInventory",e.view.player)
+        info("onInventory")
     }
-
-
     // endregion
 
-    fun onRightButtonClick(event: PlayerInteractEvent) {
-        val player = event.player
-        onButtonClick(event)
+    // region Mouse Event
+    fun onButtonClick(player: Player) {
+        interactMap(player)
     }
 
-    fun onLeftButtonClick(event: PlayerInteractEvent) {
-        val player = event.player
-        onButtonClick(event)
+    // 右クリックイベント
+    fun onRightButtonEvent(player: Player) {
+        onButtonClick(player)
+
+        val lastClick = this.playerData[player.uniqueId]?.lastRightClickTime ?: 0
+        val now = System.currentTimeMillis()
+
+        this.playerData[player.uniqueId]?.lastRightClickTime = now
+
+        if (this.playerData[player.uniqueId]?.rightButtonPressed == false) {
+            this.playerData[player.uniqueId]?.rightButtonPressed = true
+            onRightButtonDown(player)
+        }
+    }
+
+    fun onRightButtonUp(player: Player) {
+        info("onRightButtonUp", player)
+    }
+
+    fun onRightButtonDown(player: Player) {
+        info("onRightButtonDown", player)
+    }
+
+    //  左クリックイベント
+    fun onLeftButtonEvent(player: Player) {
+        onButtonClick(player)
 
         penRadius = Math.random() * 40 + 5
         val r = Math.random() * 255
@@ -522,8 +576,32 @@ class DisplayManager(main: JavaPlugin) : Listener {
         penColor = col
 
     }
+    // endregion
 
-    private fun inventoryCheckTask(){
+
+    private fun playerDataTask() {
+        for (player in Bukkit.getOnlinePlayers()) {
+            val uuid = player.uniqueId
+            if (!playerData.containsKey(uuid)) {
+                playerData[uuid] = PlayerData()
+            }
+
+            val data = playerData[uuid]!!
+
+            // 右ボタンアップを検出
+            val delta = System.currentTimeMillis() - data.lastRightClickTime
+            if (delta >= RIGHT_BUTTON_UP_DETECTION_INTERVAL) {
+                if (data.rightButtonPressed) {
+                    info("$delta ms", player)
+                    onRightButtonUp(player)
+                    data.rightButtonPressed = false
+                }
+            }
+        }
+
+    }
+
+    private fun inventoryCheckTask() {
         val ip = Bukkit.getServer().ip
         val port = Bukkit.getServer().port
         val serverName = Bukkit.getServer().motd
@@ -538,6 +616,93 @@ class DisplayManager(main: JavaPlugin) : Listener {
         }
 
     }
+
+    fun setupDisplay(display: Display, player: Player): Boolean {
+        val distance = 32.0
+        val rayTraceResult = player.rayTraceBlocks(distance)
+        val hitPosition = rayTraceResult?.hitPosition
+        if (hitPosition == null) {
+            this.installingPlayer = null
+            error("Could not find a place to install", player)
+            return false
+        }
+
+        //  視線の衝突点
+        val collisionLocation = hitPosition.toLocation(player.world)
+        // 衝突したブロックの面
+        val face = rayTraceResult.hitBlockFace ?: return false
+
+        info("face: $face", player)
+
+        var width = display.width
+        var height = display.height
+
+        // face面の方向に向かって(width/height)分だけ額縁を設置する
+        placeMaps(player,collisionLocation, face, width, height,display.mapIds, false)
+
+        this.installingPlayer = null
+        return true
+    }
+
+
+    fun placeMaps(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int,mapIds:List<Int> ,isGlowing: Boolean = false) {
+        placeMapsNormal(player, startLocation, face, width, height, mapIds,isGlowing)
+    }
+
+    fun placeMapsNormal(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int, mapIds:List<Int> ,isGlowing: Boolean = false) {
+        val world = startLocation.world
+        val rightDirection = when(face) {
+            BlockFace.NORTH -> BlockFace.WEST
+            BlockFace.WEST -> BlockFace.SOUTH
+            BlockFace.SOUTH -> BlockFace.EAST
+            BlockFace.EAST -> BlockFace.NORTH
+            else -> throw IllegalArgumentException("Invalid face: $face")
+        }
+        val downDirection = BlockFace.DOWN
+
+        var index = 0
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val location = startLocation.clone()
+                    .add(rightDirection.modX * x.toDouble(), downDirection.modY * y.toDouble(), rightDirection.modZ * x.toDouble())
+                    .add(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
+
+                if (face == BlockFace.EAST || face == BlockFace.SOUTH) {
+                    location.subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
+                }
+
+                val behindLocation = location.clone().subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
+                if (behindLocation.block.type == Material.AIR) {
+                    behindLocation.block.type = Material.SMOOTH_STONE
+                }
+
+                val existingFrame = world.getNearbyEntities(location, 0.5, 0.5, 0.5)
+                    .filterIsInstance<ItemFrame>()
+                    .firstOrNull { it.facing == face }
+                existingFrame?.remove()
+
+                val frame = world.spawnEntity(location, EntityType.ITEM_FRAME) as ItemFrame
+                frame.setFacingDirection(face, true)
+
+                if (isGlowing) {
+                    frame.isGlowing = true
+                }
+
+                // マップを設置
+                val mapId = mapIds[index]
+                val itemStack = ItemStack(Material.FILLED_MAP)
+                val mapMeta = itemStack.itemMeta as MapMeta
+                mapMeta.mapView = Bukkit.getMap(mapId)
+                itemStack.itemMeta = mapMeta
+                frame.setItem(itemStack)
+
+                index++
+            }
+        }
+    }
+
+
+
 
 
 }
