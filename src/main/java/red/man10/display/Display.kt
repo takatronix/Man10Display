@@ -215,7 +215,7 @@ abstract class Display : MapPacketSender {
                     "scanline", "scanline_height",
                     "distance",
                     "parallel_dithering", "parallelism",
-                    "test_mode","auto_run"
+                    "test_mode","auto_run","variable"
                 )
             }
     }
@@ -568,6 +568,19 @@ abstract class Display : MapPacketSender {
                 sender.sendMessage("§aSet location to ${loc.world?.name}(${loc.x.toInt()},${loc.y.toInt()},${loc.z.toInt()})")
             }
             "auto_run" -> this.autoRun = value.toBoolean()
+            "variable" -> {
+                val variable = value.split("=")
+                if (variable.size != 2) {
+                    sender.sendMessage("§cInvalid value: $value")
+                    return false
+                }
+                var macroKey = variable[0]
+                if (macroKey.startsWith("$")) {
+                    macroKey = macroKey.substring(1)
+                }
+                val macroValue = variable[1]
+                macroEngine.setVariable(macroKey, macroValue)
+            }
 
 
             else -> {

@@ -578,4 +578,7 @@ class MacroEngine {
         return macroFile.absolutePath
     }
     // endregion
+    fun setVariable(name: String, value: String) {
+        symbolTable[name] = evaluateExpression(value)
+    }
 }
