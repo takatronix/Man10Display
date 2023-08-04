@@ -99,50 +99,13 @@ class ItemFrameListener : Listener {
     @EventHandler
     fun blockBreakEvent(e: BlockBreakEvent) {
         if (e.isCancelled) return
-        val entities = e.block.location.subtract(-0.5, -0.5, -0.5).getNearbyEntities(1.5, 1.5, 1.5)
+        val entities = e.block.location.subtract(-0.5, -0.5, -0.5).getNearbyEntities(0.7, 0.7, 0.7)
             .filter { it.type == EntityType.ITEM_FRAME || it.type == EntityType.GLOW_ITEM_FRAME }
         if (entities.isEmpty()) return
         for (entity in entities) {
             getEntityAsMap(entity) ?: return
-
-            val loc = entity.location.toBlockLocation()
-
-            when (entity.facing) {
-                BlockFace.NORTH -> {
-                    loc.add(0.0, 0.0, 1.0)
-                }
-
-                BlockFace.EAST -> {
-                    loc.add(-1.0, 0.0, 0.0)
-                }
-
-                BlockFace.SOUTH -> {
-                    loc.add(0.0, 0.0, -1.0)
-                }
-
-                BlockFace.WEST -> {
-                    loc.add(1.0, 0.0, 0.0)
-                }
-
-                BlockFace.DOWN -> {
-                    loc.add(0.0, 1.0, 0.0)
-                }
-
-                BlockFace.UP -> {
-                    loc.add(0.0, -1.0, 0.0)
-                }
-
-                else -> {}
-            }
-
-            val breakLoc = e.block.location.toBlockLocation()
-
-            if (breakLoc == loc) {
-                e.isCancelled = true
-                // タッチ可能性がある場合は、メッセージを表示させない
-//                e.player.sendMessage(Main.prefix + "§4This item frame is protected")
-                return
-            }
+            e.isCancelled = true
+            return
         }
     }
 
@@ -194,15 +157,21 @@ class ItemFrameListener : Listener {
     }
 
 
-    fun getEntityAsMap(entity: Entity): MapView? {
+    private fun getEntityAsMap(entity: Entity): MapView? {
         if (entity !is ItemFrame) return null
         val meta = entity.item.itemMeta as? MapMeta ?: return null
         val mapView = meta.mapView ?: return null
+        val mapId = mapView.id
         //  if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) }) return null
         // displayがprotect=falseの時は保護しない
-        if (Main.displayManager.displays.none { it.mapIds.contains(mapView.id) && it.protect }) return null
-
-        return mapView
+        for (display in Main.displayManager.displays) {
+            if (display.mapIds.contains(mapId)) {
+                 if (display.protect) {
+                    return mapView
+                }
+            }
+        }
+        return null
     }
 
     private fun isProtectedBlock(location: Location): Boolean {

@@ -673,7 +673,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
                 val behindLocation = location.clone().subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
                 if (behindLocation.block.type == Material.AIR) {
-                    behindLocation.block.type = Material.SMOOTH_STONE
+                    behindLocation.block.type = Material.SEA_LANTERN
                 }
 
                 val existingFrame = world.getNearbyEntities(location, 0.5, 0.5, 0.5)
