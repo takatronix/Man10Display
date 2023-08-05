@@ -2,6 +2,7 @@ package red.man10.extention
 
 import java.awt.Color
 import java.awt.Rectangle
+import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 
 fun BufferedImage.fill(colorName: String): Rectangle {
@@ -87,6 +88,41 @@ fun BufferedImage.drawRect(x: Int, y: Int, width: Int, height: Int, r: Int, g: I
     graphics.dispose()
     // 描画範囲をかえす
     return Rectangle(x, y, width, height)
+}
+
+fun BufferedImage.resize(width: Int, height: Int): BufferedImage {
+    val resizedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+    val graphics2D = resizedImage.createGraphics()
+    graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+    graphics2D.drawImage(this, 0, 0, width, height, null)
+    graphics2D.dispose()
+    return resizedImage
+}
+fun BufferedImage.drawText(x:Int,y:Int,text:String,size:Float = 13.0f,color:Color = Color.WHITE):Rectangle{
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    graphics.drawString(text,x,y)
+    graphics.dispose()
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    return Rectangle(x,y,width,height)
+}
+fun BufferedImage.drawTextCenter(text:String,size: Float = 13.0f,color: Color = Color.WHITE):Rectangle{
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = (this.width - width) / 2
+    val y = (this.height - height) / 2
+    graphics.drawString(text,x,y)
+    graphics.dispose()
+    return Rectangle(x,y,width,height)
 }
 
 fun BufferedImage.drawImage(image: BufferedImage): Rectangle {
@@ -177,14 +213,19 @@ fun BufferedImage.drawImageNoMargin(image: BufferedImage): Rectangle {
         newWidth = targetWidth
         newHeight = (newWidth / aspect).toInt()
     }
-
+    val g = this.createGraphics()
+    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
     // 余白なしで描画
-    this.graphics.drawImage(image, 0, 0, newWidth, newHeight, null)
+    g.drawImage(image, 0, 0, newWidth, newHeight, null)
+    g.dispose()
     return Rectangle(0, 0, newWidth, newHeight)
 }
 
 fun BufferedImage.stretchImage(image: BufferedImage): Rectangle {
-    this.graphics.drawImage(image, 0, 0, this.width, this.height, null)
+    val g = this.createGraphics()
+    g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+    g.drawImage(image, 0, 0, this.width, this.height, null)
+    g.dispose()
     return Rectangle(0, 0, this.width, this.height)
 }
 

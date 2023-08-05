@@ -4,8 +4,9 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
-import red.man10.extention.clear
-import red.man10.extention.drawImage
+import red.man10.extention.*
+import java.awt.Color
+import java.awt.image.BufferedImage
 
 class ImageCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
@@ -26,12 +27,18 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
             display.sendMapCache(players, fileName)
             return
         }
-        // 画像を読み込み更新
-        val image = ImageLoader.get(fileName)!!
-        display.currentImage?.clear()
-        display.currentImage?.drawImage(image)
-        display.currentImage = display.filterImage(display.currentImage!!)
-        display.createPacketCache(display.currentImage!!, fileName)
-        display.refresh(fileName)
+        val image = display.currentImage?:return
+        image.clear()
+        val getImage = ImageLoader.get(fileName)
+        if(getImage == null){
+            image.drawTextCenter("file not found $fileName",13.0f, Color.RED)
+            display.createPacketCache(image, "error")
+            display.sendMapCache("error")
+            return
+        }
+
+        image.drawImage(getImage)
+        display.createPacketCache(image, fileName)
+        display.sendMapCache(fileName)
     }
 }

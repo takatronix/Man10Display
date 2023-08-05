@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledFuture
 import java.util.concurrent.TimeUnit
+import java.util.function.Consumer
 import kotlin.collections.set
 import kotlin.system.measureTimeMillis
 
@@ -33,7 +34,7 @@ const val DEFAULT_FPS = 10.0
 //
 const val DEFAULT_PROTECTION = true
 
-abstract class Display : MapPacketSender {
+class Display() : MapPacketSender {
     var name: String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
@@ -43,6 +44,7 @@ abstract class Display : MapPacketSender {
     var port: Int = 0
     var macroEngine = MacroEngine()
     var protect = DEFAULT_PROTECTION
+    private var videoCaptureServer: VideoCaptureServer? = null
 
     // filter settings
     var testMode = false
@@ -104,7 +106,7 @@ abstract class Display : MapPacketSender {
     var frameReceivedBytes: Long = 0
     var frameErrorCount: Long = 0
     var refreshFlag = false
-    var forceRefresh = true
+
 
 
     fun resetStats() {
@@ -116,16 +118,16 @@ abstract class Display : MapPacketSender {
         frameReceivedBytes = 0
         frameErrorCount = 0
         startTime = System.currentTimeMillis()
-        if (this is StreamDisplay) {
-            this.resetVideoStats()
-        }
+        this.resetVideoStats()
     }
 
     var blankMap: ByteArray? = null
-    open val imageWidth: Int
+    val imageWidth: Int
         get() = width * MC_MAP_SIZE_X
-    open val imageHeight: Int
+    val imageHeight: Int
         get() = height * MC_MAP_SIZE_Y
+    val imageRect:Int
+        get() = imageWidth * imageHeight
     private val mapCount: Int
         get() = width * height
     private val currentFPS: Double
@@ -150,19 +152,21 @@ abstract class Display : MapPacketSender {
             }
         }
 
-    constructor(name: String, width: Int, height: Int) {
+    constructor(name: String, width: Int, height: Int, port:Int = 0) : this() {
         this.name = name
         this.width = width
         this.height = height
+        this.port = port
         init()
     }
 
-    constructor(config: YamlConfiguration, name: String) {
+    constructor(config: YamlConfiguration, name: String) : this() {
         this.load(config, name)
         init()
     }
 
     private fun init() {
+        startVideoServer(port)
 
         // 画像バッファイメージ
         this.currentImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
@@ -170,8 +174,8 @@ abstract class Display : MapPacketSender {
         // ブランクイメージ
         val blankImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
         createPacketCache(blankImage, "blank")
-        // 送信タスク開始
-        startSendingPacketsTask()
+        // Video送信タスク開始
+        startVideoSendingPacketsTask()
 
         // 自動実行が有効ならそのマクロを起動する
         if (autoRun && macroName != null) {
@@ -181,9 +185,10 @@ abstract class Display : MapPacketSender {
     }
 
 
-    open fun deinit() {
+    fun deinit() {
         this.refreshFlag = false
-        stopSendingPacketsTask()
+        stopVideoServer()
+        stopVideoSendingPacketsTask()
     }
 
     // endregion
@@ -215,7 +220,7 @@ abstract class Display : MapPacketSender {
                     "scanline", "scanline_height",
                     "distance",
                     "parallel_dithering", "parallelism",
-                    "test_mode","auto_run","variable"
+                    "test_mode","auto_run","variable","port"
                 )
             }
     }
@@ -361,6 +366,7 @@ abstract class Display : MapPacketSender {
         p.sendMessage("§a§l location: ${this.locInfo}")
         p.sendMessage("§a§l distance: ${this.distance}")
         p.sendMessage("§a§l fps: ${this.fps}")
+        p.sendMessage("§a§l port: ${this.port}")
         p.sendMessage("§a§l protect: ${this.protect}")
         p.sendMessage("§a§l macro: ${this.macroName}")
 
@@ -465,8 +471,8 @@ abstract class Display : MapPacketSender {
         sender.sendMessage("intervalSeconds: $intervalSeconds")
         sender.sendMessage("refreshPeriod(ms): $refreshPeriod")
         if (future != null) {
-            stopSendingPacketsTask()
-            startSendingPacketsTask()
+            stopVideoSendingPacketsTask()
+            startVideoSendingPacketsTask()
         }
     }
 
@@ -581,7 +587,16 @@ abstract class Display : MapPacketSender {
                 val macroValue = variable[1]
                 macroEngine.setVariable(macroKey, macroValue)
             }
-
+            "port" -> {
+                val port = value.toIntOrNull()
+                if (port == null) {
+                    sender.sendMessage("§cInvalid value: $value")
+                    return false
+                }
+                this.port = port
+                startVideoServer(this.port)
+                sender.sendMessage("§aSet port to $port")
+            }
 
             else -> {
                 sender.sendMessage("§cInvalid key: $key")
@@ -744,26 +759,19 @@ abstract class Display : MapPacketSender {
     }
 
     // 画面更新タスクを開始する
-    private fun startSendingPacketsTask() {
+    private fun startVideoSendingPacketsTask() {
         info("$name stopSendingPacketsTask $refreshPeriod ms")
-        stopSendingPacketsTask()  // 既にパケットを送信している場合は停止する
+        stopVideoSendingPacketsTask()  // 既にパケットを送信している場合は停止する
         info("startSendingPacketsTask $refreshPeriod ms")
         future = executor.scheduleAtFixedRate(
             {
                 // 画面更新フラグが立っていれば、画面すべてを更新する
                 if (refreshFlag) {
-                    this.refreshFlag = false
-                    sendMapPacketsToPlayers()
+                    sendMapPacketsToPlayers("video")
                     refreshCount++
+                    this.refreshFlag = false
                     return@scheduleAtFixedRate
                 }
-                // 画面の一部を更新する
-                if (updateCacheIndexList.isNotEmpty()) {
-                    sendMapCacheByIndexList(sentPlayers, updateCacheIndexList)
-                    updateCacheIndexList = mutableListOf()
-                    return@scheduleAtFixedRate
-                }
-
             }, 0, refreshPeriod, TimeUnit.MILLISECONDS
         )
     }
@@ -785,6 +793,11 @@ abstract class Display : MapPacketSender {
         //info("sendMapCache $key")
         val packets = packetCache[key]!!
         sendMapPackets(players, packets)
+        if(key != "current")
+            packetCache["current"] = packetCache[key]!!
+    }
+    fun sendMapCache(key:String="current"){
+        sendMapCache(getTargetPlayers(),key)
     }
 
     // 作成したキャッシュの一部を送信する(部分更新用)
@@ -800,9 +813,9 @@ abstract class Display : MapPacketSender {
         sendMapPackets(players, targetPackets)
     }
 
-    private fun sendMapPacketsToPlayers() {
+    private fun sendMapPacketsToPlayers(key:String) {
         val players = getTargetPlayers()
-        sendMapCache(players)
+        sendMapCache(players,key)
         // 前回送信して今回送信しないプレイヤーには、ブランクパケットを送ってディスプレイを消す
         for (player in sentPlayers) {
             if (players.contains(player))
@@ -812,7 +825,7 @@ abstract class Display : MapPacketSender {
         this.sentPlayers = players.toMutableList()
     }
 
-    private fun stopSendingPacketsTask() {
+    private fun stopVideoSendingPacketsTask() {
         future?.cancel(false)
         future = null
     }
@@ -899,6 +912,7 @@ abstract class Display : MapPacketSender {
         updateCacheIndexList.clear()
     }
 
+
     fun reset() {
         this.currentImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
         createPacketCache(currentImage!!, "current")
@@ -910,13 +924,7 @@ abstract class Display : MapPacketSender {
         packetCache.clear()
     }
 
-    fun refresh(key:String ="current") {
-        if (forceRefresh) {
-            // 現在のパケットキャッシュを送信
-            sendMapCache(getTargetPlayers(),key)
-            refreshCount++
-            return
-        }
+    fun refresh() {
         this.refreshFlag = true
     }
 
@@ -932,8 +940,8 @@ abstract class Display : MapPacketSender {
         }
         return this.currentImage?.drawImageNoMargin(image)!!
     }
-    fun show(player: Player) {
-        sendMapCache(listOf(player))
+    fun show(player: Player,key:String = "current") {
+        sendMapCache(listOf(player),key)
     }
 
     // endregion
@@ -986,6 +994,37 @@ abstract class Display : MapPacketSender {
         }
         return true
     }
+    // endregion
 
+    // region video server
+    private fun startVideoServer(port: Int = 0) {
+        stopVideoServer()
+        if(port == 0) {
+            return
+        }
+        try{
+            videoCaptureServer = VideoCaptureServer(port)
+            videoCaptureServer?.onFrame(Consumer { image ->
+                this.frameReceivedCount = videoCaptureServer?.frameReceivedCount ?: 0
+                this.frameReceivedBytes = videoCaptureServer?.frameReceivedBytes ?: 0
+                this.frameErrorCount = videoCaptureServer?.frameErrorCount ?: 0
+
+                createPacketCache(filterImage(image), "video")
+                refresh()
+            })
+            videoCaptureServer?.start()
+        } catch (e: Exception) {
+            error(e.message!!)
+            stopVideoServer()
+            return
+        }
+    }
+    fun stopVideoServer() {
+        videoCaptureServer?.deinit()
+        videoCaptureServer = null
+    }
+    fun resetVideoStats() {
+        videoCaptureServer?.resetStats()
+    }
     // endregion
 }

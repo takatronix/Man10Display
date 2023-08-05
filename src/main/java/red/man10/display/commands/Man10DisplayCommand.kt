@@ -49,13 +49,12 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                 .executor(ReloadConfigCommand(Main.plugin))
         )
 
-        // create stream command
+        // create command
         addCommand(
             CommandObject()
                 .prefix("create")
-                .argument("display_type") { _ -> Display.displayTypes }
                 .argument("[new_display_name]").argument("[x_size(1-24)]").argument("[y_size(1-24)]")
-                .argument("port(0-65535)")
+                .argument("port(0(disable)-65535)")
                 .permission("red.man10.display.create")
                 .explanation("Create a display")
                 .executor(CreateCommand(Main.plugin))

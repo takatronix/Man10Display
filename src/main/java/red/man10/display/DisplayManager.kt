@@ -75,11 +75,9 @@ class DisplayManager(main: JavaPlugin) : Listener {
         playerDataThread?.interrupt()
         this.stopAllMacro()
         for (display in displays) {
-            if (display is StreamDisplay) {
-                info("stream display ${display.name} deinit start")
-                display.deinit()
-                info("stream display ${display.name} deinited")
-            }
+            info("stream display ${display.name} deinit start")
+            display.deinit()
+            info("stream display ${display.name} deinited")
         }
         displays.clear()
         info("displays cleared")
@@ -146,6 +144,10 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
             var macroInfo = ""
             var color = "§7"
+            var macroName = display.macroName?:""
+            var autoRun = if(display.autoRun) "§a§l[AutoRun]" else ""
+
+
             if (display.macroEngine.isRunning()) {
                 color = "§a§l"
                 val currentMacro = display.macroEngine.macroName
@@ -239,13 +241,8 @@ class DisplayManager(main: JavaPlugin) : Listener {
         deinit()
         for (key in config.getKeys(false)) {
             val className = config.getString("$key.class")
-            if (className == StreamDisplay::class.simpleName) {
-                val display = StreamDisplay(config, key)
-                displays.add(display)
-                continue
-            }
-            if (className == ImageDisplay::class.simpleName) {
-                val display = ImageDisplay(config, key)
+            if (className == Display::class.simpleName) {
+                val display = Display(config, key)
                 displays.add(display)
                 continue
             }
@@ -342,6 +339,9 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
 
     private fun interactMap(player: Player) {
+        if(!canInteract(player)) {
+            return
+        }
         val distance = 32.0
         val rayTraceResult = player.rayTraceBlocks(distance)
         val hitPosition = rayTraceResult?.hitPosition ?: return
@@ -557,11 +557,11 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
 
     fun onRightButtonUp(player: Player) {
-        info("onRightButtonUp", player)
+       // info("onRightButtonUp", player)
     }
 
     fun onRightButtonDown(player: Player) {
-        info("onRightButtonDown", player)
+     //   info("onRightButtonDown", player)
     }
 
     //  左クリックイベント
@@ -577,7 +577,9 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     }
     // endregion
-
+    fun canInteract(player: Player): Boolean {
+        return false
+    }
 
     private fun playerDataTask() {
         for (player in Bukkit.getOnlinePlayers()) {
@@ -592,7 +594,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
             val delta = System.currentTimeMillis() - data.lastRightClickTime
             if (delta >= RIGHT_BUTTON_UP_DETECTION_INTERVAL) {
                 if (data.rightButtonPressed) {
-                    info("$delta ms", player)
+                    //info("$delta ms", player)
                     onRightButtonUp(player)
                     data.rightButtonPressed = false
                 }

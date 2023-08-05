@@ -6,7 +6,9 @@ import red.man10.display.Display
 import red.man10.display.ImageLoader
 import red.man10.extention.clear
 import red.man10.extention.drawImage
+import red.man10.extention.drawTextCenter
 import red.man10.extention.stretchImage
+import java.awt.Color
 
 class StretchCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
@@ -14,13 +16,22 @@ class StretchCommand(private var macroName: String, private var macroCommand: Ma
 
         //　　キャッシュにすでに読み込み済みならそれを送信する
         if (display.packetCache[fileName] != null) {
-            display.sendMapCache(players, "current")
+            display.sendMapCache(players, fileName)
             return
         }
-        // 画像を読み込み全画面更新
-        display.currentImage?.clear()
-        display.currentImage?.stretchImage(display.filterImage(ImageLoader.get(fileName)!!))
-        display.createPacketCache(display.currentImage!!, fileName)
-        display.refresh(fileName)
+
+        val image = display.currentImage?:return
+        image.clear()
+        val getImage = ImageLoader.get(fileName)
+        if(getImage == null){
+            image.drawTextCenter("file not found $fileName",13.0f, Color.RED)
+            display.createPacketCache(image, "error")
+            display.sendMapCache("error")
+            return
+        }
+
+        image.drawImage(getImage)
+        display.createPacketCache(image, fileName)
+        display.sendMapCache(fileName)
     }
 }
