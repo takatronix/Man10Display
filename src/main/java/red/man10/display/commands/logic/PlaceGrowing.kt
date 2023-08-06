@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.Main
 
-class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
+class PlaceGrowingCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         try {
             if(sender !is Player){
@@ -27,7 +27,7 @@ class PlaceCommand(private var plugin: JavaPlugin) : CommandExecutor {
             }
 
             sender.sendMessage(Main.prefix + "§a§l Creating a display where you are looking at")
-            return Main.displayManager.setupDisplay(display, player)
+            return Main.displayManager.setupDisplay(display, player , true)
         } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l${e.message}")
             return true

@@ -87,7 +87,6 @@ class Display() : MapPacketSender {
     var vignette = false
     var vignetteLevel = DEFAULT_VIGNETTE_LEVEL
 
-
     var macroName: String? = ""
     var autoRun = false
     var refreshPeriod: Long = (1000 / DEFAULT_FPS.toLong()) //画面更新サイクル(ms) 20 ticks per second(50ms)
@@ -187,6 +186,7 @@ class Display() : MapPacketSender {
 
     fun deinit() {
         this.refreshFlag = false
+        this.packetCache.clear()
         stopVideoServer()
         stopVideoSendingPacketsTask()
     }
@@ -460,6 +460,7 @@ class Display() : MapPacketSender {
         this.vignetteLevel = DEFAULT_VIGNETTE_LEVEL
         this.testMode = false
 
+        this.clearCache()
         // update&save
         this.refreshFlag = true
         return true
@@ -922,6 +923,9 @@ class Display() : MapPacketSender {
 
     fun clearCache() {
         packetCache.clear()
+        // blankを再作成
+        val blankImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
+        createPacketCache(blankImage, "blank")
     }
 
     fun refresh() {
@@ -982,7 +986,8 @@ class Display() : MapPacketSender {
                     REFRESH -> RefreshCommand(macroName, macroCommand).run(this, players, sender)
                     CLEAR -> ClearCommand(macroName, macroCommand).run(this, players, sender)
                     FILL -> FillCommand(macroName, macroCommand).run(this, players, sender)
-                    STRETCH -> StretchCommand(macroName, macroCommand).run(this, players, sender)
+                    STRETCH_IMAGE -> StretchImageCommand(macroName, macroCommand).run(this, players, sender)
+                    FILTER_IMAGE -> FilterImageCommand(macroName, macroCommand).run(this, players, sender)
                     PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, players, sender)
                     else -> {
                         error("unknown macro type : ${macroCommand.type}", sender)
@@ -1008,6 +1013,15 @@ class Display() : MapPacketSender {
                 this.frameReceivedCount = videoCaptureServer?.frameReceivedCount ?: 0
                 this.frameReceivedBytes = videoCaptureServer?.frameReceivedBytes ?: 0
                 this.frameErrorCount = videoCaptureServer?.frameErrorCount ?: 0
+
+                // 画像サイズがディスプレイと違う場合リサイズ
+                if (image.width != this.imageWidth || image.height != this.imageHeight) {
+                    val resized = image.resize(this.imageWidth, this.imageHeight)
+                    createPacketCache(filterImage(resized), "video")
+                    refresh()
+                    return@Consumer
+                }
+
 
                 createPacketCache(filterImage(image), "video")
                 refresh()

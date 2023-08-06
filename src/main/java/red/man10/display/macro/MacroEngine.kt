@@ -40,12 +40,16 @@ enum class CommandType {
     CLEAR,
     COLOR,
     REFRESH,
-    IMAGE,
-    STRETCH,
     FILL,
     LINE,
     MESSAGE,
     PLAY_SOUND,
+    PLAYER_COMMAND,
+    SERVER_COMMAND,
+
+    IMAGE,
+    STRETCH_IMAGE,
+    FILTER_IMAGE,
 }
 
 fun getCommandType(key: String): CommandType {

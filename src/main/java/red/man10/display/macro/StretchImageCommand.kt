@@ -7,10 +7,9 @@ import red.man10.display.ImageLoader
 import red.man10.extention.clear
 import red.man10.extention.drawImage
 import red.man10.extention.drawTextCenter
-import red.man10.extention.stretchImage
 import java.awt.Color
 
-class StretchCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
+class StretchImageCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
         val fileName = macroCommand.params[0].replace("\"", "")
 

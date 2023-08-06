@@ -1,0 +1,1 @@
+ffmpeg -y -f dshow -i video="OBS Virtual Camera" -vf scale=2048:1152 -bufsize 5000k -maxrate 4000k -b:v 3000k -f rawvideo -c:v mjpeg -qscale:v 5 -r 10 udp://127.0.0.1:12345

@@ -52,7 +52,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
     val displays = mutableListOf<Display>()
     private val playerData = ConcurrentHashMap<UUID, PlayerData>()
     private var playerDataThread: Thread? = null
-    var installingPlayer: Player? = null
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
@@ -183,13 +182,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
                 val mapMeta = itemStack.itemMeta as MapMeta
                 mapMeta.mapView = mapView
 
-                val name = "${x + 1}-${y + 1}"
-                mapMeta.displayName(Component.text(name))
-                itemStack.itemMeta = mapMeta
-
-                player.world.dropItem(player.location, itemStack)
                 display.mapIds.add(mapView.id)
-                player.sendMessage("$name created")
             }
         }
         return true
@@ -203,7 +196,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         return true
     }
 
-    fun getMaps(display: Display): ArrayList<ItemStack> {
+    private fun getMaps(display: Display): ArrayList<ItemStack> {
         val items = arrayListOf<ItemStack>()
         for (y in 0 until display.height) {
             for (x in 0 until display.width) {
@@ -211,8 +204,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
                 val mapMeta = itemStack.itemMeta as MapMeta
                 mapMeta.mapView = Bukkit.getMap(display.mapIds[y * display.width + x])
 
-                val name = "${x + 1}-${y + 1}"
-                mapMeta.displayName(Component.text(name))
                 itemStack.itemMeta = mapMeta
                 items.add(itemStack)
             }
@@ -435,10 +426,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val player = e.player
         // プレイヤーデータを削除
         playerData.remove(player.uniqueId)
-
-        if (player == installingPlayer) {
-            installingPlayer = null
-        }
     }
 
     @EventHandler
@@ -619,12 +606,11 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     }
 
-    fun setupDisplay(display: Display, player: Player): Boolean {
+    fun setupDisplay(display: Display, player: Player,isGrowing:Boolean = false): Boolean {
         val distance = 32.0
         val rayTraceResult = player.rayTraceBlocks(distance)
         val hitPosition = rayTraceResult?.hitPosition
         if (hitPosition == null) {
-            this.installingPlayer = null
             error("Could not find a place to install", player)
             return false
         }
@@ -636,13 +622,12 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
         info("face: $face", player)
 
-        var width = display.width
-        var height = display.height
+        val width = display.width
+        val height = display.height
 
         // face面の方向に向かって(width/height)分だけ額縁を設置する
-        placeMaps(player,collisionLocation, face, width, height,display.mapIds, false)
+        placeMaps(player,collisionLocation, face, width, height,display.mapIds, isGrowing)
 
-        this.installingPlayer = null
         return true
     }
 
@@ -683,12 +668,15 @@ class DisplayManager(main: JavaPlugin) : Listener {
                     .firstOrNull { it.facing == face }
                 existingFrame?.remove()
 
-                val frame = world.spawnEntity(location, EntityType.ITEM_FRAME) as ItemFrame
+
+                val frame = if (isGlowing) {
+                    world.spawnEntity(location, EntityType.GLOW_ITEM_FRAME) as ItemFrame
+                }else{
+                    world.spawnEntity(location, EntityType.ITEM_FRAME) as ItemFrame
+                }
+
                 frame.setFacingDirection(face, true)
 
-                if (isGlowing) {
-                    frame.isGlowing = true
-                }
 
                 // マップを設置
                 val mapId = mapIds[index]

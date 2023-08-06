@@ -201,10 +201,18 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
             CommandObject()
                 .prefix("place")
                 .argument("[display_name]") { _ -> Main.displayManager.names }
-                .argument("[item_frame_type]") { _ -> arrayListOf("item_frame", "grow_item_frame") }
                 .permission("red.man10.display.place")
                 .explanation("Create a display where you are looking at")
                 .executor(PlaceCommand(Main.plugin))
+        )
+        // place item frames command
+        addCommand(
+            CommandObject()
+                .prefix("place_growing")
+                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .permission("red.man10.display.place")
+                .explanation("Create a growing display where you are looking at")
+                .executor(PlaceGrowingCommand(Main.plugin))
         )
     }
 
