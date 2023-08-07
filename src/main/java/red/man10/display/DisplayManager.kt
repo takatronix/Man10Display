@@ -467,9 +467,8 @@ class DisplayManager(main: JavaPlugin) : Listener {
         if(!playerData[player.uniqueId]?.rightButtonPressed!!)
             return
 
-      //  player.sendMessage("§a§l ${from.yaw} ${to.yaw} ${from.pitch} ${to.pitch}")
-      //  interactMap(player)
-       // onRightButtonEvent(player)
+
+        //onRightButtonEvent(player)
     }
 
     @EventHandler
