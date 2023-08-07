@@ -13,20 +13,31 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
         val fileName = macroCommand.params[0].replace("\"", "")
 
+        var useCache = true
+        var stretch = false
         var filterParams = mutableListOf<String>()
         if (macroCommand.params.size >= 2) {
             val filterParam = macroCommand.params[1].replace("\"", "")
             filterParams = filterParam.split(",").toMutableList()
+            if(filterParams.contains("nocache")){
+                useCache = false
+                filterParams.remove("nocache")
+            }
+            if(filterParams.contains("stretch")){
+                stretch = true
+                filterParams.remove("stretch")
+            }
         }
 
         //　　キャッシュにすでに読み込み済みならそれを送信する
-        if (display.packetCache[fileName] != null) {
+        if (useCache && display.packetCache[fileName] != null) {
             display.sendMapCache(players, fileName)
             return
         }
         var image = display.currentImage?:return
         image.clear()
-        val getImage = ImageLoader.get(fileName)
+
+        val getImage = ImageLoader.get(fileName,useCache)
         if(getImage == null){
             image.drawTextCenter("file not found $fileName",13.0f, Color.RED)
             display.createPacketCache(image, "error")
@@ -34,7 +45,11 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
             return
         }
 
-        image.drawImage(getImage)
+        if(stretch){
+            image.stretchImage(getImage)
+        }else{
+            image.drawImage(getImage)
+        }
 
         for(param in filterParams){
             image = ParameterFilter(param).apply(image)

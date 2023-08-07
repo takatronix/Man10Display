@@ -44,9 +44,11 @@ class ImageLoader {
             }
         }
 
-        fun get(name: String): BufferedImage? {
-            if (imageCache.containsKey(name)) {
-                return imageCache[name]
+        fun get(name: String,useCache:Boolean = true): BufferedImage? {
+            if(useCache){
+                if (imageCache.containsKey(name)) {
+                    return imageCache[name]
+                }
             }
             info("loading image:$name")
             val image = load(name) ?: return null

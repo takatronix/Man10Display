@@ -193,6 +193,7 @@ class MacroEngine() {
             currentJob?.join()
         }
         this.display = display
+        display.clearCache()
         // GlobalScopeを使用して、新しいトップレベルのコルーチンを起動します。
         // このコルーチンはメインスレッドから切り離され、バックグラウンドで実行されます。
         currentJob = GlobalScope.launch {
