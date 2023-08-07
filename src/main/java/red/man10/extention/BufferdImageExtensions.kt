@@ -1,5 +1,6 @@
 package red.man10.extention
 
+import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Rectangle
 import java.awt.RenderingHints
@@ -229,9 +230,13 @@ fun BufferedImage.stretchImage(image: BufferedImage): Rectangle {
     return Rectangle(0, 0, this.width, this.height)
 }
 
-fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int): Rectangle {
-    // 線を描画
+fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:Color): Rectangle {
+    // 色とペンの太さを設定する
     val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.stroke = BasicStroke(radius.toFloat())
+
+
     graphics.drawLine(x1, y1, x2, y2)
     graphics.dispose()
     return Rectangle(x1, y1, x2, y2)

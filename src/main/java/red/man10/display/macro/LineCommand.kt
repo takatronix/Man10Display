@@ -11,6 +11,6 @@ class LineCommand(private var macroName: String, private var macroCommand: Macro
         val y = macroCommand.params[1].toInt()
         val x2 = macroCommand.params[2].toInt()
         val y2 = macroCommand.params[3].toInt()
-        display.update(display.currentImage?.drawLine(x, y, x2, y2))
+      //  display.update(display.currentImage?.drawLine(x, y, x2, y2))
     }
 }

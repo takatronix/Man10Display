@@ -21,12 +21,11 @@ import org.bukkit.event.server.MapInitializeEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
+import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.itemframe.ItemFrameCoordinate
 import red.man10.display.macro.MacroEngine
-import red.man10.extention.fillCircle
-import red.man10.extention.getItemFrame
-import red.man10.extention.sendClickableMessage
+import red.man10.extention.*
 import java.awt.Color
 import java.io.File
 import java.util.*
@@ -46,6 +45,21 @@ class PlayerData {
     var rightClickDown = false
     var lastRightClickTime : Long = 0
     var lastLeftClickTime : Long = 0
+    var lastFocusX : Int = -1
+    var lastFocusY : Int = -1
+
+
+
+    var penWidth : Int = 1
+    var penColor : Color = Color.RED
+    var hasPen: Boolean = false
+    var focusingDisplay : Display? = null
+    var focusingMapId : Int = -1
+    var focusingImageX : Int = -1
+    var focusingImageY : Int = -1
+    var lastFocusingImageX : Int = -1
+    var lastFocusingImageY : Int = -1
+
 }
 
 class DisplayManager(main: JavaPlugin) : Listener {
@@ -371,7 +385,17 @@ class DisplayManager(main: JavaPlugin) : Listener {
         if (result.second < 0 || result.second > 127)
             return
 
-        onMapClick(player, mapId, result.first.toInt(), result.second.toInt())
+        val display = getDisplay(mapId) ?: return
+        val xy = display.getImageXY(mapId, result.first.toInt(), result.second.toInt())
+        val imageX = xy.first
+        val imageY = xy.second
+
+        playerData[player.uniqueId]?.focusingDisplay = display
+        playerData[player.uniqueId]?.focusingMapId = mapId
+        playerData[player.uniqueId]?.lastFocusingImageX = playerData[player.uniqueId]?.focusingImageX ?: -1
+        playerData[player.uniqueId]?.lastFocusingImageY = playerData[player.uniqueId]?.focusingImageY ?: -1
+        playerData[player.uniqueId]?.focusingImageX = imageX
+        playerData[player.uniqueId]?.focusingImageY = imageY
     }
 
 
@@ -383,16 +407,11 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val imageX = xy.first
         val imageY = xy.second
 
-        val distance = display.location?.distance(player.location)
-        var r = 3.0
-        if (distance != null) {
-            r = distance / 10
-        }
-        if (r < 5) {
-            r = 5.0
-        }
+        var penWidth = playerData[player.uniqueId]?.penWidth ?: 1
+        var penColor = playerData[player.uniqueId]?.penColor ?: Color.RED
 
-        display.update(display.currentImage?.fillCircle(imageX, imageY, penRadius.toInt(), penColor))
+
+        display.update(display.currentImage?.fillCircle(imageX, imageY,penWidth, penColor))
         //     display.refresh()
         return true
     }
@@ -444,7 +463,12 @@ class DisplayManager(main: JavaPlugin) : Listener {
         if (from.yaw !== to.yaw || from.pitch !== to.pitch) {
             //player.sendMessage("向きが変わった")
         }
-        //    interactMap(player)
+
+        if(!playerData[player.uniqueId]?.rightButtonPressed!!)
+            return
+
+      //  player.sendMessage("§a§l ${from.yaw} ${to.yaw} ${from.pitch} ${to.pitch}")
+      //  interactMap(player)
 
     }
 
@@ -541,14 +565,54 @@ class DisplayManager(main: JavaPlugin) : Listener {
             this.playerData[player.uniqueId]?.rightButtonPressed = true
             onRightButtonDown(player)
         }
+        else{
+            onRightButtonMove(player)
+        }
     }
 
+
     fun onRightButtonUp(player: Player) {
-       // info("onRightButtonUp", player)
+       //info("onRightButtonUp", player)
+        drawLine(player)
+    }
+    fun drawLine(player:Player){
+        if(playerData[player.uniqueId]?.hasPen == false)
+            return
+
+        var penWidth = playerData[player.uniqueId]?.penWidth ?: return
+        var penColor = playerData[player.uniqueId]?.penColor ?: return
+        val display = playerData[player.uniqueId]?.focusingDisplay ?: return
+
+        val x = playerData[player.uniqueId]?.lastFocusingImageX ?: return
+        val y = playerData[player.uniqueId]?.lastFocusingImageY ?: return
+        val x2 = playerData[player.uniqueId]?.focusingImageX ?: return
+        val y2 = playerData[player.uniqueId]?.focusingImageY ?: return
+
+
+       // player.sendMessage("drawLine $x $y $x2 $y2")
+        val rect = display.currentImage?.drawLine(x,y,x2,y2,penWidth,penColor)
+        display.update(rect!!)
+
     }
 
     fun onRightButtonDown(player: Player) {
-     //   info("onRightButtonDown", player)
+       // info("onRightButtonDown", player)
+        if(playerData[player.uniqueId]?.hasPen == false)
+            return
+
+        var penWidth = playerData[player.uniqueId]?.penWidth
+        var penColor = playerData[player.uniqueId]?.penColor
+        if(penWidth == 0){
+            val display = playerData[player.uniqueId]?.focusingDisplay ?: return
+            display.update(display.currentImage?.fill(penColor!!))
+            return
+        }
+
+
+    }
+    fun onRightButtonMove(player: Player) {
+       // info("onRightButtonMove", player)
+        drawLine(player)
     }
 
     //  左クリックイベント
@@ -564,8 +628,26 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     }
     // endregion
-    fun canInteract(player: Player): Boolean {
-        return false
+    private fun canInteract(player: Player): Boolean {
+
+        // 手に持っているアイテムのPersisnteDataを取得
+        val item = player.inventory.itemInMainHand
+        val meta = item.itemMeta
+        val pd = meta?.persistentDataContainer ?: return false
+
+        // ペンを持っているか
+        // PersistentDataの中身を取得
+        val type = pd.get(Main.plugin,"man10display.type", PersistentDataType.STRING)
+        val width = pd.get(Main.plugin,"man10display.pen.width", PersistentDataType.INTEGER)
+        val color = pd.get(Main.plugin,"man10display.pen.color", PersistentDataType.STRING)
+        if(type != "pen"){
+            playerData[player.uniqueId]?.hasPen = false
+            return false
+        }
+        playerData[player.uniqueId]?.penWidth = width!!.toInt()
+        playerData[player.uniqueId]?.penColor = Color.decode(color!!)
+        playerData[player.uniqueId]?.hasPen = true
+        return true
     }
 
     private fun playerDataTask() {

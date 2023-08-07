@@ -53,7 +53,9 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("create")
-                .argument("[new_display_name]").argument("[x_size(1-24)]").argument("[y_size(1-24)]")
+                .argument("[new_display_name]")
+                .argument("[x_size(1-24)]")
+                .argument("[y_size(1-24)]")
                 .argument("port(0(disable)-65535)")
                 .permission("red.man10.display.create")
                 .explanation("Create a display")
@@ -213,6 +215,22 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                 .permission("red.man10.display.place")
                 .explanation("Create a growing display where you are looking at")
                 .executor(PlaceGrowingCommand(Main.plugin))
+        )
+        addCommand(
+            CommandObject()
+                .prefix("create_pen")
+                .argument("[pen_width(1-30)]")
+                .argument("[color_code(#000000)]")
+                .permission("red.man10.display.create_pen")
+                .explanation("Make the item in your hand into a pen.")
+                .executor(CreatePenCommand(Main.plugin))
+        )
+        addCommand(
+            CommandObject()
+                .prefix("test")
+                .permission("red.man10.display.op")
+                .explanation("test")
+                .executor(TestCommand(Main.plugin))
         )
     }
 
