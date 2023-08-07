@@ -15,7 +15,7 @@ class SaveCommand(private var plugin: JavaPlugin) : CommandExecutor {
                 sender.sendMessage(Main.prefix + "§a§l $name does not exist")
                 return false
             }
-            sender.sendMessage(Main.prefix + "§a§l $name deleted")
+            sender.sendMessage(Main.prefix + "§a§l $name saved")
         } catch (e: Exception) {
             sender.sendMessage(Main.prefix + "§c§l${e.message}")
             return true

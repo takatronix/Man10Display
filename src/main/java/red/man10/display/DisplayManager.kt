@@ -1,18 +1,12 @@
 package red.man10.display
 
-import getItemFrame
 import getItemStackInFrame
-import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.block.Block
-import org.bukkit.util.Vector
 import org.bukkit.block.BlockFace
 import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -35,8 +29,6 @@ import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-
-var INVENTORY_CHECK_INTERVAL = (3 * 20).toLong()
 var PLAYER_DATA_THREAD_INTERVAL = 10L
 var RIGHT_BUTTON_UP_DETECTION_INTERVAL = 260L
 
@@ -400,24 +392,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
         playerData[player.uniqueId]?.lastFocusingImageY = playerData[player.uniqueId]?.focusingImageY ?: -1
         playerData[player.uniqueId]?.focusingImageX = imageX
         playerData[player.uniqueId]?.focusingImageY = imageY
-    }
-
-
-    private fun onMapClick(player: Player, mapId: Int, x: Int, y: Int): Boolean {
-        // player.sendMessage("§a§l Clicked Map $mapId $x $y")
-        val display = getDisplay(mapId) ?: return false
-
-        val xy = display.getImageXY(mapId, x, y)
-        val imageX = xy.first
-        val imageY = xy.second
-
-        var penWidth = playerData[player.uniqueId]?.penWidth ?: 1
-        var penColor = playerData[player.uniqueId]?.penColor ?: Color.RED
-
-
-        display.update(display.currentImage?.fillCircle(imageX, imageY,penWidth, penColor))
-        //     display.refresh()
-        return true
     }
 
     fun showInfo(sender: CommandSender, name: String): Boolean {

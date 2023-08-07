@@ -238,7 +238,6 @@ fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:C
     graphics.color = color
     graphics.stroke = BasicStroke(radius.toFloat())
 
-
     graphics.drawLine(x1, y1, x2, y2)
     graphics.dispose()
     // 線の太さも考慮して矩形を返す
@@ -248,9 +247,6 @@ fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:C
     val y = min(y1, y2)
 
     return Rectangle(x-radius, y-radius, dx + radius, dy + radius)
-
-
- //   return Rectangle(x1, y1, x2, y2)
 }
 
 fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, color: Color): Rectangle {
