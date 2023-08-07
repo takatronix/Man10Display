@@ -711,8 +711,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
         // 衝突したブロックの面
         val face = rayTraceResult.hitBlockFace ?: return false
 
-        info("face: $face", player)
-
         val width = display.width
         val height = display.height
 
@@ -728,7 +726,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
 
     fun placeMapsNormal(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int, mapIds:List<Int> ,isGlowing: Boolean = false,deleteOnly:Boolean = false) {
-        val world = startLocation.world
         val rightDirection = when(face) {
             BlockFace.NORTH -> BlockFace.WEST
             BlockFace.WEST -> BlockFace.SOUTH
@@ -741,7 +738,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         var index = 0
         for (y in 0 until height) {
             for (x in 0 until width) {
-                info("x: $x, y: $y", player)
+                //info("x: $x, y: $y", player)
 
                 val location = startLocation.clone()
                     .add(rightDirection.modX * x.toDouble(), downDirection.modY * y.toDouble(), rightDirection.modZ * x.toDouble())
@@ -783,7 +780,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
         // 衝突したブロックの面
         val face = rayTraceResult.hitBlockFace ?: return false
 
-
         val item = collisionLocation.getItemStackInFrame(face)
         if(item == null){
             error("Could not find a display", player)
@@ -794,16 +790,14 @@ class DisplayManager(main: JavaPlugin) : Listener {
             error("Could not find a display", player)
             return false
         }
-        info("mapId: $mapId", player)
-        var display = this.getDisplay(mapId)
+
+        val display = this.getDisplay(mapId)
         if(display == null){
             error("Could not find a display", player)
             return false
         }
-        info("display: ${display.name}", player)
-
+        info("display found: ${display.name} ${display.width} ${display.height}", player)
         this.placeMapsNormal(player, collisionLocation, face, display.width, display.height, listOf(),false,true)
-
 
         return true
     }
