@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 var INVENTORY_CHECK_INTERVAL = (3 * 20).toLong()
 var PLAYER_DATA_THREAD_INTERVAL = 10L
-var RIGHT_BUTTON_UP_DETECTION_INTERVAL = 300L
+var RIGHT_BUTTON_UP_DETECTION_INTERVAL = 260L
 
 class PlayerData {
     var lastLocation: Location? = null
@@ -462,13 +462,11 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val to: Location = event.to
         if (from.yaw !== to.yaw || from.pitch !== to.pitch) {
             //player.sendMessage("向きが変わった")
+        //    if(!playerData[player.uniqueId]?.rightButtonPressed!!)
+       //         return
+      //      onRightButtonEvent(player)
         }
 
-        if(!playerData[player.uniqueId]?.rightButtonPressed!!)
-            return
-
-
-        //onRightButtonEvent(player)
     }
 
     @EventHandler
