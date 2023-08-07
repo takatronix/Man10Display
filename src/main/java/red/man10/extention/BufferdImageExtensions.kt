@@ -247,7 +247,7 @@ fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:C
     val x = min(x1, x2)
     val y = min(y1, y2)
 
-    return Rectangle(x, y, dx + radius, dy + radius)
+    return Rectangle(x-radius, y-radius, dx + radius, dy + radius)
 
 
  //   return Rectangle(x1, y1, x2, y2)
