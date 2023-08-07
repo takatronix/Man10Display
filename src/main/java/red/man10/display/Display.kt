@@ -986,8 +986,6 @@ class Display() : MapPacketSender {
                     REFRESH -> RefreshCommand(macroName, macroCommand).run(this, players, sender)
                     CLEAR -> ClearCommand(macroName, macroCommand).run(this, players, sender)
                     FILL -> FillCommand(macroName, macroCommand).run(this, players, sender)
-                    STRETCH_IMAGE -> StretchImageCommand(macroName, macroCommand).run(this, players, sender)
-                    FILTER_IMAGE -> FilterImageCommand(macroName, macroCommand).run(this, players, sender)
                     PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, players, sender)
                     else -> {
                         error("unknown macro type : ${macroCommand.type}", sender)

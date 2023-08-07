@@ -48,8 +48,6 @@ enum class CommandType {
     SERVER_COMMAND,
 
     IMAGE,
-    STRETCH_IMAGE,
-    FILTER_IMAGE,
 }
 
 fun getCommandType(key: String): CommandType {
@@ -171,15 +169,15 @@ class MacroEngine() {
         shouldStop = false
     }
 
-    private var currentJob: Job? = null  // Current job
+    private var currentJob: Thread? = null  // Current job
     fun stop() {
         info("Stopping macro execution...")
         shouldStop = true
-        currentJob?.cancel()
+        currentJob?.interrupt()
     }
 
     fun isRunning(): Boolean {
-        return currentJob?.isActive == true
+        return currentJob?.isAlive == true
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -188,17 +186,17 @@ class MacroEngine() {
         if (isRunning()) {
             stop()
         }
-        // 現在のジョブが完了するまで待つ
-        runBlocking {
-            currentJob?.join()
-        }
+
+        currentJob?.join()
+
         this.display = display
         display.clearCache()
-        // GlobalScopeを使用して、新しいトップレベルのコルーチンを起動します。
-        // このコルーチンはメインスレッドから切り離され、バックグラウンドで実行されます。
-        currentJob = GlobalScope.launch {
+
+        currentJob = Thread {
             run(macroName, callback)
         }
+        currentJob?.start()  // Threadを起動
+
     }
 
     private fun run(macroName: String, callback: (MacroCommand, Int) -> Unit) {
@@ -218,7 +216,7 @@ class MacroEngine() {
         while (currentLineIndex < commands.size) {
             val command = commands[currentLineIndex]
 
-            if (currentJob?.isActive == false || shouldStop) {
+            if (currentJob?.isAlive == false || shouldStop) {
                 info("Macro execution was stopped.")
                 break
             }

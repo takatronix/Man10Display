@@ -451,7 +451,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
     @EventHandler
     fun onMapInitialize(event: MapInitializeEvent) {
         val mapView: MapView = event.map
-        info("onMapInitialize ${mapView.id}")
+        //info("onMapInitialize ${mapView.id}")
 
         var display = getDisplay(mapView.id) ?: return
 
@@ -484,42 +484,42 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     @EventHandler
     fun onInventoryOpen(e: InventoryOpenEvent) {
-        info("onInventoryOpen")
+        //info("onInventoryOpen")
     }
 
     @EventHandler
     fun onItemHeld(e: PlayerItemHeldEvent) {
-        info("onItemHeld")
+        //info("onItemHeld")
     }
 
     @EventHandler
     fun onInventoryClick(e: InventoryClickEvent) {
-        info("onInventoryClick")
+        //info("onInventoryClick")
     }
 
     @EventHandler
     fun onInventoryDrag(e: InventoryDragEvent) {
-        info("onInventoryDrag")
+        //info("onInventoryDrag")
     }
 
     @EventHandler
     fun onInventoryClose(e: InventoryCloseEvent) {
-        info("onInventoryClose")
+        //info("onInventoryClose")
     }
 
     @EventHandler
     fun onInventoryMoveItem(e: InventoryMoveItemEvent) {
-        info("onInventoryMoveItem")
+        //info("onInventoryMoveItem")
     }
 
     @EventHandler
     fun onInventoryPickupItem(e: InventoryPickupItemEvent) {
-        info("onInventoryPickupItem")
+        //info("onInventoryPickupItem")
     }
 
     @EventHandler
     fun onInventory(e: InventoryEvent) {
-        info("onInventory")
+        //info("onInventory")
     }
     // endregion
 
