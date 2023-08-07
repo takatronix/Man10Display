@@ -216,6 +216,14 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                 .explanation("Create a growing display where you are looking at")
                 .executor(PlaceGrowingCommand(Main.plugin))
         )
+        // remove item frames command
+        addCommand(
+            CommandObject()
+                .prefix("remove")
+                .permission("red.man10.display.remove")
+                .explanation("Remove display where you are looking at")
+                .executor(RemoveCommand(Main.plugin))
+        )
         addCommand(
             CommandObject()
                 .prefix("create_pen")

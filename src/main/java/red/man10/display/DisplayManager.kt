@@ -1,5 +1,7 @@
 package red.man10.display
 
+import getItemFrame
+import getItemStackInFrame
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -23,9 +25,11 @@ import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
+import placeMap
 import red.man10.display.itemframe.ItemFrameCoordinate
 import red.man10.display.macro.MacroEngine
 import red.man10.extention.*
+import removeFrame
 import java.awt.Color
 import java.io.File
 import java.util.*
@@ -452,9 +456,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
         playerData[e.player.uniqueId]?.isSneaking = e.isSneaking
     }
 
-    var penRadius = 5.0
-    var penColor = Color.RED
-
     @EventHandler
     fun onPlayerMove(event: PlayerMoveEvent) {
         val player = event.player
@@ -634,13 +635,6 @@ class DisplayManager(main: JavaPlugin) : Listener {
     fun onLeftButtonEvent(player: Player) {
         onButtonClick(player)
 
-        penRadius = Math.random() * 40 + 5
-        val r = Math.random() * 255
-        val g = Math.random() * 255
-        val b = Math.random() * 255
-        val col = Color(r.toInt(), g.toInt(), b.toInt())
-        penColor = col
-
     }
     // endregion
     private fun canInteract(player: Player): Boolean {
@@ -733,7 +727,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         placeMapsNormal(player, startLocation, face, width, height, mapIds,isGlowing)
     }
 
-    fun placeMapsNormal(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int, mapIds:List<Int> ,isGlowing: Boolean = false) {
+    fun placeMapsNormal(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int, mapIds:List<Int> ,isGlowing: Boolean = false,deleteOnly:Boolean = false) {
         val world = startLocation.world
         val rightDirection = when(face) {
             BlockFace.NORTH -> BlockFace.WEST
@@ -747,6 +741,8 @@ class DisplayManager(main: JavaPlugin) : Listener {
         var index = 0
         for (y in 0 until height) {
             for (x in 0 until width) {
+                info("x: $x, y: $y", player)
+
                 val location = startLocation.clone()
                     .add(rightDirection.modX * x.toDouble(), downDirection.modY * y.toDouble(), rightDirection.modZ * x.toDouble())
                     .add(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
@@ -755,40 +751,62 @@ class DisplayManager(main: JavaPlugin) : Listener {
                     location.subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
                 }
 
-                val behindLocation = location.clone().subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
-                if (behindLocation.block.type == Material.AIR) {
-                    behindLocation.block.type = Material.SEA_LANTERN
-                }
-
-                val existingFrame = world.getNearbyEntities(location, 0.5, 0.5, 0.5)
-                    .filterIsInstance<ItemFrame>()
-                    .firstOrNull { it.facing == face }
-                existingFrame?.remove()
-
-
-                val frame = if (isGlowing) {
-                    world.spawnEntity(location, EntityType.GLOW_ITEM_FRAME) as ItemFrame
+                if(!deleteOnly){
+                    val behindLocation = location.clone().subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
+                    if (behindLocation.block.type == Material.AIR) {
+                        behindLocation.block.type = Material.SEA_LANTERN
+                    }
+                    location.placeMap(face,mapIds[index],isGlowing)
+                    index++
                 }else{
-                    world.spawnEntity(location, EntityType.ITEM_FRAME) as ItemFrame
+                    if(!location.removeFrame(face)){
+                        error("Could not delete frame", player)
+                    }
                 }
 
-                frame.setFacingDirection(face, true)
 
-
-                // マップを設置
-                val mapId = mapIds[index]
-                val itemStack = ItemStack(Material.FILLED_MAP)
-                val mapMeta = itemStack.itemMeta as MapMeta
-                mapMeta.mapView = Bukkit.getMap(mapId)
-                itemStack.itemMeta = mapMeta
-                frame.setItem(itemStack)
-
-                index++
             }
         }
     }
 
+    fun removeDisplay(player: Player): Boolean {
+        val distance = 32.0
+        val rayTraceResult = player.rayTraceBlocks(distance)
+        val hitPosition = rayTraceResult?.hitPosition
+        if (hitPosition == null) {
+            error("Could not find a block", player)
+            return false
+        }
 
+        //  視線の衝突点
+        val collisionLocation = hitPosition.toLocation(player.world)
+        // 衝突したブロックの面
+        val face = rayTraceResult.hitBlockFace ?: return false
+
+
+        val item = collisionLocation.getItemStackInFrame(face)
+        if(item == null){
+            error("Could not find a display", player)
+            return false
+        }
+        val mapId = item.getMapId()
+        if(mapId == null){
+            error("Could not find a display", player)
+            return false
+        }
+        info("mapId: $mapId", player)
+        var display = this.getDisplay(mapId)
+        if(display == null){
+            error("Could not find a display", player)
+            return false
+        }
+        info("display: ${display.name}", player)
+
+        this.placeMapsNormal(player, collisionLocation, face, display.width, display.height, listOf(),false,true)
+
+
+        return true
+    }
 
 
 
