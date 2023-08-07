@@ -4,12 +4,14 @@ import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.command.CommandSender
+
 fun CommandSender.sendClickableMessage(message: String, command: String) {
     val textComponent = TextComponent(message)
     textComponent.color = ChatColor.GOLD
     textComponent.clickEvent = ClickEvent(ClickEvent.Action.RUN_COMMAND, command)
     spigot().sendMessage(textComponent)
 }
+
 /**
  * プレイヤーにクリック可能なメッセージを送信します。メッセージ内のプレースホルダはクリックするとそのプレースホルダに含まれるコマンドを実行します。
  * player?.sendClickableMessage("§cここはクリックできない {§aクリックメッセージ:/command} ---- {§bnext page:/next}")

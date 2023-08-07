@@ -1,11 +1,8 @@
 package red.man10.extention
 
-import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatMessageType
-import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.TextComponent
 import org.bukkit.Sound
-import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 

@@ -37,24 +37,23 @@ class PlayerData {
     var rightButtonPressed = false
     var isSneaking = false
 
-   // var leftClick
+    // var leftClick
     var rightClickDown = false
-    var lastRightClickTime : Long = 0
-    var lastLeftClickTime : Long = 0
-    var lastFocusX : Int = -1
-    var lastFocusY : Int = -1
+    var lastRightClickTime: Long = 0
+    var lastLeftClickTime: Long = 0
+    var lastFocusX: Int = -1
+    var lastFocusY: Int = -1
 
 
-
-    var penWidth : Int = 1
-    var penColor : Color = Color.RED
+    var penWidth: Int = 1
+    var penColor: Color = Color.RED
     var hasPen: Boolean = false
-    var focusingDisplay : Display? = null
-    var focusingMapId : Int = -1
-    var focusingImageX : Int = -1
-    var focusingImageY : Int = -1
-    var lastFocusingImageX : Int = -1
-    var lastFocusingImageY : Int = -1
+    var focusingDisplay: Display? = null
+    var focusingMapId: Int = -1
+    var focusingImageX: Int = -1
+    var focusingImageY: Int = -1
+    var lastFocusingImageX: Int = -1
+    var lastFocusingImageY: Int = -1
 
 }
 
@@ -153,8 +152,8 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
             var macroInfo = ""
             var color = "§7"
-            var macroName = display.macroName?:""
-            var autoRun = if(display.autoRun) "§a§l[AutoRun]" else ""
+            var macroName = display.macroName ?: ""
+            var autoRun = if (display.autoRun) "§a§l[AutoRun]" else ""
 
 
             if (display.macroEngine.isRunning()) {
@@ -340,7 +339,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
 
     private fun interactMap(player: Player) {
-        if(!canInteract(player)) {
+        if (!canInteract(player)) {
             return
         }
         val distance = 32.0
@@ -437,9 +436,9 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val to: Location = event.to
         if (from.yaw !== to.yaw || from.pitch !== to.pitch) {
             //player.sendMessage("向きが変わった")
-        //    if(!playerData[player.uniqueId]?.rightButtonPressed!!)
-       //         return
-      //      onRightButtonEvent(player)
+            //    if(!playerData[player.uniqueId]?.rightButtonPressed!!)
+            //         return
+            //      onRightButtonEvent(player)
         }
 
     }
@@ -461,7 +460,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
         val action: Action = event.action
-      //  info("onPlayerInteract ${action.name}",player)
+        //  info("onPlayerInteract ${action.name}",player)
         // プレイヤーが右クリック
         if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
             onRightButtonEvent(player)
@@ -475,7 +474,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
     // 近くで右クリックしたとき
     @EventHandler
     fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent) {
-       // info("onPlayerInteractEntityEvent ",e.player)
+        // info("onPlayerInteractEntityEvent ",e.player)
         val player = e.player
         onRightButtonEvent(player)
     }
@@ -538,16 +537,15 @@ class DisplayManager(main: JavaPlugin) : Listener {
         if (this.playerData[player.uniqueId]?.rightButtonPressed == false) {
             this.playerData[player.uniqueId]?.rightButtonPressed = true
             onRightButtonDown(player)
-        }
-        else{
+        } else {
             onRightButtonMove(player)
         }
     }
 
 
     fun onRightButtonUp(player: Player) {
-       //info("onRightButtonUp", player)
-        if(playerData[player.uniqueId]?.hasPen == false)
+        //info("onRightButtonUp", player)
+        if (playerData[player.uniqueId]?.hasPen == false)
             return
 
         drawLine(player)
@@ -556,8 +554,9 @@ class DisplayManager(main: JavaPlugin) : Listener {
         this.playerData[player.uniqueId]?.lastFocusingImageY = -1
 
     }
-    fun drawLine(player:Player){
-        if(playerData[player.uniqueId]?.hasPen == false)
+
+    fun drawLine(player: Player) {
+        if (playerData[player.uniqueId]?.hasPen == false)
             return
 
         var penWidth = playerData[player.uniqueId]?.penWidth ?: return
@@ -570,22 +569,22 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val y2 = playerData[player.uniqueId]?.focusingImageY ?: return
 
 
-       // player.sendMessage("drawLine $x $y $x2 $y2")
-        val rect = display.currentImage?.drawLine(x,y,x2,y2,penWidth,penColor)
+        // player.sendMessage("drawLine $x $y $x2 $y2")
+        val rect = display.currentImage?.drawLine(x, y, x2, y2, penWidth, penColor)
         display.update(rect!!)
 
     }
 
     fun onRightButtonDown(player: Player) {
-       // info("onRightButtonDown", player)
-        if(playerData[player.uniqueId]?.hasPen == false)
+        // info("onRightButtonDown", player)
+        if (playerData[player.uniqueId]?.hasPen == false)
             return
         playerData[player.uniqueId]?.lastFocusingImageX = playerData[player.uniqueId]?.focusingImageX!!
         playerData[player.uniqueId]?.lastFocusingImageY = playerData[player.uniqueId]?.focusingImageY!!
 
         var penWidth = playerData[player.uniqueId]?.penWidth
         var penColor = playerData[player.uniqueId]?.penColor
-        if(penWidth == 0){
+        if (penWidth == 0) {
             val display = playerData[player.uniqueId]?.focusingDisplay ?: return
             display.update(display.currentImage?.fill(penColor!!))
             return
@@ -593,13 +592,14 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
 
     }
+
     fun onRightButtonMove(player: Player) {
-       // info("onRightButtonMove", player)
-        if(playerData[player.uniqueId]?.hasPen == false)
+        // info("onRightButtonMove", player)
+        if (playerData[player.uniqueId]?.hasPen == false)
             return
-        if(playerData[player.uniqueId]?.lastFocusingImageX == -1)
+        if (playerData[player.uniqueId]?.lastFocusingImageX == -1)
             return
-        if(playerData[player.uniqueId]?.lastFocusingImageY == -1)
+        if (playerData[player.uniqueId]?.lastFocusingImageY == -1)
             return
 
         drawLine(player)
@@ -610,6 +610,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         onButtonClick(player)
 
     }
+
     // endregion
     private fun canInteract(player: Player): Boolean {
 
@@ -620,10 +621,10 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
         // ペンを持っているか
         // PersistentDataの中身を取得
-        val type = pd.get(Main.plugin,"man10display.type", PersistentDataType.STRING)
-        val width = pd.get(Main.plugin,"man10display.pen.width", PersistentDataType.INTEGER)
-        val color = pd.get(Main.plugin,"man10display.pen.color", PersistentDataType.STRING)
-        if(type != "pen"){
+        val type = pd.get(Main.plugin, "man10display.type", PersistentDataType.STRING)
+        val width = pd.get(Main.plugin, "man10display.pen.width", PersistentDataType.INTEGER)
+        val color = pd.get(Main.plugin, "man10display.pen.color", PersistentDataType.STRING)
+        if (type != "pen") {
             playerData[player.uniqueId]?.hasPen = false
             return false
         }
@@ -671,7 +672,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     }
 
-    fun setupDisplay(display: Display, player: Player,isGrowing:Boolean = false): Boolean {
+    fun setupDisplay(display: Display, player: Player, isGrowing: Boolean = false): Boolean {
         val distance = 32.0
         val rayTraceResult = player.rayTraceBlocks(distance)
         val hitPosition = rayTraceResult?.hitPosition
@@ -689,18 +690,35 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val height = display.height
 
         // face面の方向に向かって(width/height)分だけ額縁を設置する
-        placeMaps(player,collisionLocation, face, width, height,display.mapIds, isGrowing)
+        placeMaps(player, collisionLocation, face, width, height, display.mapIds, isGrowing)
 
         return true
     }
 
 
-    fun placeMaps(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int,mapIds:List<Int> ,isGlowing: Boolean = false) {
-        placeMapsNormal(player, startLocation, face, width, height, mapIds,isGlowing)
+    fun placeMaps(
+        player: Player,
+        startLocation: Location,
+        face: BlockFace,
+        width: Int,
+        height: Int,
+        mapIds: List<Int>,
+        isGlowing: Boolean = false
+    ) {
+        placeMapsNormal(player, startLocation, face, width, height, mapIds, isGlowing)
     }
 
-    fun placeMapsNormal(player: Player, startLocation: Location, face: BlockFace, width: Int, height: Int, mapIds:List<Int> ,isGlowing: Boolean = false,deleteOnly:Boolean = false) {
-        val rightDirection = when(face) {
+    fun placeMapsNormal(
+        player: Player,
+        startLocation: Location,
+        face: BlockFace,
+        width: Int,
+        height: Int,
+        mapIds: List<Int>,
+        isGlowing: Boolean = false,
+        deleteOnly: Boolean = false
+    ) {
+        val rightDirection = when (face) {
             BlockFace.NORTH -> BlockFace.WEST
             BlockFace.WEST -> BlockFace.SOUTH
             BlockFace.SOUTH -> BlockFace.EAST
@@ -713,29 +731,31 @@ class DisplayManager(main: JavaPlugin) : Listener {
         for (y in 0 until height) {
             for (x in 0 until width) {
                 //info("x: $x, y: $y", player)
-
                 val location = startLocation.clone()
-                    .add(rightDirection.modX * x.toDouble(), downDirection.modY * y.toDouble(), rightDirection.modZ * x.toDouble())
+                    .add(
+                        rightDirection.modX * x.toDouble(),
+                        downDirection.modY * y.toDouble(),
+                        rightDirection.modZ * x.toDouble()
+                    )
                     .add(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
 
                 if (face == BlockFace.EAST || face == BlockFace.SOUTH) {
                     location.subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
                 }
 
-                if(!deleteOnly){
-                    val behindLocation = location.clone().subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
+                if (!deleteOnly) {
+                    val behindLocation =
+                        location.clone().subtract(face.modX.toDouble(), face.modY.toDouble(), face.modZ.toDouble())
                     if (behindLocation.block.type == Material.AIR) {
                         behindLocation.block.type = Material.SEA_LANTERN
                     }
-                    location.placeMap(face,mapIds[index],isGlowing)
+                    location.placeMap(face, mapIds[index], isGlowing)
                     index++
-                }else{
-                    if(!location.removeFrame(face)){
+                } else {
+                    if (!location.removeFrame(face)) {
                         error("Could not delete frame", player)
                     }
                 }
-
-
             }
         }
     }
@@ -755,27 +775,25 @@ class DisplayManager(main: JavaPlugin) : Listener {
         val face = rayTraceResult.hitBlockFace ?: return false
 
         val item = collisionLocation.getItemStackInFrame(face)
-        if(item == null){
+        if (item == null) {
             error("Could not find a display", player)
             return false
         }
         val mapId = item.getMapId()
-        if(mapId == null){
+        if (mapId == null) {
             error("Could not find a display", player)
             return false
         }
 
         val display = this.getDisplay(mapId)
-        if(display == null){
+        if (display == null) {
             error("Could not find a display", player)
             return false
         }
         info("display found: ${display.name} ${display.width} ${display.height}", player)
-        this.placeMapsNormal(player, collisionLocation, face, display.width, display.height, listOf(),false,true)
+        this.placeMapsNormal(player, collisionLocation, face, display.width, display.height, listOf(), false, true)
 
         return true
     }
-
-
 
 }

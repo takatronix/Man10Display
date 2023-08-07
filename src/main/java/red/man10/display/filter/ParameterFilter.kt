@@ -1,10 +1,9 @@
 package red.man10.display.filter
 
 import java.awt.image.BufferedImage
-import kotlin.random.Random
 
 
-class ParameterFilter(private val parameter:String) : ImageFilter() {
+class ParameterFilter(private val parameter: String) : ImageFilter() {
 
     override fun apply(image: BufferedImage): BufferedImage {
         val width = image.width
@@ -13,7 +12,7 @@ class ParameterFilter(private val parameter:String) : ImageFilter() {
         val kv = parameter.split(":")
         val key = kv[0]
 
-        when(key){
+        when (key) {
             "dithering" -> return DitheringFilter().apply(image)
             "invert" -> return InvertFilter().apply(image)
             "grayscale" -> return GrayscaleFilter().apply(image)

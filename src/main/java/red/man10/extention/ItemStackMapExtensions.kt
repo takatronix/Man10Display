@@ -2,12 +2,8 @@ package red.man10.extention
 
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
-import org.bukkit.map.MapView
-import org.bukkit.persistence.PersistentDataType
-import org.bukkit.plugin.Plugin
 
 /**
  * ItemStackが地図であるかどうかを判定します。
@@ -17,12 +13,15 @@ import org.bukkit.plugin.Plugin
 fun ItemStack.isMap(): Boolean {
     return this.type == Material.MAP
 }
+
 fun ItemStack.isFilledMap(): Boolean {
     return this.type == Material.FILLED_MAP
 }
+
 fun ItemStack.isMapOrFilledMap(): Boolean {
     return this.isMap() || this.isFilledMap()
 }
+
 /**
  * ItemStackから地図IDを取得します。
  *
@@ -36,7 +35,7 @@ fun ItemStack.getMapId(): Int? {
     return mapMeta.mapView?.id
 }
 
-fun ItemStack.setMapId(mapId:Int):ItemStack{
+fun ItemStack.setMapId(mapId: Int): ItemStack {
     if (!this.isFilledMap()) {
         return this
     }
@@ -46,7 +45,7 @@ fun ItemStack.setMapId(mapId:Int):ItemStack{
     return this
 }
 
-fun ItemStack.getMap(mapId:Int):ItemStack{
+fun ItemStack.getMap(mapId: Int): ItemStack {
     val item = ItemStack(Material.FILLED_MAP)
     val mapMeta = this.itemMeta as MapMeta
     mapMeta.mapView = Bukkit.getServer().getMap(mapId)

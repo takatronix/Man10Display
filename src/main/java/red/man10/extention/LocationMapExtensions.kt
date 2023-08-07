@@ -15,7 +15,7 @@ import red.man10.extention.getMap
  */
 fun Location.getItemFrame(face: BlockFace): Entity? {
     return world.getNearbyEntities(this, 1.0, 1.0, 1.0)
-    //return world.getNearbyEntities(this, 0.5, 0.5, 0.5)
+        //return world.getNearbyEntities(this, 0.5, 0.5, 0.5)
         .filterIsInstance<ItemFrame>()
         .firstOrNull { it.facing == face }
 }
@@ -30,7 +30,7 @@ fun Location.getItemFrame(face: BlockFace): Entity? {
 fun Location.removeFrame(face: BlockFace, dropItem: Boolean = false): Boolean {
     val frame = getItemFrame(face) ?: return false
     if (frame is ItemFrame) {
-       frame.remove()
+        frame.remove()
     }
     return true
 
@@ -51,10 +51,10 @@ fun Location.getItemStackInFrame(face: BlockFace): ItemStack? {
  * @param face アイテムフレームの設置方向
  * @param glowing trueの場合、光るアイテムフレームを設置する。falseの場合、通常のアイテムフレームを設置する
  */
-fun Location.placeItemFrame(face: BlockFace, itemStack: ItemStack? = null, glowing: Boolean = false):Boolean {
+fun Location.placeItemFrame(face: BlockFace, itemStack: ItemStack? = null, glowing: Boolean = false): Boolean {
 
     // その場所にすでに額縁がある場合は削除
-   // this.removeFrame(face)
+    // this.removeFrame(face)
 
     val frameEntity = if (glowing) {
         this.world?.spawnEntity(this, EntityType.GLOW_ITEM_FRAME)
@@ -64,15 +64,15 @@ fun Location.placeItemFrame(face: BlockFace, itemStack: ItemStack? = null, glowi
 
     if (frameEntity is ItemFrame) {
         frameEntity.setFacingDirection(face, true)
-        if(itemStack == null)
+        if (itemStack == null)
             return false
         frameEntity.setItem(itemStack, false)
     }
     return true
 }
 
-fun Location.placeMap(face:BlockFace,mapId:Int,glowing: Boolean = false) :Boolean{
-    this.placeItemFrame(face, ItemStack(Material.FILLED_MAP).getMap(mapId),glowing)
+fun Location.placeMap(face: BlockFace, mapId: Int, glowing: Boolean = false): Boolean {
+    this.placeItemFrame(face, ItemStack(Material.FILLED_MAP).getMap(mapId), glowing)
     return false
 }
 

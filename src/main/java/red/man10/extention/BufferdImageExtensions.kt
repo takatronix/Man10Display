@@ -101,19 +101,21 @@ fun BufferedImage.resize(width: Int, height: Int): BufferedImage {
     graphics2D.dispose()
     return resizedImage
 }
-fun BufferedImage.drawText(x:Int,y:Int,text:String,size:Float = 13.0f,color:Color = Color.WHITE):Rectangle{
+
+fun BufferedImage.drawText(x: Int, y: Int, text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.font = graphics.font.deriveFont(size)
-    graphics.drawString(text,x,y)
+    graphics.drawString(text, x, y)
     graphics.dispose()
     // 描画サイズを求める
     val metrics = graphics.fontMetrics
     val width = metrics.stringWidth(text)
     val height = metrics.height
-    return Rectangle(x,y,width,height)
+    return Rectangle(x, y, width, height)
 }
-fun BufferedImage.drawTextCenter(text:String,size: Float = 13.0f,color: Color = Color.WHITE):Rectangle{
+
+fun BufferedImage.drawTextCenter(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.font = graphics.font.deriveFont(size)
@@ -123,9 +125,9 @@ fun BufferedImage.drawTextCenter(text:String,size: Float = 13.0f,color: Color = 
     val height = metrics.height
     val x = (this.width - width) / 2
     val y = (this.height - height) / 2
-    graphics.drawString(text,x,y)
+    graphics.drawString(text, x, y)
     graphics.dispose()
-    return Rectangle(x,y,width,height)
+    return Rectangle(x, y, width, height)
 }
 
 fun BufferedImage.drawImage(image: BufferedImage): Rectangle {
@@ -232,7 +234,7 @@ fun BufferedImage.stretchImage(image: BufferedImage): Rectangle {
     return Rectangle(0, 0, this.width, this.height)
 }
 
-fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:Color): Rectangle {
+fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int, radius: Int, color: Color): Rectangle {
     // 色とペンの太さを設定する
     val graphics = this.createGraphics()
     graphics.color = color
@@ -246,7 +248,7 @@ fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:C
     val x = min(x1, x2)
     val y = min(y1, y2)
 
-    return Rectangle(x-radius, y-radius, dx + radius, dy + radius)
+    return Rectangle(x - radius, y - radius, dx + radius, dy + radius)
 }
 
 fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, color: Color): Rectangle {

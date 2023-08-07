@@ -13,6 +13,7 @@ class ImageLoader {
             val bytesPerPixel = 3 // RGB形式の画像では1ピクセルあたり3バイト
             return image.width * image.height * bytesPerPixel
         }
+
         fun totalCacheSize(): Int {
             var total = 0
             for (key in imageCache.keys) {
@@ -44,8 +45,8 @@ class ImageLoader {
             }
         }
 
-        fun get(name: String,useCache:Boolean = true): BufferedImage? {
-            if(useCache){
+        fun get(name: String, useCache: Boolean = true): BufferedImage? {
+            if (useCache) {
                 if (imageCache.containsKey(name)) {
                     return imageCache[name]
                 }

@@ -5,9 +5,11 @@ import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
 import red.man10.display.filter.ParameterFilter
-import red.man10.extention.*
+import red.man10.extention.clear
+import red.man10.extention.drawImage
+import red.man10.extention.drawTextCenter
+import red.man10.extention.stretchImage
 import java.awt.Color
-import java.awt.image.BufferedImage
 
 class ImageCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
@@ -19,11 +21,11 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
         if (macroCommand.params.size >= 2) {
             val filterParam = macroCommand.params[1].replace("\"", "")
             filterParams = filterParam.split(",").toMutableList()
-            if(filterParams.contains("nocache")){
+            if (filterParams.contains("nocache")) {
                 useCache = false
                 filterParams.remove("nocache")
             }
-            if(filterParams.contains("stretch")){
+            if (filterParams.contains("stretch")) {
                 stretch = true
                 filterParams.remove("stretch")
             }
@@ -34,31 +36,30 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
             display.sendMapCache(players, fileName)
             return
         }
-        var image = display.currentImage?:return
+        var image = display.currentImage ?: return
         image.clear()
 
-        val getImage = ImageLoader.get(fileName,useCache)
-        if(getImage == null){
-            image.drawTextCenter("file not found $fileName",13.0f, Color.RED)
+        val getImage = ImageLoader.get(fileName, useCache)
+        if (getImage == null) {
+            image.drawTextCenter("file not found $fileName", 13.0f, Color.RED)
             display.createPacketCache(image, "error")
             display.sendMapCache("error")
             return
         }
 
-        if(stretch){
+        if (stretch) {
             image.stretchImage(getImage)
-        }else{
+        } else {
             image.drawImage(getImage)
         }
 
-        for(param in filterParams){
+        for (param in filterParams) {
             image = ParameterFilter(param).apply(image)
         }
 
         display.createPacketCache(image, fileName)
         display.sendMapCache(fileName)
     }
-
 
 
 }

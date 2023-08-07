@@ -107,7 +107,6 @@ class Display() : MapPacketSender {
     var refreshFlag = false
 
 
-
     fun resetStats() {
         refreshCount = 0
         sentMapCount = 0
@@ -125,7 +124,7 @@ class Display() : MapPacketSender {
         get() = width * MC_MAP_SIZE_X
     val imageHeight: Int
         get() = height * MC_MAP_SIZE_Y
-    val imageRect:Int
+    val imageRect: Int
         get() = imageWidth * imageHeight
     private val mapCount: Int
         get() = width * height
@@ -151,7 +150,7 @@ class Display() : MapPacketSender {
             }
         }
 
-    constructor(name: String, width: Int, height: Int, port:Int = 0) : this() {
+    constructor(name: String, width: Int, height: Int, port: Int = 0) : this() {
         this.name = name
         this.width = width
         this.height = height
@@ -220,7 +219,7 @@ class Display() : MapPacketSender {
                     "scanline", "scanline_height",
                     "distance",
                     "parallel_dithering", "parallelism",
-                    "test_mode","auto_run","variable","port"
+                    "test_mode", "auto_run", "variable", "port"
                 )
             }
     }
@@ -574,6 +573,7 @@ class Display() : MapPacketSender {
                 this.location = loc
                 sender.sendMessage("§aSet location to ${loc.world?.name}(${loc.x.toInt()},${loc.y.toInt()},${loc.z.toInt()})")
             }
+
             "auto_run" -> this.autoRun = value.toBoolean()
             "variable" -> {
                 val variable = value.split("=")
@@ -588,6 +588,7 @@ class Display() : MapPacketSender {
                 val macroValue = variable[1]
                 macroEngine.setVariable(macroKey, macroValue)
             }
+
             "port" -> {
                 val port = value.toIntOrNull()
                 if (port == null) {
@@ -685,9 +686,11 @@ class Display() : MapPacketSender {
         }
         return result
     }
+
     fun sendMessage(message: String) {
         getTargetPlayers().forEach { p: Player -> p.sendMessage(message) }
     }
+
     private fun showStatus(image: BufferedImage): BufferedImage {
         val info = getStatistics()
         val graphics = image.graphics
@@ -712,14 +715,14 @@ class Display() : MapPacketSender {
         val bps = String().formatNumberWithCommas(this.bps)
         val totalSent = String().formatNumberWithCommas(sentBytes)
 
-        val receivedBps = String().formatNumberWithCommas(frameReceivedBytes / (System.currentTimeMillis() - startTime) * 1000)
+        val receivedBps =
+            String().formatNumberWithCommas(frameReceivedBytes / (System.currentTimeMillis() - startTime) * 1000)
         val receivedFps =
             String.format("%.1f", frameReceivedCount.toDouble() / (System.currentTimeMillis() - startTime) * 1000)
         val receivedTotal = String().formatNumberWithCommas(frameReceivedBytes)
 
         val packetCacheSize = String().formatNumber(packetCacheSizeTotal().toLong())
         val imageCacheSize = String().formatNumber(ImageLoader.totalCacheSize().toLong())
-
 
 
         val lastCacheTime = String().formatNumberWithCommas(this.lastCacheTime)
@@ -794,11 +797,12 @@ class Display() : MapPacketSender {
         //info("sendMapCache $key")
         val packets = packetCache[key]!!
         sendMapPackets(players, packets)
-        if(key != "current")
+        if (key != "current")
             packetCache["current"] = packetCache[key]!!
     }
-    fun sendMapCache(key:String="current"){
-        sendMapCache(getTargetPlayers(),key)
+
+    fun sendMapCache(key: String = "current") {
+        sendMapCache(getTargetPlayers(), key)
     }
 
     // 作成したキャッシュの一部を送信する(部分更新用)
@@ -814,9 +818,9 @@ class Display() : MapPacketSender {
         sendMapPackets(players, targetPackets)
     }
 
-    private fun sendMapPacketsToPlayers(key:String) {
+    private fun sendMapPacketsToPlayers(key: String) {
         val players = getTargetPlayers()
-        sendMapCache(players,key)
+        sendMapCache(players, key)
         // 前回送信して今回送信しないプレイヤーには、ブランクパケットを送ってディスプレイを消す
         for (player in sentPlayers) {
             if (players.contains(player))
@@ -851,6 +855,7 @@ class Display() : MapPacketSender {
         val packetNum = packetCache[key]?.size ?: 0
         return packetNum * MC_MAP_SIZE_X * MC_MAP_SIZE_Y
     }
+
     fun packetCacheSizeTotal(): Int {
         var size = 0
         for (key in packetCache.keys) {
@@ -944,8 +949,9 @@ class Display() : MapPacketSender {
         }
         return this.currentImage?.drawImageNoMargin(image)!!
     }
-    fun show(player: Player,key:String = "current") {
-        sendMapCache(listOf(player),key)
+
+    fun show(player: Player, key: String = "current") {
+        sendMapCache(listOf(player), key)
     }
 
     // endregion
@@ -975,7 +981,7 @@ class Display() : MapPacketSender {
     // region: Macro
     fun runMacro(macroName: String, sender: CommandSender? = null): Boolean {
         info("runMacro : $macroName", sender)
-        macroEngine.runMacroAsync(this,macroName) { macroCommand, index ->
+        macroEngine.runMacroAsync(this, macroName) { macroCommand, index ->
             //  info("[$macroName]($index)macro execute : ${macroCommand.type}", sender)
             val players = getTargetPlayers()
             try {
@@ -1002,10 +1008,10 @@ class Display() : MapPacketSender {
     // region video server
     private fun startVideoServer(port: Int = 0) {
         stopVideoServer()
-        if(port == 0) {
+        if (port == 0) {
             return
         }
-        try{
+        try {
             videoCaptureServer = VideoCaptureServer(port)
             videoCaptureServer?.onFrame(Consumer { image ->
                 this.frameReceivedCount = videoCaptureServer?.frameReceivedCount ?: 0
@@ -1031,10 +1037,12 @@ class Display() : MapPacketSender {
             return
         }
     }
+
     fun stopVideoServer() {
         videoCaptureServer?.deinit()
         videoCaptureServer = null
     }
+
     fun resetVideoStats() {
         videoCaptureServer?.resetStats()
     }

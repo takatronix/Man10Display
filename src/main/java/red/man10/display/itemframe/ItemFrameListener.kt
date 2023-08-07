@@ -3,7 +3,6 @@ package red.man10.display.itemframe
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
-import org.bukkit.block.BlockFace
 import org.bukkit.entity.Entity
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemFrame
@@ -166,7 +165,7 @@ class ItemFrameListener : Listener {
         // displayがprotect=falseの時は保護しない
         for (display in Main.displayManager.displays) {
             if (display.mapIds.contains(mapId)) {
-                 if (display.protect) {
+                if (display.protect) {
                     return mapView
                 }
             }

@@ -1,6 +1,6 @@
 package red.man10.display.macro
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.display.Display
@@ -112,14 +112,15 @@ abstract class MacroCommandHandler {
 }
 
 
-class MacroEngine() {
+class MacroEngine {
     private val symbolTable = mutableMapOf<String, Any>()
     private val labelIndices = mutableMapOf<String, Int>()
     private var commands = listOf<MacroCommand>()
     private var currentLineIndex = 0
     private var shouldStop = false
     private var callback: ((MacroCommand, Int) -> Unit)? = null
-    var display :Display? = null
+    var display: Display? = null
+
     private data class Loop(val startLine: Int, var counter: Int)
     private data class IfBlock(var condition: Boolean, val startLine: Int)
 
@@ -128,6 +129,7 @@ class MacroEngine() {
     private var executingMacroName: String? = null
     val macroName: String?
         get() = executingMacroName
+
     companion object {
         val commands = arrayListOf("run", "stop", "list")
         val macroList: ArrayList<String>
@@ -181,7 +183,7 @@ class MacroEngine() {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun runMacroAsync(display:Display,macroName: String, callback: (MacroCommand, Int) -> Unit) {
+    fun runMacroAsync(display: Display, macroName: String, callback: (MacroCommand, Int) -> Unit) {
 
         if (isRunning()) {
             stop()
@@ -249,6 +251,7 @@ class MacroEngine() {
                         info(value.toString())
                     }
                 }
+
                 MESSAGE -> {
                     val expression = command.params.joinToString(" ")
                     if (expression.startsWith("\"") && expression.endsWith("\"")) {
@@ -593,6 +596,7 @@ class MacroEngine() {
 
         return macroFile.absolutePath
     }
+
     // endregion
     fun setVariable(name: String, value: String) {
         symbolTable[name] = evaluateExpression(value)

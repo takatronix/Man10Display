@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.Main
-import red.man10.extention.fill
 
 
 class TeleportCommand(private var plugin: JavaPlugin) : CommandExecutor {
@@ -14,11 +13,11 @@ class TeleportCommand(private var plugin: JavaPlugin) : CommandExecutor {
         return try {
             val displayName = args[1]
             val display = Main.displayManager.getDisplay(displayName)
-            if(display?.location == null){
+            if (display?.location == null) {
                 sender.sendMessage(Main.prefix + "§c§lThis display has no location.")
                 return true
             }
-            if(sender is Player){
+            if (sender is Player) {
                 sender.teleport(display.location!!)
                 return true
             }

@@ -18,7 +18,7 @@ import red.man10.extention.toHexRGB
 class CreatePenCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         try {
-            if(sender !is Player){
+            if (sender !is Player) {
                 sender.sendMessage(Main.prefix + "§c§lThis command can only be executed by players.")
                 return true
             }
@@ -30,7 +30,7 @@ class CreatePenCommand(private var plugin: JavaPlugin) : CommandExecutor {
 
 
             // もし手にアイテムがないならエラーメッセージ
-            if(player.inventory.itemInMainHand.type.isAir){
+            if (player.inventory.itemInMainHand.type.isAir) {
                 player.sendMessage(Main.prefix + "§c§lYou must hold an item in your hand.")
                 return true
             }
@@ -38,9 +38,14 @@ class CreatePenCommand(private var plugin: JavaPlugin) : CommandExecutor {
             meta.setDisplayName("§f§lDisplay Pen / Width:$width / Color:#${color.toHexRGB()}")
             itemInHand.itemMeta = meta
 
-            itemInHand.setPersistentData(Main.plugin,"man10display.type", PersistentDataType.STRING,"pen")
-            itemInHand.setPersistentData(Main.plugin,"man10display.pen.width", PersistentDataType.INTEGER,width)
-            itemInHand.setPersistentData(Main.plugin,"man10display.pen.color", PersistentDataType.STRING, color.toHexRGB())
+            itemInHand.setPersistentData(Main.plugin, "man10display.type", PersistentDataType.STRING, "pen")
+            itemInHand.setPersistentData(Main.plugin, "man10display.pen.width", PersistentDataType.INTEGER, width)
+            itemInHand.setPersistentData(
+                Main.plugin,
+                "man10display.pen.color",
+                PersistentDataType.STRING,
+                color.toHexRGB()
+            )
 
             player.sendMessage(Main.prefix + "§a§lYou have successfully created a pen.")
 

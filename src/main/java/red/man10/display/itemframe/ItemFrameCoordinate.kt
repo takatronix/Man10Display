@@ -37,18 +37,18 @@ class ItemFrameCoordinate {
 
             val height = floor(
                 if (face == BlockFace.UP || face == BlockFace.DOWN) {
-                    frameCollisionLocation.x-collisionLocation.blockX
+                    frameCollisionLocation.x - collisionLocation.blockX
                 } else {
-                    1 - (frameCollisionLocation.y-collisionLocation.blockY)
+                    1 - (frameCollisionLocation.y - collisionLocation.blockY)
                 } * 128.0
             )
 
             val width = floor(
                 when (face) {
-                    BlockFace.SOUTH -> frameCollisionLocation.x-collisionLocation.blockX
-                    BlockFace.NORTH -> 1 - (frameCollisionLocation.x-collisionLocation.blockX)
-                    BlockFace.EAST -> 1 - (frameCollisionLocation.z-collisionLocation.blockZ)
-                    BlockFace.WEST -> frameCollisionLocation.z-collisionLocation.blockZ
+                    BlockFace.SOUTH -> frameCollisionLocation.x - collisionLocation.blockX
+                    BlockFace.NORTH -> 1 - (frameCollisionLocation.x - collisionLocation.blockX)
+                    BlockFace.EAST -> 1 - (frameCollisionLocation.z - collisionLocation.blockZ)
+                    BlockFace.WEST -> frameCollisionLocation.z - collisionLocation.blockZ
                     else -> 0.0
                 } * 128.0
             )

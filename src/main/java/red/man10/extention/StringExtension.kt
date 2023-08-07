@@ -35,6 +35,7 @@ fun String.toColor(): Color {
     val b = hex.substring(4, 6).toInt(16)
     return Color(r, g, b)
 }
+
 fun String.fromColor(color: Color): String {
     val r = color.red.toString(16).padStart(2, '0')
     val g = color.green.toString(16).padStart(2, '0')
