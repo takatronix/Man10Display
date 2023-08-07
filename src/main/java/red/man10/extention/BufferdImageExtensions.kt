@@ -5,6 +5,8 @@ import java.awt.Color
 import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
+import kotlin.math.absoluteValue
+import kotlin.math.min
 
 fun BufferedImage.fill(colorName: String): Rectangle {
     val graphics = this.createGraphics()
@@ -239,7 +241,16 @@ fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int,radius:Int,color:C
 
     graphics.drawLine(x1, y1, x2, y2)
     graphics.dispose()
-    return Rectangle(x1, y1, x2, y2)
+    // 線の太さも考慮して矩形を返す
+    val dx = (x2 - x1).absoluteValue
+    val dy = (y2 - y1).absoluteValue
+    val x = min(x1, x2)
+    val y = min(y1, y2)
+
+    return Rectangle(x, y, dx + radius, dy + radius)
+
+
+ //   return Rectangle(x1, y1, x2, y2)
 }
 
 fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, color: Color): Rectangle {

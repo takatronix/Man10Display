@@ -469,7 +469,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
       //  player.sendMessage("§a§l ${from.yaw} ${to.yaw} ${from.pitch} ${to.pitch}")
       //  interactMap(player)
-
+       // onRightButtonEvent(player)
     }
 
     @EventHandler
@@ -489,7 +489,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
     fun onPlayerInteract(event: PlayerInteractEvent) {
         val player = event.player
         val action: Action = event.action
-
+      //  info("onPlayerInteract ${action.name}",player)
         // プレイヤーが右クリック
         if (action === Action.RIGHT_CLICK_AIR || action === Action.RIGHT_CLICK_BLOCK) {
             onRightButtonEvent(player)
@@ -503,7 +503,9 @@ class DisplayManager(main: JavaPlugin) : Listener {
     // 近くで右クリックしたとき
     @EventHandler
     fun onPlayerInteractEntityEvent(e: PlayerInteractEntityEvent) {
-        interactMap(e.player)
+       // info("onPlayerInteractEntityEvent ",e.player)
+        val player = e.player
+        onRightButtonEvent(player)
     }
 
     @EventHandler
@@ -573,7 +575,14 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     fun onRightButtonUp(player: Player) {
        //info("onRightButtonUp", player)
+        if(playerData[player.uniqueId]?.hasPen == false)
+            return
+
         drawLine(player)
+        // 最終ポイントたをクリア
+        this.playerData[player.uniqueId]?.lastFocusingImageX = -1
+        this.playerData[player.uniqueId]?.lastFocusingImageY = -1
+
     }
     fun drawLine(player:Player){
         if(playerData[player.uniqueId]?.hasPen == false)
@@ -599,6 +608,8 @@ class DisplayManager(main: JavaPlugin) : Listener {
        // info("onRightButtonDown", player)
         if(playerData[player.uniqueId]?.hasPen == false)
             return
+        playerData[player.uniqueId]?.lastFocusingImageX = playerData[player.uniqueId]?.focusingImageX!!
+        playerData[player.uniqueId]?.lastFocusingImageY = playerData[player.uniqueId]?.focusingImageY!!
 
         var penWidth = playerData[player.uniqueId]?.penWidth
         var penColor = playerData[player.uniqueId]?.penColor
@@ -612,6 +623,13 @@ class DisplayManager(main: JavaPlugin) : Listener {
     }
     fun onRightButtonMove(player: Player) {
        // info("onRightButtonMove", player)
+        if(playerData[player.uniqueId]?.hasPen == false)
+            return
+        if(playerData[player.uniqueId]?.lastFocusingImageX == -1)
+            return
+        if(playerData[player.uniqueId]?.lastFocusingImageY == -1)
+            return
+
         drawLine(player)
     }
 
