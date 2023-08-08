@@ -54,7 +54,7 @@ fun Location.getItemStackInFrame(face: BlockFace): ItemStack? {
 fun Location.placeItemFrame(face: BlockFace, itemStack: ItemStack? = null, glowing: Boolean = false): Boolean {
 
     // その場所にすでに額縁がある場合は削除
-    // this.removeFrame(face)
+    //this.removeFrame(face)
 
     val frameEntity = if (glowing) {
         this.world?.spawnEntity(this, EntityType.GLOW_ITEM_FRAME)
