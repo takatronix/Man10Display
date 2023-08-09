@@ -761,7 +761,6 @@ class Display() : MapPacketSender {
         }
         return players
     }
-
     // 画面更新タスクを開始する
     private fun startVideoSendingPacketsTask() {
         info("$name stopSendingPacketsTask $refreshPeriod ms")
@@ -779,6 +778,7 @@ class Display() : MapPacketSender {
             }, 0, refreshPeriod, TimeUnit.MILLISECONDS
         )
     }
+
 
     // プレイヤーにパケットを送る（一番低レベル)
     private fun sendMapPackets(players: List<Player>, packets: List<PacketContainer>) {
@@ -919,10 +919,10 @@ class Display() : MapPacketSender {
     }
 
 
-    fun reset() {
+    fun reset(key:String = "current") {
         this.currentImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
-        createPacketCache(currentImage!!, "current")
-        this.update()
+        createPacketCache(currentImage!!, key)
+        sendMapPacketsToPlayers(key)
         this.sendBlank()
     }
 
