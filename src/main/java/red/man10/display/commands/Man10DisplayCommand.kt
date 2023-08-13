@@ -65,7 +65,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("delete")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.delete")
                 .explanation("Delete display with specified id")
                 .executor(DeleteCommand(Main.plugin))
@@ -74,7 +74,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("save")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.save")
                 .explanation("save display with specified id")
                 .executor(SaveCommand(Main.plugin))
@@ -83,7 +83,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("map")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.map")
                 .explanation("Get maps with specified id")
                 .executor(MapCommand(Main.plugin))
@@ -100,7 +100,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("info")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.info")
                 .explanation("Show display information")
                 .executor(InfoCommand(Main.plugin))
@@ -109,7 +109,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("stats")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.stats")
                 .explanation("Show statistics")
                 .executor(StatsCommand(Main.plugin))
@@ -127,7 +127,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("set")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .argument("[setting keyword]") { _ -> Display.parameterKeys }
                 .argument("value")
                 .permission("red.man10.display.set")
@@ -138,7 +138,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("tp")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.teleport")
                 .explanation("Teleport to display")
                 .executor(TeleportCommand(Main.plugin))
@@ -147,7 +147,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("run")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .argument("[macro_name]") { _ -> MacroEngine.macroList }
                 .permission("red.man10.display.run")
                 .explanation("run macro")
@@ -157,7 +157,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("stop")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.stop")
                 .explanation("stop display")
                 .executor(StopCommand(Main.plugin))
@@ -174,7 +174,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("clear")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.clear")
                 .explanation("clear display")
                 .executor(ClearCommand(Main.plugin))
@@ -184,7 +184,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("reset")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.reset")
                 .explanation("Set parameter")
                 .executor(ResetCommand(Main.plugin))
@@ -193,7 +193,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("refresh")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.refresh")
                 .explanation("Refresh display")
                 .executor(RefreshCommand(Main.plugin))
@@ -202,7 +202,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("place")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.place")
                 .explanation("Create a display where you are looking at")
                 .executor(PlaceCommand(Main.plugin))
@@ -211,7 +211,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("place_growing")
-                .argument("[display_name]") { _ -> Main.displayManager.names }
+                .argument("[display_name]") { _ -> Main.displayManager.displayNames }
                 .permission("red.man10.display.place")
                 .explanation("Create a growing display where you are looking at")
                 .executor(PlaceGrowingCommand(Main.plugin))
@@ -232,6 +232,15 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                 .permission("red.man10.display.create_pen")
                 .explanation("Make the item in your hand into a pen.")
                 .executor(CreatePenCommand(Main.plugin))
+        )
+        addCommand(
+            CommandObject()
+                .prefix("create_ticket")
+                .argument("[type]"){arrayListOf("start","end","player","command","data")}
+                .argument("[value]")
+                .permission("red.man10.display.create_ticket")
+                .explanation("Set item expiration dates, data, commands, etc.")
+                .executor(CreateTicketCommand(Main.plugin))
         )
         addCommand(
             CommandObject()

@@ -61,6 +61,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
     val displays = mutableListOf<Display>()
     private val playerData = ConcurrentHashMap<UUID, PlayerData>()
     private var playerDataThread: Thread? = null
+    private var isCopyDisabled = true
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
@@ -91,7 +92,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         info("displays cleared")
     }
 
-    val names: ArrayList<String>
+    val displayNames: ArrayList<String>
         get() {
             val nameList = arrayListOf<String>()
             for (display in displays) {
@@ -417,6 +418,19 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     }
 
+    @EventHandler
+    fun onCraftItem(event: CraftItemEvent) {
+        if(isCopyDisabled){
+            val matrix = event.inventory.matrix
+            for (item in matrix) {
+                if (item != null && item.type == Material.FILLED_MAP) {
+                    event.isCancelled = true
+                    event.whoClicked.sendMessage(Main.prefix + "§c§lCopying of maps is prohibited.")
+                    return
+                }
+            }
+        }
+    }
     @EventHandler
     fun onPlayerQuit(e: PlayerQuitEvent) {
         val player = e.player
