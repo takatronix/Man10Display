@@ -57,11 +57,7 @@ class CreateTicketCommand(private var plugin: JavaPlugin) : CommandExecutor {
         }
         return true
     }
-
-
 }
-
-
 
 fun convertToUnixTime(dateString: String): Long? {
     val formats = listOf(

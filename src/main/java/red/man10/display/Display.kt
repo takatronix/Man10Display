@@ -869,7 +869,7 @@ class Display() : MapPacketSender {
     var updateCacheIndexList: MutableList<Int> = mutableListOf()
 
     // imageからパケット情報を作成する
-    fun createPacketCache(image: BufferedImage, key: String = "current") {
+    fun createPacketCache(image: BufferedImage, key: String = "current",send:Boolean = false) {
         val packets = mutableListOf<PacketContainer>()
         var index = 0
         for (y in 0 until image.height step MC_MAP_SIZE_Y) {
@@ -884,6 +884,10 @@ class Display() : MapPacketSender {
             }
         }
         packetCache[key] = packets
+
+        if(send){
+            sendMapCache(getTargetPlayers(), key)
+        }
     }
 
     fun getSubImageRectByIndex(index: Int): Rectangle {
@@ -941,11 +945,11 @@ class Display() : MapPacketSender {
         this.currentImage?.clear()
         // アスペクトレシオを維持しない場合は、画像を拡大表示
         if (!this.keepAspectRatio) {
-            return this.currentImage?.stretchImage(image)!!
+            return this.currentImage?.drawImageStretch(image)!!
         }
         // 余白を表示しない場合は、余白を削って表示
         if (!this.noMargin) {
-            return this.currentImage?.drawImage(image)!!
+            return this.currentImage?.drawImageCenter(image)!!
         }
         return this.currentImage?.drawImageNoMargin(image)!!
     }

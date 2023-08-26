@@ -6,7 +6,7 @@ import java.awt.image.BufferedImage
 open class DitheringFilter : ImageFilter() {
 
     override fun apply(image: BufferedImage): BufferedImage {
-        val ditheredImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_RGB)
+        val ditheredImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
 
         for (y in 0 until image.height) {
             for (x in 0 until image.width) {

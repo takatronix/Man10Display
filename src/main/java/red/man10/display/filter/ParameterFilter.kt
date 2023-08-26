@@ -19,6 +19,8 @@ class ParameterFilter(private val parameter: String) : ImageFilter() {
             "sepia" -> return SepiaFilter().apply(image)
             "brightness" -> return BrightnessFilter(kv[1].toDouble()).apply(image)
             "contrast" -> return ContrastFilter(kv[1].toDouble()).apply(image)
+            "noise" -> return NoiseFilter(kv[1].toDouble()).apply(image)
+            "raster" -> return RasterNoiseFilter(kv[1].toDouble().toInt()).apply(image)
         }
         return image
     }

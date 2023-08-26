@@ -130,7 +130,7 @@ fun BufferedImage.drawTextCenter(text: String, size: Float = 13.0f, color: Color
     return Rectangle(x, y, width, height)
 }
 
-fun BufferedImage.drawImage(image: BufferedImage): Rectangle {
+fun BufferedImage.drawImageCenter(image: BufferedImage): Rectangle {
     // 描画先の画像サイズ
     val targetWidth = this.width
     val targetHeight = this.height
@@ -161,9 +161,27 @@ fun BufferedImage.drawImage(image: BufferedImage): Rectangle {
     val x = (targetWidth - maxWidth) / 2
     val y = (targetHeight - maxHeight) / 2
 
+
     this.graphics.drawImage(image, x, y, maxWidth, maxHeight, null)
     return Rectangle(x, y, maxWidth, maxHeight)
 }
+fun BufferedImage.drawImage(image: BufferedImage,x:Int = 0,y:Int = 0,w:Int = -1,h:Int=-1): Rectangle {
+
+    // 元画像のサイズ
+    val sourceWidth = image.width
+    val sourceHeight = image.height
+
+    var width = w;
+    var height = h;
+    if(width==-1)
+        width = sourceWidth
+    if(height==-1)
+        height = sourceHeight
+
+    this.graphics.drawImage(image, x, y, width, height, null)
+    return Rectangle(x, y, width, height)
+}
+
 
 fun BufferedImage.drawImageFully(image: BufferedImage): Rectangle {
     // 描画先の画像サイズ
@@ -196,7 +214,7 @@ fun BufferedImage.drawImageFully(image: BufferedImage): Rectangle {
     return Rectangle(x, y, newWidth, newHeight)
 }
 
-fun BufferedImage.drawImageNoMargin(image: BufferedImage): Rectangle {
+fun BufferedImage.drawImageNoMargin(image: BufferedImage,x:Int = 0,y:Int = 0): Rectangle {
     // 描画先の画像サイズ
     val targetWidth = this.width
     val targetHeight = this.height
@@ -221,15 +239,15 @@ fun BufferedImage.drawImageNoMargin(image: BufferedImage): Rectangle {
     val g = this.createGraphics()
     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
     // 余白なしで描画
-    g.drawImage(image, 0, 0, newWidth, newHeight, null)
+    g.drawImage(image, x, y, newWidth, newHeight, null)
     g.dispose()
     return Rectangle(0, 0, newWidth, newHeight)
 }
 
-fun BufferedImage.stretchImage(image: BufferedImage): Rectangle {
+fun BufferedImage.drawImageStretch(image: BufferedImage, x:Int = 0, y:Int = 0): Rectangle {
     val g = this.createGraphics()
     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
-    g.drawImage(image, 0, 0, this.width, this.height, null)
+    g.drawImage(image, x, y, this.width, this.height, null)
     g.dispose()
     return Rectangle(0, 0, this.width, this.height)
 }

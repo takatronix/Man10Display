@@ -5,29 +5,50 @@ import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
 import red.man10.display.filter.ParameterFilter
-import red.man10.extention.clear
-import red.man10.extention.drawImage
-import red.man10.extention.drawTextCenter
-import red.man10.extention.stretchImage
+import red.man10.extention.*
 import java.awt.Color
+import red.man10.display.*
 
 class ImageCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
         val fileName = macroCommand.params[0].replace("\"", "")
 
+        var x = 0.0
+        var y = 0.0
         var useCache = true
         var stretch = false
+        var transparent = false
+        var changePos = false
+        var sendFlag = true
         var filterParams = mutableListOf<String>()
         if (macroCommand.params.size >= 2) {
             val filterParam = macroCommand.params[1].replace("\"", "")
             filterParams = filterParam.split(",").toMutableList()
-            if (filterParams.contains("nocache")) {
-                useCache = false
-                filterParams.remove("nocache")
-            }
-            if (filterParams.contains("stretch")) {
-                stretch = true
-                filterParams.remove("stretch")
+            for (param in filterParams){
+                info("filter param $param")
+                if(param == "nocache"){
+                    useCache = false
+                }
+                if(param == "noupdate"){
+                    sendFlag = false
+                }
+                if(param == "stretch"){
+                    stretch = true
+                }
+                if(param == "transparent"){
+                    transparent = true
+                }
+                if(param == "noclear"){
+                    transparent = true
+                }
+                if(param.startsWith("x=")){
+                    x = param.replace("x=","").toDouble()
+                    changePos = true
+                }
+                if(param.startsWith("y=")){
+                    y = param.replace("y=","").toDouble()
+                    changePos = true
+                }
             }
         }
 
@@ -37,7 +58,9 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
             return
         }
         var image = display.currentImage ?: return
-        image.clear()
+        if(!transparent){
+            image.clear()
+        }
 
         val getImage = ImageLoader.get(fileName, useCache)
         if (getImage == null) {
@@ -48,17 +71,29 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
         }
 
         if (stretch) {
-            image.stretchImage(getImage)
+            if(changePos){
+                image.drawImageStretch(getImage,x.toInt(),y.toInt())
+                info("stretch x:$x y:$y")
+            }
+            else{
+                image.drawImageStretch(getImage)
+            }
         } else {
-            image.drawImage(getImage)
+            if(changePos){
+                image.drawImage(getImage,x.toInt(),y.toInt())
+                info("draw x:$x y:$y")
+            }
+            else{
+                image.drawImageCenter(getImage)
+            }
         }
 
+        // フィルタ設定があれば出来上がった画像を送信
         for (param in filterParams) {
             image = ParameterFilter(param).apply(image)
         }
 
-        display.createPacketCache(image, fileName)
-        display.sendMapCache(fileName)
+        display.createPacketCache(image, fileName,sendFlag)
     }
 
 

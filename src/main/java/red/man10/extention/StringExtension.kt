@@ -19,7 +19,13 @@ fun String.formatNumber(value: Long): String {
     }
     return "$formattedValue${suffixes[suffixIndex]}"
 }
-
+fun String.removeDoubleQuotes(): String {
+    return if (this.startsWith("\"") && this.endsWith("\"")) {
+        this.substring(1, this.length - 1)
+    } else {
+        this
+    }
+}
 fun String.formatNumberWithCommas(value: Long): String {
     val formattedValue = formatNumber(value)
     val parts = formattedValue.split(".")

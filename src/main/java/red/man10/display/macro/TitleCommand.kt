@@ -5,10 +5,7 @@ import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.display.ImageLoader
 import red.man10.display.filter.ParameterFilter
-import red.man10.extention.clear
-import red.man10.extention.drawImage
-import red.man10.extention.drawTextCenter
-import red.man10.extention.stretchImage
+import red.man10.extention.*
 import java.awt.Color
 
 class TitleCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {

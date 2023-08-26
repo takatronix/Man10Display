@@ -7,6 +7,7 @@ import red.man10.display.Display
 import red.man10.display.Main
 import red.man10.display.info
 import red.man10.display.macro.CommandType.*
+import red.man10.extention.removeDoubleQuotes
 import java.io.File
 import java.util.*
 import kotlin.math.roundToLong
@@ -61,7 +62,7 @@ fun getCommandType(key: String): CommandType {
 
 // 行を解析してMacroCommandに変換
 private fun parseCommand(line: String): MacroCommand? {
-    //   info("Parsing line: $line")
+       info("Parsing line: $line")
     val trimmedLine = line.trim()
     if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
         // 空行またはコメント行の場合はnullを返す
@@ -104,7 +105,7 @@ private fun parseCommand(line: String): MacroCommand? {
 
 data class MacroCommand(
     val type: CommandType,
-    val params: List<String>
+    var params: List<String>
 )
 
 abstract class MacroCommandHandler {
@@ -113,6 +114,7 @@ abstract class MacroCommandHandler {
 
 
 class MacroEngine {
+    val debugMode = false
     private val symbolTable = mutableMapOf<String, Any>()
     private val labelIndices = mutableMapOf<String, Int>()
     private var commands = listOf<MacroCommand>()
@@ -223,7 +225,7 @@ class MacroEngine {
                 break
             }
 
-            info("[MACRO]$executingMacroName([$currentLineIndex]) $command")
+            if(debugMode) info("[MACRO]$executingMacroName([$currentLineIndex]) $command")
             when (command.type) {
                 GOTO -> {
                     val label = command.params[0]
@@ -370,8 +372,20 @@ class MacroEngine {
                 }
 
                 else -> {
+                    // パラメータの変数を展開する
+                    val list = mutableListOf<String>()
+                    for(param in command.params){
+                        var text = param.removeDoubleQuotes()
+                        text = evaluateStringExpression(text)
+                        list.add(text)
+                    }
+                    //command.params = list.toList()
+                    // commandのcopyでないといけない
+                    val copyCommand = command.copy(params = list.toList())
+
+
                     // 組み込み関数以外はコールバックで処理する
-                    callback(command, currentLineIndex)
+                    callback(copyCommand, currentLineIndex)
                 }
             }
 
@@ -383,11 +397,14 @@ class MacroEngine {
         if (ifStack.isNotEmpty()) {
             throw IllegalArgumentException("Unclosed IF block. Missing ENDIF.")
         }
-        info("Macro execution finished.")
+        if(debugMode){
+            info("Macro execution finished.")
+        }
     }
 
     // endregion
     // region 評価関数
+
 
     private fun evaluateStringExpression(expression: String): String {
         val regex = Regex("\\{(\\$\\w+)}")
@@ -400,6 +417,15 @@ class MacroEngine {
 
     // 変数を評価する
     private fun evaluateVariable(variableName: String): Any {
+        // 数字が.0や.00の場合は整数として評価する
+        /*
+        val numberRegex = Regex("\\.0+$")
+        val variableValue = symbolTable[variableName]
+        if (variableValue is Double && numberRegex.containsMatchIn(variableValue.toString())) {
+            return variableValue.toInt()
+        }
+*/
+
         return symbolTable[variableName] ?: throw IllegalArgumentException("Variable $variableName not found.")
     }
 
@@ -556,11 +582,14 @@ class MacroEngine {
     private fun parseMacroFile(filePath: String): List<MacroCommand> {
         val commands = mutableListOf<MacroCommand>()
 
-        info("Parsing macro file: $filePath")
+        if(debugMode)
+            info("Parsing macro file: $filePath")
         File(filePath).forEachLine { line ->
+            if(debugMode) info("Parsing line: $line")
             // 行を解析してMacroCommandに変換
             val command = parseCommand(line)
             if (command != null) {
+                if(debugMode) info("Parsed command: $command")
                 commands.add(command)
             }
         }
