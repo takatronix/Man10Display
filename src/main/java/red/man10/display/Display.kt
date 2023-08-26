@@ -29,6 +29,8 @@ const val MC_MAP_SIZE_Y = 128
 
 //
 const val DEFAULT_DISTANCE = 32.0
+const val DEFAULT_MESSAGE_DISTANCE = 0.0
+const val DEFAULT_SOUND_DISTANCE = 5.0
 const val DEFAULT_FPS = 10.0
 
 //
@@ -41,6 +43,9 @@ class Display() : MapPacketSender {
     var height: Int = 1
     var location: Location? = null
     var distance = DEFAULT_DISTANCE
+    var sound_distance = DEFAULT_SOUND_DISTANCE
+    var message_distance = DEFAULT_MESSAGE_DISTANCE
+
     var port: Int = 0
     var macroEngine = MacroEngine()
     var protect = DEFAULT_PROTECTION
@@ -217,7 +222,7 @@ class Display() : MapPacketSender {
                     "contrast", "contrast_level", "brightness", "brightness_level",
                     "sharpen", "sharpen_level",
                     "scanline", "scanline_height",
-                    "distance",
+                    "distance","sound_distance","message_distance",
                     "parallel_dithering", "parallelism",
                     "test_mode", "auto_run", "variable", "port"
                 )
@@ -271,6 +276,8 @@ class Display() : MapPacketSender {
         config.set("$key.brightness", brightness)
         config.set("$key.brightnessLevel", brightnessLevel)
         config.set("$key.distance", distance)
+        config.set("$key.sound_distance", sound_distance)
+        config.set("$key.message_distance", message_distance)
         config.set("$key.parallelDithering", parallelDithering)
         config.set("$key.parallelism", parallelism)
         config.set("$key.vignette", vignette)
@@ -336,6 +343,8 @@ class Display() : MapPacketSender {
         brightness = config.getBoolean("$key.brightness", false)
         brightnessLevel = config.getDouble("$key.brightnessLevel", DEFAULT_BRIGHTNESS_LEVEL)
         distance = config.getDouble("$key.distance", DEFAULT_DISTANCE)
+        sound_distance = config.getDouble("$key.sound_distance", DEFAULT_SOUND_DISTANCE)
+        message_distance = config.getDouble("$key.message_distance", DEFAULT_MESSAGE_DISTANCE)
         parallelDithering = config.getBoolean("$key.parallelDithering", false)
         parallelism = config.getInt("$key.parallelism", DEFAULT_PARALLELISM)
         vignette = config.getBoolean("$key.vignette", false)
@@ -402,6 +411,9 @@ class Display() : MapPacketSender {
         p.sendMessage("§a§l brightness: ${this.brightness}")
         p.sendMessage("§a§l brightnessLevel: ${this.brightnessLevel}")
         p.sendMessage("§a§l distance: ${this.distance}")
+        p.sendMessage("§a§l sound_distance: ${this.sound_distance}")
+        p.sendMessage("§a§l message_distance: ${this.message_distance}")
+
         p.sendMessage("§a§l parallelDithering: ${this.parallelDithering}")
         p.sendMessage("§a§l parallelism: ${this.parallelism}")
         p.sendMessage("§a§l rasterNoise: ${this.rasterNoise}")
@@ -688,7 +700,7 @@ class Display() : MapPacketSender {
     }
 
     fun sendMessage(message: String) {
-        getTargetPlayers().forEach { p: Player -> p.sendMessage(message) }
+        getMessagePlayers().forEach { p: Player -> p.sendMessage(message) }
     }
 
     private fun showStatus(image: BufferedImage): BufferedImage {
@@ -753,6 +765,40 @@ class Display() : MapPacketSender {
                 if (this.location!!.world != player.world)
                     continue
                 if (player.location.distance(this.location!!) > distance)
+                    continue
+            }
+            if (player.isOnline) {
+                players.add(player)
+            }
+        }
+        return players
+    }
+    fun getMessagePlayers(): List<Player> {
+        val players = mutableListOf<Player>()
+        this.playersCount = Bukkit.getOnlinePlayers().size
+        for (player in Bukkit.getOnlinePlayers()) {
+            // check distance
+            if (this.location != null && this.message_distance > 0.0) {
+                if (this.location!!.world != player.world)
+                    continue
+                if (player.location.distance(this.location!!) > message_distance)
+                    continue
+            }
+            if (player.isOnline) {
+                players.add(player)
+            }
+        }
+        return players
+    }
+    fun getSoundPlayers(): List<Player> {
+        val players = mutableListOf<Player>()
+        this.playersCount = Bukkit.getOnlinePlayers().size
+        for (player in Bukkit.getOnlinePlayers()) {
+            // check distance
+            if (this.location != null && this.sound_distance > 0.0) {
+                if (this.location!!.world != player.world)
+                    continue
+                if (player.location.distance(this.location!!) > sound_distance)
                     continue
             }
             if (player.isOnline) {
@@ -996,7 +1042,7 @@ class Display() : MapPacketSender {
                     REFRESH -> RefreshCommand(macroName, macroCommand).run(this, players, sender)
                     CLEAR -> ClearCommand(macroName, macroCommand).run(this, players, sender)
                     FILL -> FillCommand(macroName, macroCommand).run(this, players, sender)
-                    PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, players, sender)
+                    PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, getSoundPlayers(), sender)
                     else -> {
                         error("unknown macro type : ${macroCommand.type}", sender)
                     }

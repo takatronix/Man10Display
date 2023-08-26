@@ -62,7 +62,7 @@ fun getCommandType(key: String): CommandType {
 
 // 行を解析してMacroCommandに変換
 private fun parseCommand(line: String): MacroCommand? {
-       info("Parsing line: $line")
+    info("Parsing line: $line")
     val trimmedLine = line.trim()
     if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
         // 空行またはコメント行の場合はnullを返す
@@ -260,6 +260,7 @@ class MacroEngine {
                         // パラメータが文字列リテラルの場合は、そのまま出力します。
                         val output = evaluateStringExpression(expression.substring(1, expression.length - 1))
                         display?.sendMessage(output)
+                        //getTargetPlayers().forEach { p: Player -> p.sendMessage(message) }
                     } else {
                         // それ以外の場合は、expressionを評価します。
                         val value = evaluateExpression(expression)
@@ -382,7 +383,6 @@ class MacroEngine {
                     //command.params = list.toList()
                     // commandのcopyでないといけない
                     val copyCommand = command.copy(params = list.toList())
-
 
                     // 組み込み関数以外はコールバックで処理する
                     callback(copyCommand, currentLineIndex)
