@@ -44,6 +44,8 @@ enum class CommandType {
     FILL,
     LINE,
     MESSAGE,
+    TEXT,
+    TITLE,
     PLAY_SOUND,
     PLAYER_COMMAND,
     SERVER_COMMAND,
@@ -77,6 +79,32 @@ private fun parseCommand(line: String): MacroCommand? {
     }
 
     val parts = line.trim().split(" ", limit = 3).toMutableList()
+    /*
+        // "" で囲まれてる文字列はスペースを含んでも1つの引数として扱う
+        // "a b" c d という入力は、["a b", "c", "d"] というリストになる
+    val parts = mutableListOf<String>()
+    var currentPart = ""
+    var isQuoted = false
+    // 最初のひとつめを出力
+    //parts.add(line.substringBefore(" "))
+    for (c in line) {
+        if (c == '"') {
+            isQuoted = !isQuoted
+        } else if (c == ' ' && !isQuoted) {
+            if (currentPart.isNotEmpty()) {
+                parts.add(currentPart)
+                currentPart = ""
+            }
+        } else {
+            currentPart += c
+        }
+
+    }
+    // 最後の一つが空でなければ追加
+    if (currentPart.isNotEmpty()) {
+        parts.add(currentPart)
+    }
+    */
 
     // $a = $b + $c のような式を検出
     if (parts.size == 3 && parts[1] == "=") {
@@ -91,6 +119,14 @@ private fun parseCommand(line: String): MacroCommand? {
         // RANDOMの場合は特別に引数をまとめて取得
         val args = line.substringAfter("RANDOM").trim()
         return MacroCommand(RANDOM, listOf(args))
+    }
+    if(type == TEXT){
+        // 文字列が""で囲まれている場合は、それを1つの引数として扱う
+        var text = line.trim()
+        // 最初の４文字のtextを削除
+        text = text.substring(5)
+        var textList = text.split(" ")
+        return MacroCommand(TEXT, textList)
     }
 
     // IF文やELSE文の場合、括弧を省略して式を評価する
@@ -417,15 +453,6 @@ class MacroEngine {
 
     // 変数を評価する
     private fun evaluateVariable(variableName: String): Any {
-        // 数字が.0や.00の場合は整数として評価する
-        /*
-        val numberRegex = Regex("\\.0+$")
-        val variableValue = symbolTable[variableName]
-        if (variableValue is Double && numberRegex.containsMatchIn(variableValue.toString())) {
-            return variableValue.toInt()
-        }
-*/
-
         return symbolTable[variableName] ?: throw IllegalArgumentException("Variable $variableName not found.")
     }
 

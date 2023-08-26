@@ -7,6 +7,20 @@ import red.man10.extention.fill
 
 class ClearCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
-        display.update(display.currentImage?.fill("#000000"))
+
+        var sendFlag = true
+        if(macroCommand.params.size >= 1){
+            var filters = macroCommand.params[0].split(",")
+            for(filter in filters){
+                if(filter == "noupdate"){
+                    sendFlag = false
+                }
+            }
+
+        }
+        val rect = display.currentImage?.fill("#000000")
+        if(sendFlag){
+            display.update(rect)
+        }
     }
 }

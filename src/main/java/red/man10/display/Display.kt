@@ -568,7 +568,18 @@ class Display() : MapPacketSender {
             "scanline_height" -> this.scanlineHeight = value.toInt()
             "sharpen" -> this.sharpen = value.toBoolean()
             "sharpen_level" -> this.sharpenLevel = value.toDouble()
-            "distance" -> this.distance = value.toDouble()
+            "distance" -> {
+                this.distance = value.toDouble()
+                sender.sendMessage("§aSet distance to $distance")
+            }
+            "sound_distance" -> {
+                this.sound_distance = value.toDouble()
+                sender.sendMessage("§aSet sound_distance to $sound_distance")
+            }
+            "message_distance" -> {
+                this.message_distance = value.toDouble()
+                sender.sendMessage("§aSet message_distance to $message_distance")
+            }
             "parallel_dithering" -> {
                 this.parallelDithering = value.toBoolean()
                 this.dithering = false
@@ -1043,6 +1054,7 @@ class Display() : MapPacketSender {
                     CLEAR -> ClearCommand(macroName, macroCommand).run(this, players, sender)
                     FILL -> FillCommand(macroName, macroCommand).run(this, players, sender)
                     PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, getSoundPlayers(), sender)
+                    TEXT -> TextCommand(macroName, macroCommand).run(this, players, sender)
                     else -> {
                         error("unknown macro type : ${macroCommand.type}", sender)
                     }

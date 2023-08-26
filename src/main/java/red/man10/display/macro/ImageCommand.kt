@@ -95,6 +95,4 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
 
         display.createPacketCache(image, fileName,sendFlag)
     }
-
-
 }

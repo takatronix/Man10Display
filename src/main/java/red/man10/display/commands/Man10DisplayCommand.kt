@@ -17,22 +17,6 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         pluginPrefix = Main.prefix
     }
 
-    private fun getTargetBlockCoordinatesArgument(commandSender: CommandSender, range: Int): ArrayList<String> {
-        val player = commandSender as Player
-        val block = player.getTargetBlock(range) ?: return arrayListOf("None", "None", "None")
-        var x = block.location.blockX
-        var y = block.location.blockY
-        var z = block.location.blockZ
-        val orientation = player.getTargetBlockFace(range) ?: return arrayListOf("None", "None", "None")
-        val modX = orientation.modX
-        val modY = orientation.modY
-        val modZ = orientation.modZ
-        x += modX
-        y += modY
-        z += modZ
-        return arrayListOf(x.toString(), y.toString(), z.toString())
-    }
-
     private fun registerEvents() {
         setNoPermissionEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lYou don't have permission") }
         setNoCommandFoundEvent { e: CommandData -> e.sender.sendMessage(Main.prefix + "§c§lThat command does not exist") }

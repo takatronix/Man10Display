@@ -129,7 +129,119 @@ fun BufferedImage.drawTextCenter(text: String, size: Float = 13.0f, color: Color
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+fun BufferedImage.drawTextLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = 0
+    val y = (this.height - height) / 2
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
+fun BufferedImage.drawTextRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = this.width - width
+    val y = (this.height - height) / 2
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
+fun BufferedImage.drawTextTopLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = 0
+    val y = metrics.height
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
+fun BufferedImage.drawTextTopRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle{
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = this.width - width
+    val y = metrics.height
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
+fun BufferedImage.drawTextTop(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = (this.width - width) / 2
+    val y = height
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
+fun BufferedImage.drawTextBottom(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = (this.width - width) / 2
+    val y = this.height - height
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
+fun BufferedImage.drawTextBottomRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle{
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = this.width - width
+    val y = this.height - height
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
 
+fun BufferedImage.drawTextBottomLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle{
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    // 描画サイズを求める
+    val metrics = graphics.fontMetrics
+    val width = metrics.stringWidth(text)
+    val height = metrics.height
+    val x = 0
+    val y = this.height - height
+    graphics.drawString(text, x, y)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
 fun BufferedImage.drawImageCenter(image: BufferedImage): Rectangle {
     // 描画先の画像サイズ
     val targetWidth = this.width
