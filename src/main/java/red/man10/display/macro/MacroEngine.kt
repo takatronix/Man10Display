@@ -8,6 +8,7 @@ import red.man10.display.Main
 import red.man10.display.info
 import red.man10.display.macro.CommandType.*
 import red.man10.extention.removeDoubleQuotes
+import red.man10.extention.splitQuotedStrings
 import java.io.File
 import java.util.*
 import kotlin.math.roundToLong
@@ -79,32 +80,6 @@ private fun parseCommand(line: String): MacroCommand? {
     }
 
     val parts = line.trim().split(" ", limit = 3).toMutableList()
-    /*
-        // "" で囲まれてる文字列はスペースを含んでも1つの引数として扱う
-        // "a b" c d という入力は、["a b", "c", "d"] というリストになる
-    val parts = mutableListOf<String>()
-    var currentPart = ""
-    var isQuoted = false
-    // 最初のひとつめを出力
-    //parts.add(line.substringBefore(" "))
-    for (c in line) {
-        if (c == '"') {
-            isQuoted = !isQuoted
-        } else if (c == ' ' && !isQuoted) {
-            if (currentPart.isNotEmpty()) {
-                parts.add(currentPart)
-                currentPart = ""
-            }
-        } else {
-            currentPart += c
-        }
-
-    }
-    // 最後の一つが空でなければ追加
-    if (currentPart.isNotEmpty()) {
-        parts.add(currentPart)
-    }
-    */
 
     // $a = $b + $c のような式を検出
     if (parts.size == 3 && parts[1] == "=") {
@@ -125,8 +100,10 @@ private fun parseCommand(line: String): MacroCommand? {
         var text = line.trim()
         // 最初の４文字のtextを削除
         text = text.substring(5)
-        var textList = text.split(" ")
-        return MacroCommand(TEXT, textList)
+        // 最後の１文字のtextを削除
+        //text = text.substring(0,text.length-1)
+        var s = text.splitQuotedStrings()
+        return MacroCommand(TEXT, s)
     }
 
     // IF文やELSE文の場合、括弧を省略して式を評価する

@@ -19,6 +19,10 @@ fun String.formatNumber(value: Long): String {
     }
     return "$formattedValue${suffixes[suffixIndex]}"
 }
+fun String.splitQuotedStrings(): List<String> {
+    val regex = "\"([^\"]*)\"".toRegex()
+    return regex.findAll(this).map { it.groups[1]!!.value }.toList()
+}
 fun String.removeDoubleQuotes(): String {
     return if (this.startsWith("\"") && this.endsWith("\"")) {
         this.substring(1, this.length - 1)
