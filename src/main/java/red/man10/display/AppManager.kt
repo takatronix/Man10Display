@@ -3,7 +3,6 @@ package red.man10.display
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.entity.GlowItemFrame
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -14,6 +13,7 @@ import org.bukkit.event.inventory.*
 import org.bukkit.event.player.*
 import org.bukkit.event.server.MapInitializeEvent
 import org.bukkit.inventory.ItemStack
+import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
@@ -197,18 +197,21 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
         onRightButtonEvent(player)
     }
 
-    @EventHandler
-    fun onInventoryOpen(e: InventoryOpenEvent) {
-        info("onInventoryOpen",e.player)
-    }
 
-    fun StartMapItemTask(player: Player, item: ItemStack) {
+    fun startMapItemTask(player: Player, item: ItemStack) {
 
         // 地図以外は無視
         if (item.type != Material.FILLED_MAP) {
             return
         }
-        var mapId = item.getMapId() ?: return
+        val mapMeta = item.itemMeta as MapMeta
+
+        var mapId = item.getMapId()
+        if(mapId == null){
+            info("map id is null ${player.name}")
+            mapId = appMapId
+            item.setMapId(mapId)
+        }
 
         val data = playerData[player.uniqueId] ?: return
         data.stop()
@@ -242,7 +245,7 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
     @EventHandler
     fun onItemHeld(e: PlayerItemHeldEvent) {
         val item = e.player.inventory.getItem(e.newSlot) ?: return
-        StartMapItemTask(e.player, item)
+        startMapItemTask(e.player, item)
     }
     @EventHandler
     fun onEntityPickupItem(event: EntityPickupItemEvent) {
@@ -252,7 +255,7 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
             val itemEntity = event.item // 拾われたアイテムエンティティ
             // アイテムエンティティからItemStackを取得
             val itemStack: ItemStack = itemEntity.itemStack
-            StartMapItemTask(player, itemStack)
+            startMapItemTask(player, itemStack)
 
         }
     }
