@@ -7,6 +7,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.map.MapPalette
+import org.bukkit.map.MapView
 import red.man10.display.MapPacketSender.Companion.createMapPacket
 import red.man10.display.filter.*
 import red.man10.display.macro.*
@@ -36,7 +37,7 @@ const val DEFAULT_FPS = 10.0
 //
 const val DEFAULT_PROTECTION = true
 
-class Display() : MapPacketSender {
+open class Display() : MapPacketSender {
     var name: String = ""
     var mapIds = mutableListOf<Int>()
     var width: Int = 1
@@ -168,7 +169,7 @@ class Display() : MapPacketSender {
         init()
     }
 
-    private fun init() {
+    fun init() {
         startVideoServer(port)
 
         // 画像バッファイメージ
@@ -188,7 +189,7 @@ class Display() : MapPacketSender {
     }
 
 
-    fun deinit() {
+    open fun deinit() {
         this.refreshFlag = false
         this.packetCache.clear()
         stopVideoServer()
@@ -227,6 +228,18 @@ class Display() : MapPacketSender {
                     "test_mode", "auto_run", "variable", "port"
                 )
             }
+
+        fun createMapId(player:Player? = null):Int{
+            var world = Bukkit.getWorlds()[0]
+            if(player!=null){
+                world = player.world
+            }
+            val mapView = Bukkit.getServer().createMap(world)
+            mapView.scale = MapView.Scale.CLOSEST
+            mapView.isUnlimitedTracking = true
+            info("create map id ${mapView.id} world $world",player)
+            return mapView.id
+        }
     }
 
     // region config
@@ -767,7 +780,10 @@ class Display() : MapPacketSender {
         )
     }
 
-    fun getTargetPlayers(): List<Player> {
+    fun isApp(): Boolean {
+        return this is App
+    }
+    open fun getTargetPlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
         for (player in Bukkit.getOnlinePlayers()) {
@@ -784,7 +800,7 @@ class Display() : MapPacketSender {
         }
         return players
     }
-    fun getMessagePlayers(): List<Player> {
+    open fun getMessagePlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
         for (player in Bukkit.getOnlinePlayers()) {
@@ -801,7 +817,7 @@ class Display() : MapPacketSender {
         }
         return players
     }
-    fun getSoundPlayers(): List<Player> {
+    open fun getSoundPlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
         for (player in Bukkit.getOnlinePlayers()) {
@@ -926,7 +942,7 @@ class Display() : MapPacketSender {
     var updateCacheIndexList: MutableList<Int> = mutableListOf()
 
     // imageからパケット情報を作成する
-    fun createPacketCache(image: BufferedImage, key: String = "current",send:Boolean = false) {
+    open fun createPacketCache(image: BufferedImage, key: String = "current",send:Boolean = false) {
         val packets = mutableListOf<PacketContainer>()
         var index = 0
         for (y in 0 until image.height step MC_MAP_SIZE_Y) {
@@ -1040,6 +1056,9 @@ class Display() : MapPacketSender {
 
     // endregion
     // region: Macro
+    fun stop(){
+        macroEngine.stop()
+    }
     fun runMacro(macroName: String, sender: CommandSender? = null): Boolean {
         info("runMacro : $macroName", sender)
         macroEngine.runMacroAsync(this, macroName) { macroCommand, index ->

@@ -17,6 +17,7 @@ class Main : JavaPlugin(), Listener {
         val prefix = "[Man10Display] "
         lateinit var plugin: JavaPlugin
         lateinit var displayManager: DisplayManager
+        lateinit var appManager: AppManager
         lateinit var imageManager: ImageManager
         lateinit var protocolManager: ProtocolManager
         lateinit var commandRouter: Man10DisplayCommand
@@ -25,7 +26,6 @@ class Main : JavaPlugin(), Listener {
 
     override fun onEnable() {
         plugin = this
-        saveDefaultConfig()
         settings = ConfigData()
         settings.load(this, config)
         imageManager = ImageManager(settings.imagePath)
@@ -38,12 +38,21 @@ class Main : JavaPlugin(), Listener {
         getCommand("md")!!.setExecutor(commandRouter)
         getCommand("md")!!.tabCompleter = commandRouter
 
-        displayManager.load()
         //額縁保護用のイベント
         server.pluginManager.registerEvents(ItemFrameListener(), this)
         if (server.pluginManager.getPlugin("ItemFrameProtector") != null) {
             server.pluginManager.registerEvents(IFPListener(), this)
         }
+
+        if(settings.appMapId == 0){
+            // マップIDが設定されていない場合は、新規にマップを作成する
+            settings.appMapId = Display.createMapId()
+            settings.save(config)
+            saveConfig()
+        }
+        appManager = AppManager(this, settings.appMapId)
+
+
 
         info("Man10 Display Plugin Enabled")
     }

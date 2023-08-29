@@ -156,6 +156,7 @@ class MacroEngine {
         private fun getMacroList(): List<String> {
             val folder = File(Main.plugin.dataFolder, File.separator + DEFAULT_MACRO_FOLDER)
             val files = folder.listFiles()
+
             val list = mutableListOf<String>()
             for (f in files!!) {
                 if (f.isFile) {
@@ -170,6 +171,7 @@ class MacroEngine {
                     }
                     list.add(filename)
                 }
+
             }
             return list
         }

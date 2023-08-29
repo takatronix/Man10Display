@@ -44,11 +44,16 @@ class CreateTicketCommand(private var plugin: JavaPlugin) : CommandExecutor {
             itemInHand.itemMeta = meta
 
             when(type){
+                "count" -> itemInHand.setPersistentData(Main.plugin, "man10display.ticket.count", PersistentDataType.LONG, data.toLong())
                 "start" -> itemInHand.setPersistentData(Main.plugin, "man10display.ticket.start", PersistentDataType.LONG, data.toLong())
                 "end" -> itemInHand.setPersistentData(Main.plugin, "man10display.ticket.end", PersistentDataType.LONG, data.toLong())
                 "player" -> itemInHand.setPersistentData(Main.plugin, "man10display.ticket.player", PersistentDataType.STRING, data)
                 "command" -> itemInHand.setPersistentData(Main.plugin, "man10display.ticket.command", PersistentDataType.STRING, data)
                 "data" -> itemInHand.setPersistentData(Main.plugin, "man10display.ticket.data", PersistentDataType.STRING, data)
+
+                "key" -> itemInHand.setPersistentData(Main.plugin, "man10display.app.key", PersistentDataType.STRING, data)
+                "macro" -> itemInHand.setPersistentData(Main.plugin, "man10display.app.macro", PersistentDataType.STRING, data)
+                "image" -> itemInHand.setPersistentData(Main.plugin, "man10display.app.image", PersistentDataType.STRING, data)
             }
 
         } catch (e: Exception) {

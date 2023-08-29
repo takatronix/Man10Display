@@ -220,12 +220,29 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("create_ticket")
-                .argument("[type]"){arrayListOf("start","end","player","command","data")}
+                .argument("[type]"){arrayListOf("start","end","player","command","data","macro","key","image")}
                 .argument("[value]")
                 .permission("red.man10.display.create_ticket")
                 .explanation("Set item expiration dates, data, commands, etc.")
                 .executor(CreateTicketCommand(Main.plugin))
         )
+        addCommand(
+            CommandObject()
+                .prefix("create_photo")
+                .argument("[image_url]")
+                .permission("red.man10.display.create_photo")
+                .explanation("Create a photo item")
+                .executor(CreatePhotoCommand(Main.plugin))
+        )
+        addCommand(
+            CommandObject()
+                .prefix("create_app")
+                .argument("[macro_name]") { _ -> MacroEngine.macroList }
+                .permission("red.man10.display.create_app")
+                .explanation("Create a growing display where you are looking at")
+                .executor(CreateAppCommand(Main.plugin))
+        )
+
         addCommand(
             CommandObject()
                 .prefix("test")

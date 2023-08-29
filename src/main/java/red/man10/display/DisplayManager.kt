@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 var PLAYER_DATA_THREAD_INTERVAL = 10L
 var RIGHT_BUTTON_UP_DETECTION_INTERVAL = 260L
 
-class PlayerData {
+class DisplayPlayerData {
     var lastLocation: Location? = null
     var rightButtonPressed = false
     var isSneaking = false
@@ -59,13 +59,14 @@ class PlayerData {
 
 class DisplayManager(main: JavaPlugin) : Listener {
     val displays = mutableListOf<Display>()
-    private val playerData = ConcurrentHashMap<UUID, PlayerData>()
+    private val playerData = ConcurrentHashMap<UUID, DisplayPlayerData>()
     private var playerDataThread: Thread? = null
     private var isCopyDisabled = true
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
 
+        this.load(null)
 
         playerDataThread = Thread {
             while (!Thread.currentThread().isInterrupted) {
@@ -406,7 +407,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         info("Player Join ${e.player.name}")
         val player = e.player
         //プレイヤーデータを初期化
-        playerData[player.uniqueId] = PlayerData()
+        playerData[player.uniqueId] = DisplayPlayerData()
 
 
         // 3秒後にディスプレイを表示
@@ -628,11 +629,11 @@ class DisplayManager(main: JavaPlugin) : Listener {
     // endregion
     private fun canInteract(player: Player): Boolean {
 
-        // 手に持っているアイテムのPersisnteDataを取得
+        // 手に持っているアイテムのPersistentDataを取得
         val item = player.inventory.itemInMainHand
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return false
-
+        meta.persistentDataContainer
         // ペンを持っているか
         // PersistentDataの中身を取得
         val type = pd.get(Main.plugin, "man10display.type", PersistentDataType.STRING)
@@ -652,7 +653,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
         for (player in Bukkit.getOnlinePlayers()) {
             val uuid = player.uniqueId
             if (!playerData.containsKey(uuid)) {
-                playerData[uuid] = PlayerData()
+                playerData[uuid] = DisplayPlayerData()
             }
 
             val data = playerData[uuid]!!
