@@ -15,7 +15,7 @@ import java.awt.image.BufferedImage
 
 class App(val mapId: Int, val player: Player,val key: String) :  Display() {
 
-    var globalMapId: Int = -1
+  //  var globalMapId: Int = -1
     var localMapId: Int = -1
 
     init{

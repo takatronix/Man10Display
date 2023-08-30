@@ -29,7 +29,7 @@ class CreatePhotoCommand(private var plugin: JavaPlugin) : CommandExecutor {
 
             val item = ItemStack(Material.FILLED_MAP)
             val mapMeta = item.itemMeta as MapMeta
-            mapMeta.mapView = Bukkit.getMap(Main.appManager.appMapId)
+            mapMeta.mapView = Bukkit.getMap(Main.appManager.getMapId(sender)!!)
             item.itemMeta = mapMeta
 
             var imageName = filePath.split("/").last()

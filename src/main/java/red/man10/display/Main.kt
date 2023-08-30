@@ -44,13 +44,8 @@ class Main : JavaPlugin(), Listener {
             server.pluginManager.registerEvents(IFPListener(), this)
         }
 
-        if(settings.appMapId == 0){
-            // マップIDが設定されていない場合は、新規にマップを作成する
-            settings.appMapId = Display.createMapId()
-            settings.save(config)
-            saveConfig()
-        }
-        appManager = AppManager(this, settings.appMapId)
+
+        appManager = AppManager(this)
 
 
 

@@ -65,7 +65,7 @@ fun getCommandType(key: String): CommandType {
 
 // 行を解析してMacroCommandに変換
 private fun parseCommand(line: String): MacroCommand? {
-    info("Parsing line: $line")
+    //nfo("Parsing line: $line")
     val trimmedLine = line.trim()
     if (trimmedLine.isEmpty() || trimmedLine.startsWith("#")) {
         // 空行またはコメント行の場合はnullを返す
@@ -191,8 +191,12 @@ class MacroEngine {
     private var currentJob: Thread? = null  // Current job
     fun stop() {
         info("Stopping macro execution...")
-        shouldStop = true
-        currentJob?.interrupt()
+        try{
+            shouldStop = true
+            currentJob?.interrupt()
+        }catch (e:Exception){
+         //   info(e.message)
+        }
     }
 
     fun isRunning(): Boolean {

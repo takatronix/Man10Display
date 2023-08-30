@@ -3,6 +3,8 @@ package red.man10.display
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.command.CommandSender
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -21,10 +23,15 @@ import red.man10.extention.get
 import red.man10.extention.getMapId
 import red.man10.extention.setMapId
 import java.awt.Color
+import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
+const val APP_PLAYER_MAP_MAX = 256
+
+
 class AppPlayerData {
+    var mapId: Int? = null
     var app : App? = null
 
     var appThread: Thread? = null
@@ -57,15 +64,121 @@ class AppPlayerData {
         app = null
     }
 }
-class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
+class AppManager(var plugin: JavaPlugin) : Listener {
 
     private val playerData = ConcurrentHashMap<UUID, AppPlayerData>()
     private var playerDataThread: Thread? = null
 
+    var mapIds = mutableListOf<Int>()
 
+    // 利用中のMapIdのリスト
+    private fun getUsingMapIds() : List<Int> {
+        val list = mutableListOf<Int>()
+        playerData.forEach { (uuid, data) ->
+            if(data.mapId != null)
+                list.add(data.mapId!!)
+        }
+        return list
+    }
+    fun getMapId(player: Player) : Int? {
+        return playerData[player.uniqueId]?.mapId
+    }
+    fun getFreeMapId() : Int? {
+        val usingIds = getUsingMapIds()
+        // mapIdsから利用中のMapIdを除外したリストを作成
+        val freeIds = mapIds.filter { !usingIds.contains(it) }
+        if (freeIds.isEmpty()) {
+            return null
+        }
+        return freeIds[0]
+    }
+    fun save(p: CommandSender? = null): Boolean {
+        val file = File(Main.plugin.dataFolder, File.separator + "apps.yml")
+        val config = YamlConfiguration.loadConfiguration(file)
+        try {
+            config.set("mapIds", mapIds)
+            config.save(file)
+        } catch (e: Exception) {
+            error(e.message!!, p)
+            return false
+        }
+        return true
+    }
+    fun isAppMapId(mapId: Int) : Boolean {
+        return mapIds.contains(mapId)
+    }
+    // inventoryの中の地図のIDをすべて書き換える
+    private fun updateInventoryMap(player: Player, mapId:Int) {
+        info("updateInventoryMap $mapId",player)
+        val inventory = player.inventory
+        for (i in 0 until inventory.size) {
+            val item = inventory.getItem(i) ?: continue
+            updateMapId(item,mapId)
+        }
+    }
+    private fun updateMapId(item: ItemStack, mapId:Int) : Boolean {
+        if (item.type != Material.FILLED_MAP) {
+            return false
+        }
+        val meta = item.itemMeta
+        val pd = meta?.persistentDataContainer ?: return false
+        // key指定がないものは無視
+        val key = getAppKey(item) ?: return false
+        info("updateMapId $mapId ${item.displayName()}")
+        item.setMapId(mapId)
+        return true
+    }
+    fun getAppKey(item: ItemStack): String? {
+        val meta = item.itemMeta
+        val pd = meta?.persistentDataContainer ?: return null
+        // key指定がないものは無視
+        return pd.get<String?>(Main.plugin, "man10display.app.key", PersistentDataType.STRING) ?: return null
+    }
+    fun getAppImage(item: ItemStack): String? {
+        val meta = item.itemMeta
+        val pd = meta?.persistentDataContainer ?: return null
+        // key指定がないものは無視
+        return pd.get<String?>(Main.plugin, "man10display.app.image", PersistentDataType.STRING) ?: return null
+    }
+    fun getAppMacro(item: ItemStack): String? {
+        val meta = item.itemMeta
+        val pd = meta?.persistentDataContainer ?: return null
+        // key指定がないものは無視
+        return pd.get<String?>(Main.plugin, "man10display.app.macro", PersistentDataType.STRING) ?: return null
+    }
+
+    fun load(p: CommandSender? = null): Boolean {
+        val file = File(Main.plugin.dataFolder, File.separator + "apps.yml")
+        val config = YamlConfiguration.loadConfiguration(file)
+        deinit()
+        try {
+            mapIds = config.getIntegerList("mapIds").toMutableList()
+        } catch (e: Exception) {
+            error(e.message!!, p)
+            return false
+        }
+
+        return true
+    }
+
+    fun initMapIds(){
+        load(null)
+        if(mapIds.isNotEmpty()){
+            return
+        }
+
+        val mapIds = mutableListOf<Int>()
+        for (i in 0..APP_PLAYER_MAP_MAX) {
+            mapIds.add(Display.createMapId())
+        }
+        this.mapIds = mapIds
+        save(null)
+    }
 
     init {
         Bukkit.getServer().pluginManager.registerEvents(this, Main.plugin)
+
+        initMapIds()
 
 
         playerDataThread = Thread {
@@ -74,7 +187,7 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
                     playerDataTask()
                     Thread.sleep(PLAYER_DATA_THREAD_INTERVAL)
                 } catch (e: InterruptedException) {
-                    error(e.localizedMessage)
+                    //error(e.localizedMessage)
                     //Thread.currentThread().interrupt()
                 }
             }
@@ -113,8 +226,15 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
     fun onPlayerJoin(e: PlayerJoinEvent) {
       //  info("Player Join ${e.player.name}")
         val player = e.player
-        //プレイヤーデータを初期化
         playerData[player.uniqueId] = AppPlayerData()
+        var mapId = getFreeMapId()
+        playerData[player.uniqueId]?.mapId = mapId
+        info("${player.name} got mapId: $mapId ")
+
+        // 3秒後にプレイヤーのインベントリの地図のIDを書き換える
+        Bukkit.getScheduler().runTaskLater(Main.plugin, Runnable {
+            updateInventoryMap(player,mapId!!)
+        }, 20L * 3)
     }
 
     @EventHandler
@@ -150,7 +270,7 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
     fun onMapInitialize(event: MapInitializeEvent) {
         val mapView: MapView = event.map
 
-        if(mapView.id != appMapId){
+        if(!mapIds.contains(mapView.id)){
             return
         }
         info("[App]onMapInitialize ${mapView.id}")
@@ -188,7 +308,7 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
                 return
             }
             val mapId = item.getMapId() ?: return
-            if (mapId == appMapId) {
+            if (isAppMapId(mapId)) {
                 e.player.sendMessage("§2§lThis item cannot be placed in the item frame.")
                 e.isCancelled = true
             }
@@ -199,41 +319,29 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
 
 
     fun startMapItemTask(player: Player, item: ItemStack) {
+        val data = playerData[player.uniqueId] ?: return
+        data.stop()
 
         // 地図以外は無視
         if (item.type != Material.FILLED_MAP) {
             return
         }
-        val mapMeta = item.itemMeta as MapMeta
-
-        var mapId = item.getMapId()
-        if(mapId == null){
-            info("map id is null ${player.name}")
-            mapId = appMapId
-            item.setMapId(mapId)
+        val key = getAppKey(item) ?: return
+        var mapId = data.mapId
+        if (mapId == null) {
+            error("cant get mapId ${player.name}")
+            data.mapId = getFreeMapId()
+            mapId = data.mapId
         }
-
-        val data = playerData[player.uniqueId] ?: return
-        data.stop()
-
-        val meta = item.itemMeta
-        val pd = meta?.persistentDataContainer ?: return
-        val key = pd.get(Main.plugin, "man10display.app.key", PersistentDataType.STRING) ?: return
-
-        if(appMapId != mapId){
-            item.setMapId(appMapId)
-            info("map id changed $mapId to $appMapId by ${player.name}")
-            mapId = appMapId
-        }
-
-        val image = pd.get(Main.plugin, "man10display.app.image", PersistentDataType.STRING)
+        item.setMapId(mapId!!)
+        val image = getAppImage(item)
         if(image != null){
             info("image $image")
             data.app = App(mapId, player, "image")
             data.app!!.startImageTask(image,player)
         }
 
-        val macro = pd.get(Main.plugin, "man10display.app.macro", PersistentDataType.STRING)
+        val macro = getAppMacro(item)
         if (macro != null) {
             info("macro $macro")
             data.app = App(mapId, player, "macro")
@@ -255,7 +363,9 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
             val itemEntity = event.item // 拾われたアイテムエンティティ
             // アイテムエンティティからItemStackを取得
             val itemStack: ItemStack = itemEntity.itemStack
-            startMapItemTask(player, itemStack)
+            // mapId更新
+            var mapId = getMapId(player)
+            updateMapId(itemStack,mapId!!)
 
         }
     }
@@ -334,7 +444,6 @@ class AppManager(var plugin: JavaPlugin, var appMapId: Int) : Listener {
         onButtonClick(player)
 
     }
-
     // endregion
 }
 
