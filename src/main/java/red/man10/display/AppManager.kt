@@ -318,9 +318,9 @@ class AppManager(var plugin: JavaPlugin) : Listener {
 
 
     fun startMapItemTask(player: Player, item: ItemStack) {
+        info("startMapItemTask")
         val data = playerData[player.uniqueId] ?: return
         data.stop()
-
         // 地図以外は無視
         if (item.type != Material.FILLED_MAP) {
             return
@@ -365,10 +365,12 @@ class AppManager(var plugin: JavaPlugin) : Listener {
             // mapId更新
             var mapId = getMapId(player)
             updateMapId(itemStack,mapId!!)
-            if(player.inventory.itemInMainHand == itemStack){
-                info("onEntityPickupItem start")
-              //  startMapItemTask(player, itemStack)
-            }
+            info("onEntityPickupItem ${mapId}")
+            // 1秒後に起動
+            Bukkit.getScheduler().runTaskLater(Main.plugin, Runnable {
+                var item = player.inventory.itemInMainHand
+                startMapItemTask(player,item)
+            }, 20L * 1)
            // startMapItemTask(player, player.inventory.itemInMainHand)
         }
     }
