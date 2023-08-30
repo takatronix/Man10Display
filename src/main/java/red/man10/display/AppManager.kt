@@ -233,6 +233,9 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         // 3秒後にプレイヤーのインベントリの地図のIDを書き換える
         Bukkit.getScheduler().runTaskLater(Main.plugin, Runnable {
             updateInventoryMap(player,mapId!!)
+
+            var item = player.inventory.itemInMainHand
+            startMapItemTask(player,item)
         }, 20L * 3)
     }
 
