@@ -109,7 +109,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
     }
     // inventoryの中の地図のIDをすべて書き換える
     private fun updateInventoryMap(player: Player, mapId:Int) {
-        info("updateInventoryMap $mapId",player)
+        info("updateInventoryMap $mapId")
         val inventory = player.inventory
         for (i in 0 until inventory.size) {
             val item = inventory.getItem(i) ?: continue
@@ -124,7 +124,6 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         val pd = meta?.persistentDataContainer ?: return false
         // key指定がないものは無視
         val key = getAppKey(item) ?: return false
-        info("updateMapId $mapId ${item.displayName()}")
         item.setMapId(mapId)
         return true
     }
@@ -366,7 +365,11 @@ class AppManager(var plugin: JavaPlugin) : Listener {
             // mapId更新
             var mapId = getMapId(player)
             updateMapId(itemStack,mapId!!)
-
+            if(player.inventory.itemInMainHand == itemStack){
+                info("onEntityPickupItem start")
+              //  startMapItemTask(player, itemStack)
+            }
+           // startMapItemTask(player, player.inventory.itemInMainHand)
         }
     }
     @EventHandler
