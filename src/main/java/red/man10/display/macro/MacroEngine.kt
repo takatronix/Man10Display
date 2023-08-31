@@ -47,6 +47,7 @@ enum class CommandType {
     MESSAGE,
     TEXT,
     TITLE,
+    ICON,
     PLAY_SOUND,
     PLAYER_COMMAND,
     SERVER_COMMAND,

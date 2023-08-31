@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import red.man10.display.ImageLoader
 import red.man10.display.Main
 
-class ReloadConfigCommand(private var plugin: JavaPlugin) : CommandExecutor {
+class ReloadCommand(private var plugin: JavaPlugin) : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
         plugin.reloadConfig()
         ImageLoader.clearCache()

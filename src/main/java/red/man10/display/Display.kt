@@ -1067,6 +1067,7 @@ open class Display() : MapPacketSender {
             try {
                 when (macroCommand.type) {
                     IMAGE -> ImageCommand(macroName, macroCommand).run(this, players, sender)
+                    ICON -> IconCommand(macroName, macroCommand).run(this, players, sender)
                     LINE -> LineCommand(macroName, macroCommand).run(this, players, sender)
                     COLOR -> ColorCommand(macroName, macroCommand).run(this, players, sender)
                     REFRESH -> RefreshCommand(macroName, macroCommand).run(this, players, sender)

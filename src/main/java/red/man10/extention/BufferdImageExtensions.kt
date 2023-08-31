@@ -356,8 +356,15 @@ fun BufferedImage.drawImageNoMargin(image: BufferedImage,x:Int = 0,y:Int = 0): R
     return Rectangle(0, 0, newWidth, newHeight)
 }
 
-fun BufferedImage.drawImageStretch(image: BufferedImage, x:Int = 0, y:Int = 0): Rectangle {
+fun BufferedImage.drawImageStretch(image: BufferedImage, x: Int = 0, y: Int = 0, w: Int = 0, h: Int = 0): Rectangle {
     val g = this.createGraphics()
+
+    if (w != 0 && h != 0) {
+        g.drawImage(image, x, y, w, h, null)
+        g.dispose()
+        return Rectangle(x, y, w, h)
+    }
+
     g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
     g.drawImage(image, x, y, this.width, this.height, null)
     g.dispose()

@@ -1,7 +1,5 @@
 package red.man10.display.commands
 
-import org.bukkit.command.CommandSender
-import org.bukkit.entity.Player
 import red.man10.commandrouter.CommandData
 import red.man10.commandrouter.CommandObject
 import red.man10.commandrouter.CommandRouter
@@ -30,7 +28,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                 .prefix("reload")
                 .permission("red.man10.display.reload")
                 .explanation("Reload the config file")
-                .executor(ReloadConfigCommand(Main.plugin))
+                .executor(ReloadCommand(Main.plugin))
         )
 
         // create command

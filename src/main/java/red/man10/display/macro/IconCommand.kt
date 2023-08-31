@@ -9,10 +9,11 @@ import red.man10.display.info
 import red.man10.extention.*
 import java.awt.Color
 
-class ImageCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
+class IconCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
-        val fileName = macroCommand.params[0].replace("\"", "")
 
+        var name = macroCommand.params[0]
+        var fileName = name.replace("\"", "")
         var x = 0.0
         var y = 0.0
         var h = 0.0
@@ -26,29 +27,29 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
         if (macroCommand.params.size >= 2) {
             val filterParam = macroCommand.params[1].replace("\"", "")
             filterParams = filterParam.split(",").toMutableList()
-            for (param in filterParams){
+            for (param in filterParams) {
                 info("filter param $param")
-                if(param == "nocache"){
+                if (param == "nocache") {
                     useCache = false
                 }
-                if(param == "noupdate"){
+                if (param == "noupdate") {
                     sendFlag = false
                 }
-                if(param == "stretch"){
+                if (param == "stretch") {
                     stretch = true
                 }
-                if(param == "transparent"){
+                if (param == "transparent") {
                     transparent = true
                 }
-                if(param == "noclear"){
+                if (param == "noclear") {
                     transparent = true
                 }
-                if(param.startsWith("x=")){
-                    x = param.replace("x=","").toDouble()
+                if (param.startsWith("x=")) {
+                    x = param.replace("x=", "").toDouble()
                     changePos = true
                 }
-                if(param.startsWith("y=")){
-                    y = param.replace("y=","").toDouble()
+                if (param.startsWith("y=")) {
+                    y = param.replace("y=", "").toDouble()
                     changePos = true
                 }
                 if (param.startsWith("h=")) {
@@ -68,7 +69,7 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
             return
         }
         var image = display.currentImage ?: return
-        if(!transparent){
+        if (!transparent) {
             image.clear()
         }
 
@@ -81,19 +82,17 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
         }
 
         if (stretch) {
-            if(changePos){
+            if (changePos) {
                 image.drawImageStretch(getImage, x.toInt(), y.toInt(), w.toInt(), h.toInt())
                 info("stretch x:$x y:$y w:$w h:$h")
-            }
-            else{
+            } else {
                 image.drawImageStretch(getImage)
             }
         } else {
-            if(changePos){
-                image.drawImage(getImage, x.toInt(), y.toInt(), w.toInt(), h.toInt())
-                info("draw x:$x y:$y w:$w h:$h")
-            }
-            else{
+            if (changePos) {
+                image.drawImage(getImage, x.toInt(), y.toInt())
+                info("draw x:$x y:$y")
+            } else {
                 image.drawImageCenter(getImage)
             }
         }
@@ -103,6 +102,6 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
             image = ParameterFilter(param).apply(image)
         }
 
-        display.createPacketCache(image, fileName,sendFlag)
+        display.createPacketCache(image, fileName, sendFlag)
     }
 }
