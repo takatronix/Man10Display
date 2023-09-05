@@ -10,7 +10,7 @@ class ClearCommand(private var macroName: String, private var macroCommand: Macr
 
         var sendFlag = true
         if (macroCommand.params.size >= 1) {
-            var filters = macroCommand.params[0].split(",")
+            val filters = macroCommand.params[0].split(",")
             for (filter in filters) {
                 if (filter == "noupdate") {
                     sendFlag = false

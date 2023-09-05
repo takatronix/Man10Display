@@ -11,7 +11,7 @@ class FillCommand(private var macroName: String, private var macroCommand: Macro
         val color = macroCommand.params[0]
         var sendFlag = true
         if (macroCommand.params.size >= 2) {
-            var filters = macroCommand.params[1].split(",")
+            val filters = macroCommand.params[1].split(",")
             for (filter in filters) {
                 if (filter == "noupdate") {
                     sendFlag = false
