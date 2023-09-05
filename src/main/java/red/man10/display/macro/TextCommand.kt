@@ -29,46 +29,46 @@ class TextCommand(private var macroName: String, private var macroCommand: Macro
         if (macroCommand.params.size >= 2) {
             val filterParam = macroCommand.params[1].replace("\"", "")
             filterParams = filterParam.split(",").toMutableList()
-            for (param in filterParams){
+            for (param in filterParams) {
                 info("filter param $param")
-                if(param == "nocache"){
+                if (param == "nocache") {
                     useCache = false
                 }
-                if(param == "noupdate"){
+                if (param == "noupdate") {
                     sendFlag = false
                 }
 
-                if(param.startsWith("x=")){
-                    x = param.replace("x=","").toDouble()
+                if (param.startsWith("x=")) {
+                    x = param.replace("x=", "").toDouble()
                     useXY = true
                 }
-                if(param.startsWith("y=")){
-                    y = param.replace("y=","").toDouble()
+                if (param.startsWith("y=")) {
+                    y = param.replace("y=", "").toDouble()
                     useXY = true
                 }
-                if(param.startsWith("pos=")){
-                    pos = param.replace("pos=","")
+                if (param.startsWith("pos=")) {
+                    pos = param.replace("pos=", "")
                 }
-                if(param.startsWith("color=")){
-                    textColor = Color.decode(param.replace("color=",""))
+                if (param.startsWith("color=")) {
+                    textColor = Color.decode(param.replace("color=", ""))
                 }
-                if(param.startsWith("size=")){
-                    fontSize = param.replace("size=","").toFloat()
+                if (param.startsWith("size=")) {
+                    fontSize = param.replace("size=", "").toFloat()
                 }
             }
         }
 
         var image = display.currentImage ?: return
-        if(useXY){
-           var rect = image.drawText(x.toInt(),y.toInt(),text,fontSize,textColor)
-            if(sendFlag){
+        if (useXY) {
+            var rect = image.drawText(x.toInt(), y.toInt(), text, fontSize, textColor)
+            if (sendFlag) {
                 display.update(rect)
             }
             return
         }
 
         var rect: Rectangle? = null
-        when(pos){
+        when (pos) {
             "center" -> rect = image.drawTextCenter(text, fontSize, textColor)
             "topCenter" -> rect = image.drawTextTop(text, fontSize, textColor)
             "top" -> rect = image.drawTextTop(text, fontSize, textColor)
@@ -80,7 +80,7 @@ class TextCommand(private var macroName: String, private var macroCommand: Macro
             "left" -> rect = image.drawTextLeft(text, fontSize, textColor)
             "right" -> rect = image.drawTextRight(text, fontSize, textColor)
         }
-        if(sendFlag){
+        if (sendFlag) {
             display.update(rect)
         }
     }

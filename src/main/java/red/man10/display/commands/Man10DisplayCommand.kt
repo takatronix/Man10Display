@@ -218,7 +218,18 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
         addCommand(
             CommandObject()
                 .prefix("create_ticket")
-                .argument("[type]"){arrayListOf("start","end","player","command","data","macro","key","image")}
+                .argument("[type]") {
+                    arrayListOf(
+                        "start",
+                        "end",
+                        "player",
+                        "command",
+                        "data",
+                        "macro",
+                        "key",
+                        "image"
+                    )
+                }
                 .argument("[value]")
                 .permission("red.man10.display.create_ticket")
                 .explanation("Set item expiration dates, data, commands, etc.")

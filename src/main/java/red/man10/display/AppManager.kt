@@ -31,7 +31,7 @@ const val APP_PLAYER_MAP_MAX = 256
 
 class AppPlayerData {
     var mapId: Int? = null
-    var app : App? = null
+    var app: App? = null
 
     var appThread: Thread? = null
 
@@ -63,6 +63,7 @@ class AppPlayerData {
         app = null
     }
 }
+
 class AppManager(var plugin: JavaPlugin) : Listener {
 
     private val playerData = ConcurrentHashMap<UUID, AppPlayerData>()
@@ -71,18 +72,20 @@ class AppManager(var plugin: JavaPlugin) : Listener {
     var mapIds = mutableListOf<Int>()
 
     // 利用中のMapIdのリスト
-    private fun getUsingMapIds() : List<Int> {
+    private fun getUsingMapIds(): List<Int> {
         val list = mutableListOf<Int>()
         playerData.forEach { (uuid, data) ->
-            if(data.mapId != null)
+            if (data.mapId != null)
                 list.add(data.mapId!!)
         }
         return list
     }
-    fun getMapId(player: Player) : Int? {
+
+    fun getMapId(player: Player): Int? {
         return playerData[player.uniqueId]?.mapId
     }
-    fun getFreeMapId() : Int? {
+
+    fun getFreeMapId(): Int? {
         val usingIds = getUsingMapIds()
         // mapIdsから利用中のMapIdを除外したリストを作成
         val freeIds = mapIds.filter { !usingIds.contains(it) }
@@ -91,6 +94,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         }
         return freeIds[0]
     }
+
     fun save(p: CommandSender? = null): Boolean {
         val file = File(Main.plugin.dataFolder, File.separator + "apps.yml")
         val config = YamlConfiguration.loadConfiguration(file)
@@ -103,19 +107,22 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         }
         return true
     }
-    fun isAppMapId(mapId: Int) : Boolean {
+
+    fun isAppMapId(mapId: Int): Boolean {
         return mapIds.contains(mapId)
     }
+
     // inventoryの中の地図のIDをすべて書き換える
-    private fun updateInventoryMap(player: Player, mapId:Int) {
+    private fun updateInventoryMap(player: Player, mapId: Int) {
         info("updateInventoryMap $mapId")
         val inventory = player.inventory
         for (i in 0 until inventory.size) {
             val item = inventory.getItem(i) ?: continue
-            updateMapId(item,mapId)
+            updateMapId(item, mapId)
         }
     }
-    private fun updateMapId(item: ItemStack, mapId:Int) : Boolean {
+
+    private fun updateMapId(item: ItemStack, mapId: Int): Boolean {
         if (item.type != Material.FILLED_MAP) {
             return false
         }
@@ -126,18 +133,21 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         item.setMapId(mapId)
         return true
     }
+
     fun getAppKey(item: ItemStack): String? {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return null
         // key指定がないものは無視
         return pd.get<String?>(Main.plugin, "man10display.app.key", PersistentDataType.STRING) ?: return null
     }
+
     fun getAppImage(item: ItemStack): String? {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return null
         // key指定がないものは無視
         return pd.get<String?>(Main.plugin, "man10display.app.image", PersistentDataType.STRING) ?: return null
     }
+
     fun getAppMacro(item: ItemStack): String? {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return null
@@ -159,9 +169,9 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         return true
     }
 
-    fun initMapIds(){
+    fun initMapIds() {
         load(null)
-        if(mapIds.isNotEmpty()){
+        if (mapIds.isNotEmpty()) {
             return
         }
 
@@ -196,6 +206,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         playerDataThread?.interrupt()
 
     }
+
     private fun playerDataTask() {
         for (player in Bukkit.getOnlinePlayers()) {
             val uuid = player.uniqueId
@@ -222,7 +233,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
     // ログインイベント
     @EventHandler
     fun onPlayerJoin(e: PlayerJoinEvent) {
-      //  info("Player Join ${e.player.name}")
+        //  info("Player Join ${e.player.name}")
         val player = e.player
         playerData[player.uniqueId] = AppPlayerData()
         var mapId = getFreeMapId()
@@ -231,17 +242,17 @@ class AppManager(var plugin: JavaPlugin) : Listener {
 
         // 3秒後にプレイヤーのインベントリの地図のIDを書き換える
         Bukkit.getScheduler().runTaskLater(Main.plugin, Runnable {
-            updateInventoryMap(player,mapId!!)
+            updateInventoryMap(player, mapId!!)
 
             var item = player.inventory.itemInMainHand
-            startMapItemTask(player,item)
+            startMapItemTask(player, item)
         }, 20L * 3)
     }
 
     @EventHandler
     fun onPlayerQuit(e: PlayerQuitEvent) {
         val player = e.player
-   //     info("Player Quit ${player.name}")
+        //     info("Player Quit ${player.name}")
         val data = playerData[player.uniqueId] ?: return
         data.stop()
         // プレイヤーデータを削除
@@ -271,7 +282,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
     fun onMapInitialize(event: MapInitializeEvent) {
         val mapView: MapView = event.map
 
-        if(!mapIds.contains(mapView.id)){
+        if (!mapIds.contains(mapView.id)) {
             return
         }
         info("[App]onMapInitialize ${mapView.id}")
@@ -305,7 +316,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         if (e.rightClicked is ItemFrame) {
             val itemFrame = e.rightClicked as ItemFrame
             val item = player.inventory.itemInMainHand
-            if(item.type != Material.FILLED_MAP){
+            if (item.type != Material.FILLED_MAP) {
                 return
             }
             val mapId = item.getMapId() ?: return
@@ -336,10 +347,10 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         }
         item.setMapId(mapId!!)
         val image = getAppImage(item)
-        if(image != null){
+        if (image != null) {
             info("image $image")
             data.app = App(mapId, player, "image")
-            data.app!!.startImageTask(image,player)
+            data.app!!.startImageTask(image, player)
         }
 
         val macro = getAppMacro(item)
@@ -356,6 +367,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         val item = e.player.inventory.getItem(e.newSlot) ?: return
         startMapItemTask(e.player, item)
     }
+
     @EventHandler
     fun onEntityPickupItem(event: EntityPickupItemEvent) {
         // エンティティがプレイヤーであるかチェック
@@ -366,16 +378,17 @@ class AppManager(var plugin: JavaPlugin) : Listener {
             val itemStack: ItemStack = itemEntity.itemStack
             // mapId更新
             var mapId = getMapId(player)
-            updateMapId(itemStack,mapId!!)
+            updateMapId(itemStack, mapId!!)
             info("onEntityPickupItem ${mapId}")
             // 1秒後に起動
             Bukkit.getScheduler().runTaskLater(Main.plugin, Runnable {
                 var item = player.inventory.itemInMainHand
-                startMapItemTask(player,item)
+                startMapItemTask(player, item)
             }, 20L * 1)
-           // startMapItemTask(player, player.inventory.itemInMainHand)
+            // startMapItemTask(player, player.inventory.itemInMainHand)
         }
     }
+
     @EventHandler
     fun onInventoryClick(e: InventoryClickEvent) {
         //info("onInventoryClick",e.whoClicked)
@@ -383,7 +396,7 @@ class AppManager(var plugin: JavaPlugin) : Listener {
 
     @EventHandler
     fun onInventoryDrag(e: InventoryDragEvent) {
-       // info("onInventoryDrag",e.whoClicked)
+        // info("onInventoryDrag",e.whoClicked)
     }
 
     @EventHandler
@@ -393,20 +406,19 @@ class AppManager(var plugin: JavaPlugin) : Listener {
 
     @EventHandler
     fun onInventoryMoveItem(e: InventoryMoveItemEvent) {
-       // info("onInventoryMoveItem")
+        // info("onInventoryMoveItem")
     }
-
 
 
     @EventHandler
     fun onInventory(e: InventoryEvent) {
-    //    info("onInventory",e.view.player)
+        //    info("onInventory",e.view.player)
     }
     // endregion
 
     // region Mouse Event
     fun onButtonClick(player: Player) {
-     //   interactMap(player)
+        //   interactMap(player)
     }
 
     // 右クリックイベント
@@ -428,17 +440,16 @@ class AppManager(var plugin: JavaPlugin) : Listener {
 
 
     fun onRightButtonUp(player: Player) {
-    //    info("onRightButtonUp", player)
-    //    if (playerData[player.uniqueId]?.hasPen == false)
-    //        return
+        //    info("onRightButtonUp", player)
+        //    if (playerData[player.uniqueId]?.hasPen == false)
+        //        return
     }
 
 
-
     fun onRightButtonDown(player: Player) {
- //       info("onRightButtonDown", player)
- //       if (playerData[player.uniqueId]?.hasPen == false)
- //           return
+        //       info("onRightButtonDown", player)
+        //       if (playerData[player.uniqueId]?.hasPen == false)
+        //           return
 
     }
 

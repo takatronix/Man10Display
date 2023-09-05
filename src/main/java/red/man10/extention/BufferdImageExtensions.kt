@@ -129,6 +129,7 @@ fun BufferedImage.drawTextCenter(text: String, size: Float = 13.0f, color: Color
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+
 fun BufferedImage.drawTextLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
@@ -143,6 +144,7 @@ fun BufferedImage.drawTextLeft(text: String, size: Float = 13.0f, color: Color =
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+
 fun BufferedImage.drawTextRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
@@ -157,6 +159,7 @@ fun BufferedImage.drawTextRight(text: String, size: Float = 13.0f, color: Color 
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+
 fun BufferedImage.drawTextTopLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
@@ -171,7 +174,8 @@ fun BufferedImage.drawTextTopLeft(text: String, size: Float = 13.0f, color: Colo
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
-fun BufferedImage.drawTextTopRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle{
+
+fun BufferedImage.drawTextTopRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.font = graphics.font.deriveFont(size)
@@ -185,6 +189,7 @@ fun BufferedImage.drawTextTopRight(text: String, size: Float = 13.0f, color: Col
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+
 fun BufferedImage.drawTextTop(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
@@ -199,6 +204,7 @@ fun BufferedImage.drawTextTop(text: String, size: Float = 13.0f, color: Color = 
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+
 fun BufferedImage.drawTextBottom(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
@@ -213,7 +219,8 @@ fun BufferedImage.drawTextBottom(text: String, size: Float = 13.0f, color: Color
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
-fun BufferedImage.drawTextBottomRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle{
+
+fun BufferedImage.drawTextBottomRight(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.font = graphics.font.deriveFont(size)
@@ -228,7 +235,7 @@ fun BufferedImage.drawTextBottomRight(text: String, size: Float = 13.0f, color: 
     return Rectangle(x, y, width, height)
 }
 
-fun BufferedImage.drawTextBottomLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle{
+fun BufferedImage.drawTextBottomLeft(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.font = graphics.font.deriveFont(size)
@@ -242,6 +249,7 @@ fun BufferedImage.drawTextBottomLeft(text: String, size: Float = 13.0f, color: C
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
+
 fun BufferedImage.drawImageCenter(image: BufferedImage): Rectangle {
     // 描画先の画像サイズ
     val targetWidth = this.width
@@ -277,17 +285,18 @@ fun BufferedImage.drawImageCenter(image: BufferedImage): Rectangle {
     this.graphics.drawImage(image, x, y, maxWidth, maxHeight, null)
     return Rectangle(x, y, maxWidth, maxHeight)
 }
-fun BufferedImage.drawImage(image: BufferedImage,x:Int = 0,y:Int = 0,w:Int = -1,h:Int=-1): Rectangle {
+
+fun BufferedImage.drawImage(image: BufferedImage, x: Int = 0, y: Int = 0, w: Int = -1, h: Int = -1): Rectangle {
 
     // 元画像のサイズ
     val sourceWidth = image.width
     val sourceHeight = image.height
 
-    var width = w;
-    var height = h;
-    if(width==-1)
+    var width = w
+    var height = h
+    if (width == -1)
         width = sourceWidth
-    if(height==-1)
+    if (height == -1)
         height = sourceHeight
 
     this.graphics.drawImage(image, x, y, width, height, null)
@@ -326,7 +335,7 @@ fun BufferedImage.drawImageFully(image: BufferedImage): Rectangle {
     return Rectangle(x, y, newWidth, newHeight)
 }
 
-fun BufferedImage.drawImageNoMargin(image: BufferedImage,x:Int = 0,y:Int = 0): Rectangle {
+fun BufferedImage.drawImageNoMargin(image: BufferedImage, x: Int = 0, y: Int = 0): Rectangle {
     // 描画先の画像サイズ
     val targetWidth = this.width
     val targetHeight = this.height

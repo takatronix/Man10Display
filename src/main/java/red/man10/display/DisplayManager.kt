@@ -421,7 +421,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
 
     @EventHandler
     fun onCraftItem(event: CraftItemEvent) {
-        if(isCopyDisabled){
+        if (isCopyDisabled) {
             val matrix = event.inventory.matrix
             for (item in matrix) {
                 if (item != null && item.type == Material.FILLED_MAP) {
@@ -432,6 +432,7 @@ class DisplayManager(main: JavaPlugin) : Listener {
             }
         }
     }
+
     @EventHandler
     fun onPlayerQuit(e: PlayerQuitEvent) {
         val player = e.player

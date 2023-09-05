@@ -96,7 +96,7 @@ private fun parseCommand(line: String): MacroCommand? {
         val args = line.substringAfter("RANDOM").trim()
         return MacroCommand(RANDOM, listOf(args))
     }
-    if(type == TEXT){
+    if (type == TEXT) {
         // 文字列が""で囲まれている場合は、それを1つの引数として扱う
         var text = line.trim()
         // 最初の４文字のtextを削除
@@ -192,11 +192,11 @@ class MacroEngine {
     private var currentJob: Thread? = null  // Current job
     fun stop() {
         info("Stopping macro execution...")
-        try{
+        try {
             shouldStop = true
             currentJob?.interrupt()
-        }catch (e:Exception){
-         //   info(e.message)
+        } catch (e: Exception) {
+            //   info(e.message)
         }
     }
 
@@ -245,7 +245,7 @@ class MacroEngine {
                 break
             }
 
-            if(debugMode) info("[MACRO]$executingMacroName([$currentLineIndex]) $command")
+            if (debugMode) info("[MACRO]$executingMacroName([$currentLineIndex]) $command")
             when (command.type) {
                 GOTO -> {
                     val label = command.params[0]
@@ -395,7 +395,7 @@ class MacroEngine {
                 else -> {
                     // パラメータの変数を展開する
                     val list = mutableListOf<String>()
-                    for(param in command.params){
+                    for (param in command.params) {
                         var text = param.removeDoubleQuotes()
                         text = evaluateStringExpression(text)
                         list.add(text)
@@ -417,7 +417,7 @@ class MacroEngine {
         if (ifStack.isNotEmpty()) {
             throw IllegalArgumentException("Unclosed IF block. Missing ENDIF.")
         }
-        if(debugMode){
+        if (debugMode) {
             info("Macro execution finished.")
         }
     }
@@ -593,14 +593,14 @@ class MacroEngine {
     private fun parseMacroFile(filePath: String): List<MacroCommand> {
         val commands = mutableListOf<MacroCommand>()
 
-        if(debugMode)
+        if (debugMode)
             info("Parsing macro file: $filePath")
         File(filePath).forEachLine { line ->
-            if(debugMode) info("Parsing line: $line")
+            if (debugMode) info("Parsing line: $line")
             // 行を解析してMacroCommandに変換
             val command = parseCommand(line)
             if (command != null) {
-                if(debugMode) info("Parsed command: $command")
+                if (debugMode) info("Parsed command: $command")
                 commands.add(command)
             }
         }

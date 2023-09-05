@@ -3,7 +3,7 @@ version: '1.0'
 main: red.man10.display.Main
 api-version: 1.19
 prefix: Man10Display
-authors: [takatronix]
+authors: [ takatronix ]
 description: Minecraft Display System
 website: https://man10.red
 softdepend:

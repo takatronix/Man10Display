@@ -7,26 +7,23 @@ import org.bukkit.map.MapPalette
 import red.man10.extention.drawImageFully
 import java.awt.image.BufferedImage
 
-class App(val mapId: Int, val player: Player,val key: String) :  Display() {
+class App(val mapId: Int, val player: Player, val key: String) : Display() {
 
-  //  var globalMapId: Int = -1
+    //  var globalMapId: Int = -1
     var localMapId: Int = -1
 
-    init{
+    init {
         this.width = 1
         this.height = 1
         super.init()
     }
 
 
-    companion object{
+    companion object;
 
-    }
     override fun getTargetPlayers(): List<Player> {
         return listOf(player)
     }
-
-
 
 
     override fun getMessagePlayers(): List<Player> {
@@ -73,14 +70,14 @@ class App(val mapId: Int, val player: Player,val key: String) :  Display() {
 
         packetCache[key] = packets
 
-        if(send){
+        if (send) {
             sendMapCache(getTargetPlayers(), key)
         }
     }
 
-    private var  thread :Thread? =null
+    private var thread: Thread? = null
     private var threadExit = false
-    fun startImageTask(imagePath: String,player: Player) {
+    fun startImageTask(imagePath: String, player: Player) {
 
         this.thread = Thread(Runnable {
             //info("image thread start $imagePath",player)
@@ -88,16 +85,16 @@ class App(val mapId: Int, val player: Player,val key: String) :  Display() {
                 threadExit = true
 
                 val cache = packetCache[imagePath]
-                if(cache != null){
+                if (cache != null) {
                     sendMapCache(getTargetPlayers(), imagePath)
                     return@Runnable
                 }
 
                 val image = ImageLoader.get(imagePath)
-                if(image != null){
+                if (image != null) {
                     this.currentImage?.drawImageFully(image)
                     this.createPacketCache(this.currentImage!!, imagePath, true)
-                }else{
+                } else {
                     this.sendMapCache(getTargetPlayers(), "blank")
                 }
 
@@ -107,7 +104,7 @@ class App(val mapId: Int, val player: Player,val key: String) :  Display() {
         this.thread!!.start()
     }
 
-    override fun deinit(){
+    override fun deinit() {
         this.macroEngine.stop()
         this.clearCache()
     }

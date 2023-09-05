@@ -223,21 +223,21 @@ open class Display() : MapPacketSender {
                     "contrast", "contrast_level", "brightness", "brightness_level",
                     "sharpen", "sharpen_level",
                     "scanline", "scanline_height",
-                    "distance","sound_distance","message_distance",
+                    "distance", "sound_distance", "message_distance",
                     "parallel_dithering", "parallelism",
                     "test_mode", "auto_run", "variable", "port"
                 )
             }
 
-        fun createMapId(player:Player? = null):Int{
+        fun createMapId(player: Player? = null): Int {
             var world = Bukkit.getWorlds()[0]
-            if(player!=null){
+            if (player != null) {
                 world = player.world
             }
             val mapView = Bukkit.getServer().createMap(world)
             mapView.scale = MapView.Scale.CLOSEST
             mapView.isUnlimitedTracking = true
-            info("create map id ${mapView.id} world $world",player)
+            info("create map id ${mapView.id} world $world", player)
             return mapView.id
         }
     }
@@ -585,14 +585,17 @@ open class Display() : MapPacketSender {
                 this.distance = value.toDouble()
                 sender.sendMessage("§aSet distance to $distance")
             }
+
             "sound_distance" -> {
                 this.sound_distance = value.toDouble()
                 sender.sendMessage("§aSet sound_distance to $sound_distance")
             }
+
             "message_distance" -> {
                 this.message_distance = value.toDouble()
                 sender.sendMessage("§aSet message_distance to $message_distance")
             }
+
             "parallel_dithering" -> {
                 this.parallelDithering = value.toBoolean()
                 this.dithering = false
@@ -783,6 +786,7 @@ open class Display() : MapPacketSender {
     fun isApp(): Boolean {
         return this is App
     }
+
     open fun getTargetPlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
@@ -800,6 +804,7 @@ open class Display() : MapPacketSender {
         }
         return players
     }
+
     open fun getMessagePlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
@@ -817,6 +822,7 @@ open class Display() : MapPacketSender {
         }
         return players
     }
+
     open fun getSoundPlayers(): List<Player> {
         val players = mutableListOf<Player>()
         this.playersCount = Bukkit.getOnlinePlayers().size
@@ -834,6 +840,7 @@ open class Display() : MapPacketSender {
         }
         return players
     }
+
     // 画面更新タスクを開始する
     private fun startVideoSendingPacketsTask() {
         info("$name stopSendingPacketsTask $refreshPeriod ms")
@@ -942,7 +949,7 @@ open class Display() : MapPacketSender {
     var updateCacheIndexList: MutableList<Int> = mutableListOf()
 
     // imageからパケット情報を作成する
-    open fun createPacketCache(image: BufferedImage, key: String = "current",send:Boolean = false) {
+    open fun createPacketCache(image: BufferedImage, key: String = "current", send: Boolean = false) {
         val packets = mutableListOf<PacketContainer>()
         var index = 0
         for (y in 0 until image.height step MC_MAP_SIZE_Y) {
@@ -958,7 +965,7 @@ open class Display() : MapPacketSender {
         }
         packetCache[key] = packets
 
-        if(send){
+        if (send) {
             sendMapCache(getTargetPlayers(), key)
         }
     }
@@ -996,7 +1003,7 @@ open class Display() : MapPacketSender {
     }
 
 
-    fun reset(key:String = "current") {
+    fun reset(key: String = "current") {
         this.currentImage = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
         createPacketCache(currentImage!!, key)
         sendMapPacketsToPlayers(key)
@@ -1056,9 +1063,10 @@ open class Display() : MapPacketSender {
 
     // endregion
     // region: Macro
-    fun stop(){
+    fun stop() {
         macroEngine.stop()
     }
+
     fun runMacro(macroName: String, sender: CommandSender? = null): Boolean {
         info("runMacro : $macroName", sender)
         macroEngine.runMacroAsync(this, macroName) { macroCommand, index ->
