@@ -3,8 +3,8 @@ package red.man10.display.macro
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.display.Display
+import red.man10.display.info
 import red.man10.extention.*
-import red.man10.display.*
 import java.awt.Color
 import java.awt.Rectangle
 

@@ -2,14 +2,8 @@ package red.man10.display
 
 import com.comphenix.protocol.events.PacketContainer
 import org.bukkit.Bukkit
-import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapPalette
-import org.bukkit.map.MapView
-import red.man10.display.Main.Companion.imageManager
-import red.man10.display.macro.MacroCommand
 import red.man10.extention.drawImageFully
 import java.awt.image.BufferedImage
 

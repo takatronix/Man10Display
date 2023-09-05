@@ -15,7 +15,6 @@ import org.bukkit.event.inventory.*
 import org.bukkit.event.player.*
 import org.bukkit.event.server.MapInitializeEvent
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
