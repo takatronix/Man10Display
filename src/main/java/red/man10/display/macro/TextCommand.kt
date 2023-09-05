@@ -37,7 +37,9 @@ class TextCommand(private var macroName: String, private var macroCommand: Macro
                 if (param == "noupdate") {
                     sendFlag = false
                 }
-
+                if (param == "update") {
+                    sendFlag = true
+                }
                 if (param.startsWith("x=")) {
                     x = param.replace("x=", "").toDouble()
                     useXY = true
@@ -50,7 +52,10 @@ class TextCommand(private var macroName: String, private var macroCommand: Macro
                     pos = param.replace("pos=", "")
                 }
                 if (param.startsWith("color=")) {
-                    textColor = Color.decode(param.replace("color=", ""))
+                    textColor = param.replace("color=", "").toColor()
+                }
+                if (param.startsWith("c=")) {
+                    textColor = param.replace("c=", "").toColor()
                 }
                 if (param.startsWith("size=")) {
                     fontSize = param.replace("size=", "").toFloat()
