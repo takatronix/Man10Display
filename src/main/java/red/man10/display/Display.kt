@@ -981,7 +981,7 @@ open class Display() : MapPacketSender {
         // 画像のキャッシュを作成
         createPacketCache(this.currentImage!!, key)
         if (updateRect == null) {
-            updateCacheIndexList = (0 until mapCount).toMutableList()
+            sendMapCacheByIndexList(getTargetPlayers(), (0 until mapCount).toMutableList(), key)
             return
         }
 
@@ -1083,6 +1083,9 @@ open class Display() : MapPacketSender {
                     FILL -> FillCommand(macroName, macroCommand).run(this, players, sender)
                     PLAY_SOUND -> PlaySoundCommand(macroName, macroCommand).run(this, getSoundPlayers(), sender)
                     TEXT -> TextCommand(macroName, macroCommand).run(this, players, sender)
+                    RECT -> RectCommand(macroName, macroCommand).run(this, players, sender)
+                    POLYGON -> PolygonCommand(macroName, macroCommand).run(this, players, sender)
+                    CIRCLE -> CircleCommand(macroName, macroCommand).run(this, players, sender)
                     else -> {
                         error("unknown macro type : ${macroCommand.type}", sender)
                     }

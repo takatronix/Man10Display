@@ -30,7 +30,7 @@ class Main : JavaPlugin(), Listener {
         settings.load(this, config)
         imageManager = ImageManager(settings.imagePath)
         protocolManager = ProtocolLibrary.getProtocolManager()
-        displayManager = DisplayManager(this)
+        displayManager = DisplayManager()
 
         commandRouter = Man10DisplayCommand()
         getCommand("mdisplay")!!.setExecutor(commandRouter)

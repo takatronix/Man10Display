@@ -1,9 +1,6 @@
 package red.man10.extention
 
-import java.awt.BasicStroke
-import java.awt.Color
-import java.awt.Rectangle
-import java.awt.RenderingHints
+import java.awt.*
 import java.awt.image.BufferedImage
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -80,18 +77,22 @@ fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, r: Int, g: Int, b: Int
     return Rectangle(x - radius, y - radius, radius * 2, radius * 2)
 }
 
-fun BufferedImage.drawRect(x: Int, y: Int, width: Int, height: Int, r: Int, g: Int, b: Int): Rectangle {
-    // 色を生成
-    val color = Color(r, g, b)
+fun BufferedImage.drawRect(x: Int, y: Int, width: Int, height: Int, color: Color): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.drawRect(x, y, width, height)
+    graphics.dispose()
+    return Rectangle(x, y, width, height)
+}
 
-    // 四角形を描画
+fun BufferedImage.fillRect(x: Int, y: Int, width: Int, height: Int, color: Color): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.fillRect(x, y, width, height)
     graphics.dispose()
-    // 描画範囲をかえす
     return Rectangle(x, y, width, height)
 }
+
 
 fun BufferedImage.resize(width: Int, height: Int): BufferedImage {
     val resizedImage = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
@@ -115,6 +116,33 @@ fun BufferedImage.drawText(x: Int, y: Int, text: String, size: Float = 13.0f, co
     return Rectangle(x, y, width, height)
 }
 
+fun BufferedImage.drawPolygon(xPoints: IntArray, yPoints: IntArray, color: Color): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.drawPolygon(Polygon(xPoints, yPoints, xPoints.size))
+    graphics.dispose()
+
+    val minX = xPoints.minOrNull() ?: 0
+    val minY = yPoints.minOrNull() ?: 0
+    val maxX = xPoints.maxOrNull() ?: 0
+    val maxY = yPoints.maxOrNull() ?: 0
+
+    return Rectangle(minX, minY, maxX - minX, maxY - minY)
+}
+
+fun BufferedImage.fillPolygon(xPoints: IntArray, yPoints: IntArray, color: Color): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.fillPolygon(Polygon(xPoints, yPoints, xPoints.size))
+    graphics.dispose()
+
+    val minX = xPoints.minOrNull() ?: 0
+    val minY = yPoints.minOrNull() ?: 0
+    val maxX = xPoints.maxOrNull() ?: 0
+    val maxY = yPoints.maxOrNull() ?: 0
+
+    return Rectangle(minX, minY, maxX - minX, maxY - minY)
+}
 fun BufferedImage.drawTextCenter(text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
@@ -397,11 +425,20 @@ fun BufferedImage.drawLine(x1: Int, y1: Int, x2: Int, y2: Int, radius: Int, colo
     return Rectangle(x - radius, y - radius, dx + radius, dy + radius)
 }
 
-fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, color: Color): Rectangle {
+fun BufferedImage.drawFillCircle(x: Int, y: Int, radius: Int, color: Color): Rectangle {
     // 円を描画
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.fillOval(x - radius, y - radius, radius * 2, radius * 2)
+    graphics.dispose()
+    return Rectangle(x - radius, y - radius, radius * 2, radius * 2)
+}
+
+fun BufferedImage.drawCircle(x: Int, y: Int, radius: Int, color: Color): Rectangle {
+    // 円を描画
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.drawOval(x - radius, y - radius, radius * 2, radius * 2)
     graphics.dispose()
     return Rectangle(x - radius, y - radius, radius * 2, radius * 2)
 }

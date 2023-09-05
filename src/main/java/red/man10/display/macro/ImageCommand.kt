@@ -61,6 +61,10 @@ class ImageCommand(private var macroName: String, private var macroCommand: Macr
                 }
             }
         }
+        if (changePos) {
+            transparent = true
+
+        }
 
         //　　キャッシュにすでに読み込み済みならそれを送信する
         if (useCache && display.packetCache[fileName] != null) {

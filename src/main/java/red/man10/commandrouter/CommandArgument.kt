@@ -10,7 +10,6 @@ class CommandArgument {
     private var allowedStringsFunction: Function<CommandSender, ArrayList<String>>? = null
     private var aliasStringsFunction: Function<CommandSender, java.util.ArrayList<String>>? = null
     private var argumentParser: Function<String, Boolean>? = null
-    var rootCommandObject: CommandObject? = null
 
     var explanations = ArrayList<String>()
     fun explanation(vararg text: String): CommandArgument {

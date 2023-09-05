@@ -4,6 +4,7 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import red.man10.display.Display
 import red.man10.extention.fill
+import red.man10.extention.toColor
 
 class FillCommand(private var macroName: String, private var macroCommand: MacroCommand) : MacroCommandHandler() {
     override fun run(display: Display, players: List<Player>, sender: CommandSender?) {
@@ -16,11 +17,14 @@ class FillCommand(private var macroName: String, private var macroCommand: Macro
                 if (filter == "noupdate") {
                     sendFlag = false
                 }
+                if (filter == "update") {
+                    sendFlag = true
+                }
             }
 
         }
 
-        val rect = display.currentImage?.fill(color)
+        val rect = display.currentImage?.fill(color.toColor())
         if (sendFlag) {
             display.update(rect)
         }

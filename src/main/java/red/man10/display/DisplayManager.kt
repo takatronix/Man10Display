@@ -18,7 +18,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
 import org.bukkit.persistence.PersistentDataType
-import org.bukkit.plugin.java.JavaPlugin
 import placeMap
 import red.man10.display.itemframe.ItemFrameCoordinate
 import red.man10.display.macro.MacroEngine
@@ -57,7 +56,7 @@ class DisplayPlayerData {
 
 }
 
-class DisplayManager(main: JavaPlugin) : Listener {
+class DisplayManager : Listener {
     val displays = mutableListOf<Display>()
     private val playerData = ConcurrentHashMap<UUID, DisplayPlayerData>()
     private var playerDataThread: Thread? = null

@@ -138,21 +138,21 @@ class AppManager(var plugin: JavaPlugin) : Listener {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return null
         // key指定がないものは無視
-        return pd.get<String?>(Main.plugin, "man10display.app.key", PersistentDataType.STRING) ?: return null
+        return pd.get<String?>(Main.plugin, "man10display.app.key", PersistentDataType.STRING)
     }
 
     fun getAppImage(item: ItemStack): String? {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return null
         // key指定がないものは無視
-        return pd.get<String?>(Main.plugin, "man10display.app.image", PersistentDataType.STRING) ?: return null
+        return pd.get<String?>(Main.plugin, "man10display.app.image", PersistentDataType.STRING)
     }
 
     fun getAppMacro(item: ItemStack): String? {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return null
         // key指定がないものは無視
-        return pd.get<String?>(Main.plugin, "man10display.app.macro", PersistentDataType.STRING) ?: return null
+        return pd.get<String?>(Main.plugin, "man10display.app.macro", PersistentDataType.STRING)
     }
 
     fun load(p: CommandSender? = null): Boolean {
