@@ -78,6 +78,12 @@ class CreateTicketCommand(private var plugin: JavaPlugin) : CommandExecutor {
                     PersistentDataType.STRING,
                     data
                 )
+                "op_command" -> itemInHand.setPersistentData(
+                    Main.plugin,
+                    "man10display.ticket.op_command",
+                    PersistentDataType.STRING,
+                    data
+                )
 
                 "data" -> itemInHand.setPersistentData(
                     Main.plugin,

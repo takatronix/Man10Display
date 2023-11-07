@@ -17,6 +17,7 @@ import org.bukkit.event.server.MapInitializeEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.MapMeta
 import org.bukkit.map.MapView
+import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
 import placeMap
 import red.man10.display.itemframe.ItemFrameCoordinate
@@ -634,6 +635,8 @@ class DisplayManager : Listener {
         val meta = item.itemMeta
         val pd = meta?.persistentDataContainer ?: return false
         meta.persistentDataContainer
+        interactItem(player,pd)
+
         // ペンを持っているか
         // PersistentDataの中身を取得
         val type = pd.get(Main.plugin, "man10display.type", PersistentDataType.STRING)
@@ -641,6 +644,7 @@ class DisplayManager : Listener {
         val color = pd.get(Main.plugin, "man10display.pen.color", PersistentDataType.STRING)
         if (type != "pen") {
             playerData[player.uniqueId]?.hasPen = false
+
             return false
         }
         playerData[player.uniqueId]?.penWidth = width!!.toInt()
@@ -648,6 +652,29 @@ class DisplayManager : Listener {
         playerData[player.uniqueId]?.hasPen = true
         return true
     }
+    private fun interactItem(player:Player,pd: PersistentDataContainer):Boolean {
+        var command = pd.get(Main.plugin, "man10display.ticket.command", PersistentDataType.STRING)
+        var op_command = pd.get(Main.plugin, "man10display.ticket.op_command", PersistentDataType.STRING)
+
+        // %player%をプレイヤー名に置き換え
+        command = command?.replace("%player%",player.name)
+        op_command = op_command?.replace("%player%",player.name)
+        // #はスペースにおきかえ
+        command = command?.replace("#"," ")
+        op_command = op_command?.replace("#"," ")
+
+
+        if(command != null){
+            info("command $command",player)
+            Bukkit.getServer().dispatchCommand(player,command)
+        }
+        if(op_command != null){
+            info("op_command $op_command",player)
+            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),op_command)
+        }
+        return true
+    }
+
 
     private fun playerDataTask() {
         for (player in Bukkit.getOnlinePlayers()) {

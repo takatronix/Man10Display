@@ -224,6 +224,7 @@ class Man10DisplayCommand : CommandRouter(Main.plugin, "mdisplay") {
                         "end",
                         "player",
                         "command",
+                        "op_command",
                         "data",
                         "macro",
                         "key",
