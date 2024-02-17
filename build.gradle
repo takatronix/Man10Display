@@ -18,7 +18,7 @@ repositories {
 
 dependencies {
     compileOnly fileTree(dir: 'libs', include: '*.jar')
-    compileOnly 'io.papermc.paper:paper-api:1.19.1-R0.1-SNAPSHOT'
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compileOnly 'com.github.dmulloy2:ProtocolLib:5.0.0'
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
