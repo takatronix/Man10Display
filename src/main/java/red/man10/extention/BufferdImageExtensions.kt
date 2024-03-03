@@ -137,7 +137,7 @@ fun BufferedImage.drawText(x: Int, y: Int, text: String, size: Float = 13.0f, co
     graphics.font = graphics.font.deriveFont(size)
     val metrics = graphics.fontMetrics
     val height = metrics.height
-    val lines = text.split("\n")
+    val lines = text.split("\\n")
     var y1 = y
     for (line in lines) {
         graphics.drawString(line, x, y1)
