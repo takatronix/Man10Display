@@ -63,9 +63,9 @@ class TextCommand(private var macroName: String, private var macroCommand: Macro
             }
         }
 
-        var image = display.currentImage ?: return
+        val image = display.currentImage ?: return
         if (useXY) {
-            var rect = image.drawText(x.toInt(), y.toInt(), text, fontSize, textColor)
+            val rect = image.drawText(x.toInt(), y.toInt(), text, fontSize, textColor)
             if (sendFlag) {
                 display.update(rect)
             }

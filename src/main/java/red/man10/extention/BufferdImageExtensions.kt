@@ -103,7 +103,7 @@ fun BufferedImage.resize(width: Int, height: Int): BufferedImage {
     return resizedImage
 }
 
-fun BufferedImage.drawText(x: Int, y: Int, text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+fun BufferedImage.drawText_x(x: Int, y: Int, text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
     val graphics = this.createGraphics()
     graphics.color = color
     graphics.font = graphics.font.deriveFont(size)
@@ -115,6 +115,38 @@ fun BufferedImage.drawText(x: Int, y: Int, text: String, size: Float = 13.0f, co
     val height = metrics.height
     return Rectangle(x, y, width, height)
 }
+// 複数行のテキストを描画する
+fun BufferedImage.drawText(x: Int, y: Int, text: List<String>, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    val metrics = graphics.fontMetrics
+    val height = metrics.height
+    var y1 = y
+    for (line in text) {
+        graphics.drawString(line, x, y1)
+        y1 += height
+    }
+    graphics.dispose()
+    return Rectangle(x, y, 0, y1 - y)
+}
+// 改行を含むテキストを描画する
+fun BufferedImage.drawText(x: Int, y: Int, text: String, size: Float = 13.0f, color: Color = Color.WHITE): Rectangle {
+    val graphics = this.createGraphics()
+    graphics.color = color
+    graphics.font = graphics.font.deriveFont(size)
+    val metrics = graphics.fontMetrics
+    val height = metrics.height
+    val lines = text.split("\n")
+    var y1 = y
+    for (line in lines) {
+        graphics.drawString(line, x, y1)
+        y1 += height
+    }
+    graphics.dispose()
+    return Rectangle(x, y, 0, y1 - y)
+}
+
 
 fun BufferedImage.drawPolygon(xPoints: IntArray, yPoints: IntArray, color: Color): Rectangle {
     val graphics = this.createGraphics()
@@ -153,7 +185,17 @@ fun BufferedImage.drawTextCenter(text: String, size: Float = 13.0f, color: Color
     val height = metrics.height
     val x = (this.width - width) / 2
     val y = (this.height - height) / 2
-    graphics.drawString(text, x, y)
+    // textを複数行に分割
+    val lines = text.split("\\n")
+    var y1 = y
+    for (line in lines) {
+        val width = metrics.stringWidth(line)
+        graphics.drawString(line, (this.width - width) / 2, y1)
+        y1 += height
+    }
+
+    //graphics.drawString(text, x, y)
+
     graphics.dispose()
     return Rectangle(x, y, width, height)
 }
