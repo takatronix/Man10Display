@@ -613,7 +613,10 @@ open class Display() : MapPacketSender {
                 sender.sendMessage("§aSet location to ${loc.world?.name}(${loc.x.toInt()},${loc.y.toInt()},${loc.z.toInt()})")
             }
 
-            "auto_run" -> this.autoRun = value.toBoolean()
+            "auto_run" -> {
+                this.autoRun = value.toBoolean()
+                sender.sendMessage("§aSet auto_run to $autoRun")
+            }
             "variable" -> {
                 val variable = value.split("=")
                 if (variable.size != 2) {
@@ -626,6 +629,7 @@ open class Display() : MapPacketSender {
                 }
                 val macroValue = variable[1]
                 macroEngine.setVariable(macroKey, macroValue)
+                sender.sendMessage("§aSet variable $macroKey=$macroValue")
             }
 
             "port" -> {
